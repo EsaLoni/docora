@@ -1,0 +1,129 @@
+# ==============================================================================
+# Universal Document Intelligence Platform (UDIP)
+# Production Deployment Stack with Reverse Proxy and Resource Isolation
+# ==============================================================================
+
+services:
+  # 1. Nginx Reverse Proxy & SSL Termination
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: udip-prod-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - certbot_conf:/etc/letsencrypt:ro
+      - certbot_www:/var/www/certbot:ro
+    depends_on:
+      - backend
+      - frontend
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
+    networks:
+      - udip_prod_net
+
+  # 2. PostgreSQL 16 with pgvector Extension
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: udip-prod-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Database password required}
+      POSTGRES_DB: ${POSTGRES_DB:-udip_db}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-udip_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1536M
+    networks:
+      - udip_prod_net
+
+  # 3. FastAPI Modular Monolith Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: udip-prod-backend
+    restart: unless-stopped
+    env_file:
+      - .env.production
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - storage_data:/app/storage/documents
+    deploy:
+      resources:
+        limits:
+          cpus: "1.5"
+          memory: 2048M
+    networks:
+      - udip_prod_net
+
+  # 4. Durable Background Worker
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: udip-prod-worker
+    restart: unless-stopped
+    command: ["python", "-m", "app.services.worker.runner"]
+    env_file:
+      - .env.production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      backend:
+        condition: service_started
+    volumes:
+      - storage_data:/app/storage/documents
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 2048M
+    networks:
+      - udip_prod_net
+
+  # 5. Next.js 16 Standalone Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: udip-prod-frontend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+    depends_on:
+      - backend
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1024M
+    networks:
+      - udip_prod_net
+
+volumes:
+  postgres_data:
+  storage_data:
+  certbot_conf:
+  certbot_www:
+
+networks:
+  udip_prod_net:
+    driver: bridge

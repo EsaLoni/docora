@@ -1,0 +1,103 @@
+# ==============================================================================
+# Universal Document Intelligence Platform (UDIP)
+# Local Development & Testing Multi-Container Stack
+# ==============================================================================
+
+services:
+  # 1. PostgreSQL 16 with pgvector Extension
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: udip-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespassword
+      POSTGRES_DB: udip_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d udip_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - udip_net
+
+  # 2. FastAPI Modular Monolith Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: udip-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ENVIRONMENT: development
+      DEBUG: "true"
+      DATABASE_URL: postgresql+asyncpg://postgres:postgrespassword@postgres:5432/udip_db
+      DATABASE_SYNC_URL: postgresql+psycopg://postgres:postgrespassword@postgres:5432/udip_db
+      SECRET_KEY: insecure-dev-secret-key-change-in-production-min32chars!
+      ALLOW_DEV_AUTH: "true"
+      STORAGE_PROVIDER: local
+      LOCAL_STORAGE_DIR: /app/storage/documents
+      ALLOWED_ORIGINS: "http://localhost:3000,http://127.0.0.1:3000"
+    volumes:
+      - storage_data:/app/storage/documents
+    networks:
+      - udip_net
+
+  # 3. Durable Background Worker (Ingestion & Intelligence)
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: udip-worker
+    restart: unless-stopped
+    command: ["python", "-m", "app.services.worker.runner"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      backend:
+        condition: service_started
+    environment:
+      ENVIRONMENT: development
+      DATABASE_URL: postgresql+asyncpg://postgres:postgrespassword@postgres:5432/udip_db
+      DATABASE_SYNC_URL: postgresql+psycopg://postgres:postgrespassword@postgres:5432/udip_db
+      SECRET_KEY: insecure-dev-secret-key-change-in-production-min32chars!
+      STORAGE_PROVIDER: local
+      LOCAL_STORAGE_DIR: /app/storage/documents
+      WORKER_CONCURRENCY: 3
+    volumes:
+      - storage_data:/app/storage/documents
+    networks:
+      - udip_net
+
+  # 4. Next.js 16 Production Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: udip-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000/api/v1
+    networks:
+      - udip_net
+
+volumes:
+  postgres_data:
+  storage_data:
+
+networks:
+  udip_net:
+    driver: bridge

@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 48" fill="none">
+  <defs>
+    <linearGradient id="dll-primary" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0284C7"/>
+      <stop offset="45%" stop-color="#4F46E5"/>
+      <stop offset="100%" stop-color="#3730A3"/>
+    </linearGradient>
+    <linearGradient id="dll-accent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#9333EA"/>
+      <stop offset="100%" stop-color="#6366F1"/>
+    </linearGradient>
+    <linearGradient id="dll-sparkle" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#E0E7FF"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Docora Symbol (Icon Mark) -->
+  <g transform="translate(0, 0)">
+    <path d="M8 8C8 5.79086 9.79086 4 12 4H24C33.9411 4 39 10.5 39 24C39 37.5 33.9411 44 24 44H12C9.79086 44 8 42.2091 8 40V8Z"
+          fill="url(#dll-primary)"/>
+    <path d="M15 11H23C29.5 11 32.5 15.5 32.5 24C32.5 32.5 29.5 37 23 37H15V11Z"
+          fill="#FFFFFF"/>
+    <path d="M24 4V13C24 14.6569 25.3431 16 27 16H36.5L24 4Z"
+          fill="url(#dll-accent)"/>
+    <path d="M22 17C22 20.866 19.3137 24 15.5 24C19.3137 24 22 27.134 22 31C22 27.134 24.6863 24 28.5 24C24.6863 24 22 20.866 22 17Z"
+          fill="url(#dll-primary)"/>
+    <circle cx="29.5" cy="18.5" r="1.5" fill="#0284C7"/>
+  </g>
+
+  <!-- Typography: Wordmark "Docora" -->
+  <text x="48" y="27" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+        font-size="22" font-weight="700" letter-spacing="-0.03em" fill="#0F172A">Docora</text>
+
+  <!-- Tagline: "Your documents. Your intelligence." -->
+  <text x="49" y="39" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+        font-size="8.5" font-weight="500" letter-spacing="0.02em" fill="#475569">Your documents. Your intelligence.</text>
+</svg>

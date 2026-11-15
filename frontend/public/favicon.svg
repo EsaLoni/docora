@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <defs>
+    <linearGradient id="fav-primary" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8"/>
+      <stop offset="60%" stop-color="#6366F1"/>
+      <stop offset="100%" stop-color="#4F46E5"/>
+    </linearGradient>
+    <linearGradient id="fav-sparkle" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#C084FC"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="32" height="32" rx="7" fill="#0B0F19"/>
+  <path d="M6 5.5C6 4.12 7.12 3 8.5 3H17C23.63 3 27 7.5 27 16C27 24.5 23.63 29 17 29H8.5C7.12 29 6 27.88 6 26.5V5.5Z"
+        fill="url(#fav-primary)"/>
+  <path d="M11 8H16.5C20.5 8 22.5 11 22.5 16C22.5 21 20.5 24 16.5 24H11V8Z"
+        fill="#0B0F19"/>
+  <path d="M16 11C16 13.76 14.21 16 11.5 16C14.21 16 16 18.24 16 21C16 18.24 17.79 16 20.5 16C17.79 16 16 13.76 16 11Z"
+        fill="url(#fav-sparkle)"/>
+</svg>

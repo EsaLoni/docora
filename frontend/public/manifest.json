@@ -1,0 +1,26 @@
+{
+  "name": "Docora — AI Document Intelligence",
+  "short_name": "Docora",
+  "description": "Your documents. Your intelligence. AI-powered document intelligence and research workspace.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0B0F19",
+  "theme_color": "#6366F1",
+  "icons": [
+    {
+      "src": "/brand/docora-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/brand/docora-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/brand/docora-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

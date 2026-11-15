@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <defs>
+    <linearGradient id="docora-primary" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8"/>
+      <stop offset="45%" stop-color="#6366F1"/>
+      <stop offset="100%" stop-color="#4338CA"/>
+    </linearGradient>
+    <linearGradient id="docora-accent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#C084FC"/>
+      <stop offset="100%" stop-color="#818CF8"/>
+    </linearGradient>
+    <linearGradient id="docora-sparkle" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#E0E7FF"/>
+    </linearGradient>
+    <radialGradient id="docora-glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#818CF8" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#818CF8" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Glow Backdrop -->
+  <circle cx="24" cy="24" r="18" fill="url(#docora-glow)"/>
+
+  <!-- Document Silhouette & Geometric 'D' Monogram -->
+  <path d="M10 8C10 5.79086 11.7909 4 14 4H26C35.9411 4 41 10.5 41 24C41 37.5 35.9411 44 26 44H14C11.7909 44 10 42.2091 10 40V8Z"
+        fill="url(#docora-primary)"/>
+
+  <!-- Inner Document Window -->
+  <path d="M17 11H25C31.5 11 34.5 15.5 34.5 24C34.5 32.5 31.5 37 25 37H17V11Z"
+        fill="#0B0F19"/>
+
+  <!-- Subtle Inner Guide Lines (Document Text Abstraction) -->
+  <line x1="20" y1="17" x2="27" y2="17" stroke="#334155" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="20" y1="31" x2="29" y2="31" stroke="#334155" stroke-width="1.5" stroke-linecap="round"/>
+
+  <!-- Dimensional Page Fold (Top-Right) -->
+  <path d="M26 4V13C26 14.6569 27.3431 16 29 16H38.5L26 4Z"
+        fill="url(#docora-accent)"/>
+
+  <!-- Intelligence Star (Primary AI Element) -->
+  <path d="M24 17C24 20.866 21.3137 24 17.5 24C21.3137 24 24 27.134 24 31C24 27.134 26.6863 24 30.5 24C26.6863 24 24 20.866 24 17Z"
+        fill="url(#docora-sparkle)"/>
+
+  <!-- Secondary Intelligence Node -->
+  <circle cx="31.5" cy="18.5" r="1.5" fill="#38BDF8"/>
+</svg>

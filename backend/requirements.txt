@@ -1,0 +1,36 @@
+# Core API Framework
+fastapi==0.115.5
+uvicorn[standard]==0.32.1
+pydantic==2.10.3
+pydantic-settings==2.6.1
+python-multipart==0.0.19
+httpx==0.28.1
+
+# Database & ORM
+sqlalchemy==2.1.8
+greenlet==3.5.6
+alembic==1.20.1
+asyncpg==0.32.0
+psycopg[binary]>=3.2,<4
+pgvector==0.5.1
+aiosqlite==0.22.1
+
+# Security & Authentication
+pyjwt[crypto]==2.15.1
+cryptography==50.0.2
+
+# Document Extraction & OCR
+pymupdf>=1.24.0
+python-docx>=1.1.0
+openpyxl>=3.1.5
+pandas>=2.2.0
+pillow>=10.4.0
+pytesseract>=0.3.10
+python-pptx>=1.0.0
+
+# Embeddings & Vector AI
+fastembed>=0.4.0
+
+# Testing
+pytest==8.3.4
+pytest-asyncio==0.24.0

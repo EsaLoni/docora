@@ -41,9 +41,10 @@ class LLMProviderFactory:
                 api_key = ""
             else:
                 api_key = _resolve_secret(gemini_raw) or _resolve_secret(cfg.LLM_API_KEY)
+            model = cfg.LLM_MODEL_NAME if "gemini" in cfg.LLM_MODEL_NAME else "gemini-3.8-flash"
             cls._instance = GeminiProvider(
                 api_key=api_key,
-                model_name=cfg.LLM_MODEL_NAME if "gemini" in cfg.LLM_MODEL_NAME else "gemini-3-flash-preview",
+                model_name=model,
                 temperature=cfg.LLM_TEMPERATURE,
                 max_tokens=cfg.LLM_MAX_TOKENS,
                 timeout_seconds=getattr(cfg, "LLM_TIMEOUT_SECONDS", 90.0),

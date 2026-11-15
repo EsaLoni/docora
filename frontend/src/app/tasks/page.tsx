@@ -71,28 +71,15 @@ export default function TasksPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const headers = {
-        "x-dev-user-email": user?.email || "dev@udip.local",
-        ...(apiClient.getAuthToken() ? { Authorization: `Bearer ${apiClient.getAuthToken()}` } : {}),
-      };
       const [actRes, sugRes, remRes] = await Promise.all([
-        fetch("http://localhost:8000/api/v1/actions", { headers }),
-        fetch("http://localhost:8000/api/v1/actions/suggestions", { headers }),
-        fetch("http://localhost:8000/api/v1/reminders", { headers }),
+        apiClient.listActions().catch(() => ({ items: [] })),
+        apiClient.listActionSuggestions().catch(() => ({ items: [] })),
+        apiClient.listReminders().catch(() => ({ items: [] })),
       ]);
 
-      if (actRes.ok) {
-        const d = await actRes.json();
-        setActions(d.items || []);
-      }
-      if (sugRes.ok) {
-        const d = await sugRes.json();
-        setSuggestions(d.items || []);
-      }
-      if (remRes.ok) {
-        const d = await remRes.json();
-        setReminders(d.items || []);
-      }
+      setActions((actRes.items as any) || []);
+      setSuggestions(sugRes.items || []);
+      setReminders(remRes.items || []);
     } catch (e) {
       console.warn("Failed to fetch tasks data", e);
     } finally {
@@ -106,15 +93,12 @@ export default function TasksPage() {
 
   const handleToggleComplete = async (action: ActionItem) => {
     const isCompleted = action.status === "completed";
-    const endpoint = isCompleted ? "reopen" : "complete";
     try {
-      await fetch(`http://localhost:8000/api/v1/actions/${action.id}/${endpoint}`, {
-        method: "POST",
-        headers: {
-          "x-dev-user-email": user?.email || "dev@udip.local",
-          ...(apiClient.getAuthToken() ? { Authorization: `Bearer ${apiClient.getAuthToken()}` } : {}),
-        },
-      });
+      if (isCompleted) {
+        await apiClient.reopenAction(action.id);
+      } else {
+        await apiClient.completeAction(action.id);
+      }
       fetchData();
     } catch {
       setActions((prev) =>
@@ -125,13 +109,7 @@ export default function TasksPage() {
 
   const handleDeleteAction = async (id: string) => {
     try {
-      await fetch(`http://localhost:8000/api/v1/actions/${id}`, {
-        method: "DELETE",
-        headers: {
-          "x-dev-user-email": user?.email || "dev@udip.local",
-          ...(apiClient.getAuthToken() ? { Authorization: `Bearer ${apiClient.getAuthToken()}` } : {}),
-        },
-      });
+      await apiClient.deleteAction(id);
       fetchData();
     } catch {
       setActions((prev) => prev.filter((a) => a.id !== id));
@@ -140,15 +118,7 @@ export default function TasksPage() {
 
   const handleApproveSuggestion = async (sugId: string) => {
     try {
-      await fetch(`http://localhost:8000/api/v1/actions/suggestions/${sugId}/approve`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-dev-user-email": user?.email || "dev@udip.local",
-          ...(apiClient.getAuthToken() ? { Authorization: `Bearer ${apiClient.getAuthToken()}` } : {}),
-        },
-        body: JSON.stringify({ priority: "high" }),
-      });
+      await apiClient.approveActionSuggestion(sugId, { priority: "high" });
       fetchData();
     } catch (e) {
       console.error(e);
@@ -157,13 +127,7 @@ export default function TasksPage() {
 
   const handleDismissSuggestion = async (sugId: string) => {
     try {
-      await fetch(`http://localhost:8000/api/v1/actions/suggestions/${sugId}/dismiss`, {
-        method: "POST",
-        headers: {
-          "x-dev-user-email": user?.email || "dev@udip.local",
-          ...(apiClient.getAuthToken() ? { Authorization: `Bearer ${apiClient.getAuthToken()}` } : {}),
-        },
-      });
+      await apiClient.dismissActionSuggestion(sugId);
       fetchData();
     } catch (e) {
       console.error(e);
@@ -175,18 +139,10 @@ export default function TasksPage() {
     if (!newTitle.trim()) return;
 
     try {
-      await fetch("http://localhost:8000/api/v1/actions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-dev-user-email": user?.email || "dev@udip.local",
-          ...(apiClient.getAuthToken() ? { Authorization: `Bearer ${apiClient.getAuthToken()}` } : {}),
-        },
-        body: JSON.stringify({
-          title: newTitle.trim(),
-          priority: newPriority,
-          due_date: newDueDate ? new Date(newDueDate).toISOString() : undefined,
-        }),
+      await apiClient.createAction({
+        title: newTitle.trim(),
+        priority: newPriority,
+        due_date: newDueDate ? new Date(newDueDate).toISOString() : undefined,
       });
       setNewTitle("");
       setNewDueDate("");

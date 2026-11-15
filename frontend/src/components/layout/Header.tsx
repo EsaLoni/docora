@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { Search, Bell, Activity, Command, Check, CheckCheck, Menu } from "lucide-react";
+import { apiClient } from "@/lib/api-client";
 import { GlobalSearchModal } from "@/components/search/GlobalSearchModal";
 import { useAuth } from "@/context/AuthContext";
 
@@ -29,13 +30,9 @@ export function Header({ onToggleMobileMenu }: HeaderProps) {
 
   const fetchNotifications = async () => {
     try {
-      const headers = { "x-dev-user-email": "dev@udip.local" };
-      const res = await fetch("http://localhost:8000/api/v1/notifications?limit=10", { headers });
-      if (res.ok) {
-        const data = await res.json();
-        setNotifications(data.items || []);
-        setUnreadCount(data.unread_count || 0);
-      }
+      const data = await apiClient.listNotifications(10);
+      setNotifications(data.items as any || []);
+      setUnreadCount(data.unread_count || 0);
     } catch {
       // Backend may be offline or initializing
     }
@@ -44,8 +41,8 @@ export function Header({ onToggleMobileMenu }: HeaderProps) {
   useEffect(() => {
     const checkHealth = async () => {
       try {
-        const res = await fetch("http://localhost:8000/api/v1/health", { cache: "no-store" });
-        if (res.ok) {
+        const res = await apiClient.checkHealth();
+        if (res && (res.status === "ok" || res.status === "healthy" || res.status)) {
           setBackendStatus("online");
           fetchNotifications();
         } else {
@@ -75,16 +72,11 @@ export function Header({ onToggleMobileMenu }: HeaderProps) {
   const markAsRead = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     try {
-      const res = await fetch(`http://localhost:8000/api/v1/notifications/${id}/read`, {
-        method: "POST",
-        headers: { "x-dev-user-email": "dev@udip.local" },
-      });
-      if (res.ok) {
-        setNotifications((prev) =>
-          prev.map((n) => (n.id === id ? { ...n, is_read: true } : n))
-        );
-        setUnreadCount((c) => Math.max(0, c - 1));
-      }
+      await apiClient.markNotificationRead(id);
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === id ? { ...n, is_read: true } : n))
+      );
+      setUnreadCount((c) => Math.max(0, c - 1));
     } catch (err) {
       console.error(err);
     }
@@ -92,14 +84,9 @@ export function Header({ onToggleMobileMenu }: HeaderProps) {
 
   const markAllAsRead = async () => {
     try {
-      const res = await fetch("http://localhost:8000/api/v1/notifications/read-all", {
-        method: "POST",
-        headers: { "x-dev-user-email": "dev@udip.local" },
-      });
-      if (res.ok) {
-        setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
-        setUnreadCount(0);
-      }
+      await apiClient.markAllNotificationsRead();
+      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
+      setUnreadCount(0);
     } catch (err) {
       console.error(err);
     }

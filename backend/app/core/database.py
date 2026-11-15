@@ -35,6 +35,12 @@ def get_async_engine(settings: Optional[Settings] = None) -> AsyncEngine:
         db_url = settings.DATABASE_URL
         is_sqlite = db_url.startswith("sqlite")
 
+        if settings.ENVIRONMENT == "production" and is_sqlite:
+            raise RuntimeError(
+                "Database violation: SQLite cannot be used in production environments. "
+                "Please configure PostgreSQL 16 + pgvector."
+            )
+
         engine_kwargs = {
             "echo": settings.DEBUG,
             "future": True,
@@ -50,6 +56,22 @@ def get_async_engine(settings: Optional[Settings] = None) -> AsyncEngine:
             engine_kwargs["pool_timeout"] = settings.DB_POOL_TIMEOUT
             engine_kwargs["pool_recycle"] = settings.DB_POOL_RECYCLE
             engine_kwargs["pool_pre_ping"] = True
+
+            # If connecting to Supabase transaction pooler (port 6543), pgbouncer,
+            # or transaction pooling mode, disable statement caching to prevent
+            # asyncpg DuplicatePreparedStatementError / InvalidSQLStatementNameError.
+            # Notice: prepared_statement_cache_size controls SQLAlchemy's asyncpg dialect LRU cache,
+            # while statement_cache_size controls asyncpg's internal driver cache.
+            # Neither is passed to PostgreSQL server_settings.
+            if (
+                ":6543" in db_url
+                or "pooler.supabase.com" in db_url
+                or "pgbouncer" in db_url
+                or "pool_mode=transaction" in db_url
+            ):
+                connect_args = engine_kwargs.setdefault("connect_args", {})
+                connect_args.setdefault("prepared_statement_cache_size", 0)
+                connect_args.setdefault("statement_cache_size", 0)
 
         _async_engine = create_async_engine(db_url, **engine_kwargs)
         logger.info("Initialized async database engine (%s)", "sqlite" if is_sqlite else "postgresql")

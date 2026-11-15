@@ -148,30 +148,20 @@ export default function DocumentLibraryPage() {
 
   const fetchLibraryData = useCallback(async () => {
     try {
-      const headers = {
-        "x-dev-user-email": user?.email || "dev@udip.local",
-        ...(apiClient.getAuthToken() ? { Authorization: `Bearer ${apiClient.getAuthToken()}` } : {}),
-      };
-      const [docsRes, foldersRes] = await Promise.all([
-        fetch("http://localhost:8000/api/v1/documents", { headers }),
-        fetch("http://localhost:8000/api/v1/folders", { headers }),
+      const [docsData, folderItems] = await Promise.all([
+        apiClient.getDocuments().catch(() => ({ items: [], total: 0 })),
+        apiClient.listFolders().catch(() => []),
       ]);
-      if (docsRes.ok) {
-        const data = await docsRes.json();
-        if (data.items) {
-          setDocuments(data.items);
-        }
+      if (docsData.items) {
+        setDocuments(docsData.items as any);
       }
-      if (foldersRes.ok) {
-        const data = await foldersRes.json();
-        if (data.items && data.items.length > 0) {
-          setFolders(data.items);
-        }
+      if (Array.isArray(folderItems) && folderItems.length > 0) {
+        setFolders(folderItems as any);
       }
     } catch {
       // Offline fallback
     }
-  }, [user?.email]);
+  }, []);
 
   useEffect(() => {
     fetchLibraryData();
@@ -211,13 +201,7 @@ export default function DocumentLibraryPage() {
     if (confirm(`Delete '${title}'? This action is permanent.`)) {
       setDocuments((prev) => prev.filter((d) => d.id !== id));
       try {
-        await fetch(`http://localhost:8000/api/v1/documents/${id}`, {
-          method: "DELETE",
-          headers: {
-            "x-dev-user-email": user?.email || "dev@udip.local",
-            ...(apiClient.getAuthToken() ? { Authorization: `Bearer ${apiClient.getAuthToken()}` } : {}),
-          },
-        });
+        await apiClient.deleteDocument(id);
       } catch {
         // Fallback
       }
@@ -239,22 +223,13 @@ export default function DocumentLibraryPage() {
     if (!newFolderName.trim()) return;
 
     try {
-      const res = await fetch("http://localhost:8000/api/v1/folders", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-dev-user-email": user?.email || "dev@udip.local",
-          ...(apiClient.getAuthToken() ? { Authorization: `Bearer ${apiClient.getAuthToken()}` } : {}),
-        },
-        body: JSON.stringify({
-          name: newFolderName.trim(),
-          color: newFolderColor,
-        }),
+      const createdFolder = await apiClient.createFolder({
+        name: newFolderName.trim(),
+        color: newFolderColor,
       });
 
-      if (res.ok) {
-        const createdFolder = await res.json();
-        setFolders((prev) => [...prev, createdFolder]);
+      if (createdFolder) {
+        setFolders((prev) => [...prev, createdFolder as any]);
         setSelectedFolder(createdFolder.id);
         setIsFolderModalOpen(false);
         setNewFolderName("");
@@ -280,15 +255,7 @@ export default function DocumentLibraryPage() {
     );
     setMovingDocId(null);
     try {
-      await fetch(`http://localhost:8000/api/v1/documents/${docId}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          "x-dev-user-email": user?.email || "dev@udip.local",
-          ...(apiClient.getAuthToken() ? { Authorization: `Bearer ${apiClient.getAuthToken()}` } : {}),
-        },
-        body: JSON.stringify({ folder_id: folderId }),
-      });
+      await apiClient.updateDocument(docId, { folder_id: folderId });
     } catch {
       // Fallback
     }
@@ -310,13 +277,8 @@ export default function DocumentLibraryPage() {
     setDrawerCitations([]);
 
     try {
-      const res = await fetch("http://localhost:8000/api/v1/chat/completions/stream", {
+      const res = await apiClient.fetch("/api/v1/chat/completions/stream", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-dev-user-email": user?.email || "dev@udip.local",
-          ...(apiClient.getAuthToken() ? { Authorization: `Bearer ${apiClient.getAuthToken()}` } : {}),
-        },
         body: JSON.stringify({
           prompt: drawerQuery.trim(),
           document_id: askTargetDoc?.id || undefined,

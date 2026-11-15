@@ -27,11 +27,27 @@ class SupabaseStorageAdapter(StorageAdapter):
         self.bucket = settings.SUPABASE_STORAGE_BUCKET
         self.service_key = settings.SUPABASE_SERVICE_ROLE_KEY.get_secret_value()
 
+    @staticmethod
+    def _is_jwt(token: str) -> bool:
+        """Check if token string represents a JWT rather than an opaque API key."""
+        if not token or token.startswith("sb_secret_") or token.startswith("sb_"):
+            return False
+        parts = token.split(".")
+        return len(parts) == 3 and all(parts)
+
     def _headers(self, content_type: Optional[str] = None) -> dict:
+        """Construct HTTP headers for Supabase Storage REST API.
+
+        - 'apikey' is the universal header for Supabase API gateway authentication.
+        - 'Authorization: Bearer <token>' is included ONLY when using a legacy JWT service_role key.
+          Passing an opaque API key (e.g. 'sb_secret_...') in Authorization: Bearer triggers
+          JWT decoding failures on the gateway and causes HTTP 401 errors.
+        """
         headers = {
-            "Authorization": f"Bearer {self.service_key}",
-            "apiKey": self.service_key,
+            "apikey": self.service_key,
         }
+        if self._is_jwt(self.service_key):
+            headers["Authorization"] = f"Bearer {self.service_key}"
         if content_type:
             headers["Content-Type"] = content_type
         return headers

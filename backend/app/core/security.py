@@ -18,6 +18,37 @@ from app.core.logging import get_logger
 
 logger = get_logger("security")
 
+# Permitted cryptographic signing algorithms
+ALLOWED_SYMMETRIC_ALGORITHMS = {"HS256"}
+ALLOWED_ASYMMETRIC_ALGORITHMS = {"ES256", "RS256"}
+ALL_ALLOWED_ALGORITHMS = ALLOWED_SYMMETRIC_ALGORITHMS | ALLOWED_ASYMMETRIC_ALGORITHMS
+
+# Global thread-safe JWKS client cache with bounded retention
+_jwks_clients: Dict[str, jwt.PyJWKClient] = {}
+
+
+def get_jwks_client(supabase_url: str) -> jwt.PyJWKClient:
+    """Retrieve or initialize a cached, bounded PyJWKClient for a Supabase URL."""
+    base_url = supabase_url.rstrip("/")
+    jwks_url = f"{base_url}/auth/v1/.well-known/jwks.json"
+    if jwks_url not in _jwks_clients:
+        _jwks_clients[jwks_url] = jwt.PyJWKClient(
+            jwks_url,
+            cache_keys=True,
+            max_cached_keys=16,
+            cache_jwk_set=True,
+            lifespan=300,  # 5 minutes bounded caching
+            cooldown_duration=30,  # 30-second cooldown between refresh attempts for unknown kid
+            timeout=10.0,  # 10 second network timeout
+        )
+    return _jwks_clients[jwks_url]
+
+
+def reset_jwks_clients_for_tests() -> None:
+    """Reset cached JWKS clients for isolated unit testing."""
+    global _jwks_clients
+    _jwks_clients.clear()
+
 
 def hash_password(password: str) -> str:
     """Hash password using scrypt with random 16-byte salt (OWASP recommended)."""
@@ -112,7 +143,7 @@ def verify_jwt_token(token: str, settings: Optional[Settings] = None) -> TokenPa
     if settings is None:
         settings = get_settings()
 
-    # 1. Inspect unverified header to reject insecure algorithms
+    # 1. Inspect unverified header to reject insecure or disallowed algorithms
     try:
         unverified_header = jwt.get_unverified_header(token)
     except jwt.PyJWTError as e:
@@ -120,73 +151,132 @@ def verify_jwt_token(token: str, settings: Optional[Settings] = None) -> TokenPa
         raise AuthenticationFailedError("Malformed token header.")
 
     alg = unverified_header.get("alg")
-    if not alg or alg.lower() == "none":
+    if not alg or not isinstance(alg, str) or alg.lower() == "none":
         logger.warning("Rejected token with 'none' or missing algorithm")
         raise AuthenticationFailedError("Insecure token algorithm is forbidden.")
 
-    # 2. Attempt verification against Supabase JWT Secret (HS256)
-    supabase_secret = settings.SUPABASE_JWT_SECRET.get_secret_value()
+    alg_upper = alg.upper().strip()
+    if alg_upper not in ALL_ALLOWED_ALGORITHMS:
+        logger.warning("Rejected token with unauthorized algorithm: %s", alg)
+        raise AuthenticationFailedError("Insecure or unsupported token algorithm is forbidden.")
+
+    # 2. Strict verification options
     verify_options = {
         "verify_signature": True,
         "verify_exp": True,
         "verify_iat": True,
     }
 
-    # Prepare audience and issuer check if configured
+    # Audience and issuer checks if configured
     expected_aud = settings.SUPABASE_JWT_AUDIENCE if settings.SUPABASE_JWT_AUDIENCE else None
     expected_iss = settings.SUPABASE_JWT_ISSUER if settings.SUPABASE_JWT_ISSUER else None
 
-    # First: Try Supabase standard signature
-    try:
-        decode_kwargs = {
-            "jwt": token,
-            "key": supabase_secret,
-            "algorithms": [settings.JWT_ALGORITHM, "HS256"],
-            "options": verify_options,
-        }
-        if expected_aud:
-            decode_kwargs["audience"] = expected_aud
-        if expected_iss:
-            decode_kwargs["issuer"] = expected_iss
+    # 3. Asymmetric verification (ES256, RS256 via Supabase JWKS)
+    if alg_upper in ALLOWED_ASYMMETRIC_ALGORITHMS:
+        kid = unverified_header.get("kid")
+        if not kid or not isinstance(kid, str) or not kid.strip():
+            logger.warning("Rejected asymmetric token missing required 'kid' header claim")
+            raise AuthenticationFailedError("Asymmetric token header missing 'kid'.")
 
-        payload = jwt.decode(**decode_kwargs)
-        return _extract_token_payload(payload, is_dev=False)
-    except jwt.ExpiredSignatureError:
-        logger.info("Authentication failed: token signature expired")
-        raise AuthenticationFailedError("Token has expired.")
-    except jwt.InvalidAudienceError:
-        logger.warning("Authentication failed: invalid token audience")
-        raise AuthenticationFailedError("Token audience is invalid.")
-    except jwt.InvalidIssuerError:
-        logger.warning("Authentication failed: invalid token issuer")
-        raise AuthenticationFailedError("Token issuer is invalid.")
-    except jwt.InvalidSignatureError:
-        # Signature did not match Supabase secret.
-        # Verify against application SECRET_KEY (native user authentication or controlled dev auth)
-        local_secret = settings.SECRET_KEY.get_secret_value()
+        if not settings.SUPABASE_URL or "placeholder" in settings.SUPABASE_URL:
+            logger.warning("Cannot verify asymmetric token: SUPABASE_URL is not configured")
+            raise AuthenticationFailedError("Asymmetric key verification unavailable: invalid JWKS configuration.")
+
+        jwks_client = get_jwks_client(settings.SUPABASE_URL)
         try:
-            local_decode_kwargs = {
+            signing_key = jwks_client.get_signing_key_from_jwt(token)
+        except jwt.PyJWKClientConnectionError as conn_err:
+            logger.warning("JWKS service unavailable: %s", str(conn_err))
+            raise AuthenticationFailedError("Unable to verify token signature: key service unavailable.")
+        except jwt.PyJWKError as jwk_err:
+            logger.warning("JWKS key error for kid: %s", str(jwk_err))
+            raise AuthenticationFailedError("Invalid or unknown signing key identifier.")
+
+        try:
+            decode_kwargs = {
                 "jwt": token,
-                "key": local_secret,
+                "key": signing_key.key,
+                "algorithms": [alg_upper],
+                "options": verify_options,
+            }
+            if expected_aud:
+                decode_kwargs["audience"] = expected_aud
+            if expected_iss:
+                decode_kwargs["issuer"] = expected_iss
+
+            payload = jwt.decode(**decode_kwargs)
+            return _extract_token_payload(payload, is_dev=False)
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailedError("Token has expired.")
+        except jwt.InvalidAudienceError:
+            raise AuthenticationFailedError("Token audience is invalid.")
+        except jwt.InvalidIssuerError:
+            raise AuthenticationFailedError("Token issuer is invalid.")
+        except jwt.PyJWTError as e:
+            logger.warning("Asymmetric token signature verification failed: %s", str(e))
+            raise AuthenticationFailedError("Invalid token signature.")
+
+    # 4. Symmetric verification (HS256 via SUPABASE_JWT_SECRET or local SECRET_KEY)
+    elif alg_upper in ALLOWED_SYMMETRIC_ALGORITHMS:
+        supabase_secret = settings.SUPABASE_JWT_SECRET.get_secret_value()
+        try:
+            decode_kwargs = {
+                "jwt": token,
+                "key": supabase_secret,
                 "algorithms": ["HS256"],
                 "options": verify_options,
             }
             if expected_aud:
-                local_decode_kwargs["audience"] = expected_aud
+                decode_kwargs["audience"] = expected_aud
             if expected_iss:
-                local_decode_kwargs["issuer"] = expected_iss
+                decode_kwargs["issuer"] = expected_iss
 
-            local_payload = jwt.decode(**local_decode_kwargs)
-            logger.debug("Successfully validated application token")
-            return _extract_token_payload(local_payload, is_dev=bool(local_payload.get("is_dev", False)))
+            payload = jwt.decode(**decode_kwargs)
+            return _extract_token_payload(payload, is_dev=False)
         except jwt.ExpiredSignatureError:
+            logger.info("Authentication failed: token signature expired")
             raise AuthenticationFailedError("Token has expired.")
-        except jwt.PyJWTError as sig_err:
-            logger.warning("Token signature verification failed: %s", str(sig_err))
-            raise AuthenticationFailedError("Invalid token signature.")
-    except jwt.PyJWTError as e:
-        logger.warning("Token verification failed: %s", str(e))
-        raise AuthenticationFailedError("Invalid authentication token.")
+        except jwt.InvalidAudienceError:
+            logger.warning("Authentication failed: invalid token audience")
+            raise AuthenticationFailedError("Token audience is invalid.")
+        except jwt.InvalidIssuerError:
+            logger.warning("Authentication failed: invalid token issuer")
+            raise AuthenticationFailedError("Token issuer is invalid.")
+        except jwt.InvalidSignatureError:
+            # Signature did not match Supabase secret.
+            # Verify against application SECRET_KEY (native user authentication or controlled dev auth)
+            local_secret = settings.SECRET_KEY.get_secret_value()
+            try:
+                local_decode_kwargs = {
+                    "jwt": token,
+                    "key": local_secret,
+                    "algorithms": ["HS256"],
+                    "options": verify_options,
+                }
+                if expected_aud:
+                    local_decode_kwargs["audience"] = expected_aud
+                if expected_iss:
+                    local_decode_kwargs["issuer"] = expected_iss
+
+                local_payload = jwt.decode(**local_decode_kwargs)
+                logger.debug("Successfully validated application token")
+                return _extract_token_payload(local_payload, is_dev=bool(local_payload.get("is_dev", False)))
+            except jwt.ExpiredSignatureError:
+                raise AuthenticationFailedError("Token has expired.")
+            except jwt.InvalidAudienceError:
+                raise AuthenticationFailedError("Token audience is invalid.")
+            except jwt.InvalidIssuerError:
+                raise AuthenticationFailedError("Token issuer is invalid.")
+            except jwt.PyJWTError as sig_err:
+                logger.warning("Token signature verification failed: %s", str(sig_err))
+                raise AuthenticationFailedError("Invalid token signature.")
+        except jwt.PyJWTError as e:
+            logger.warning("Token verification failed: %s", str(e))
+            raise AuthenticationFailedError("Invalid authentication token.")
+
+    else:
+        logger.warning("Rejected token with unauthorized algorithm: %s", alg)
+        raise AuthenticationFailedError("Insecure or unsupported token algorithm is forbidden.")
 
 
 def _extract_token_payload(payload: Dict[str, Any], is_dev: bool = False) -> TokenPayload:

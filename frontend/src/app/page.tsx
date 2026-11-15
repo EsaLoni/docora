@@ -60,16 +60,8 @@ export default function HomePage() {
     try {
       setLoading(true);
       // Fetch documents
-      const docsRes = await fetch("http://localhost:8000/api/v1/documents?page_size=6", {
-        headers: {
-          "x-dev-user-email": user?.email || "dev@udip.local",
-          ...(apiClient.getAuthToken() ? { Authorization: `Bearer ${apiClient.getAuthToken()}` } : {}),
-        },
-      });
-      if (docsRes.ok) {
-        const data = await docsRes.json();
-        setDocuments(data.items || []);
-      }
+      const docsData = await apiClient.getDocuments(6).catch(() => ({ items: [], total: 0 }));
+      setDocuments((docsData.items as any) || []);
 
       // Fetch notebooks
       const nbData = await apiClient.listNotebooks().catch(() => []);
@@ -125,13 +117,8 @@ export default function HomePage() {
 
     try {
       // Send universal completion request
-      const res = await fetch("http://localhost:8000/api/v1/chat/completions/stream", {
+      const res = await apiClient.fetch("/api/v1/chat/completions/stream", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-dev-user-email": user?.email || "dev@udip.local",
-          ...(apiClient.getAuthToken() ? { Authorization: `Bearer ${apiClient.getAuthToken()}` } : {}),
-        },
         body: JSON.stringify({
           prompt: quickQuery.trim(),
           retrieval_mode: "hybrid",

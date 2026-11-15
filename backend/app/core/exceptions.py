@@ -157,11 +157,18 @@ def register_exception_handlers(app: FastAPI) -> None:
     @app.exception_handler(Exception)
     async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
         logger.exception("Unhandled server exception on %s: %s", request.url.path, str(exc))
+        from app.core.config import get_settings
+        settings = get_settings()
+        detail_msg = (
+            f"Internal server error: {str(exc)}"
+            if settings.DEBUG
+            else "An unexpected internal server error occurred."
+        )
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content={
                 "success": False,
-                "detail": f"Internal server error: {str(exc)}",
+                "detail": detail_msg,
                 "error": {
                     "code": "INTERNAL_SERVER_ERROR",
                     "message": "An unexpected internal server error occurred. Please try again later.",

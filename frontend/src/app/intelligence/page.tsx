@@ -98,20 +98,15 @@ export default function InsightsPage() {
     async function loadDocuments() {
       try {
         setIsLoadingDocs(true);
-        const res = await fetch("http://localhost:8000/api/v1/documents", {
-          headers: { "x-dev-user-email": "dev@udip.local" },
-        });
-        if (res.ok) {
-          const data = await res.json();
-          const items: DocumentItem[] = data.items || [];
-          setDocuments(items);
-          if (items.length > 0) {
-            setSummaryDocId(items[0].id);
-            setExtractDocId(items[0].id);
-            setInsightsDocId(items[0].id);
-            if (items.length >= 2) {
-              setCompareDocIds([items[0].id, items[1].id]);
-            }
+        const data = await apiClient.getDocuments().catch(() => ({ items: [], total: 0 }));
+        const items: DocumentItem[] = (data.items as any) || [];
+        setDocuments(items);
+        if (items.length > 0) {
+          setSummaryDocId(items[0].id);
+          setExtractDocId(items[0].id);
+          setInsightsDocId(items[0].id);
+          if (items.length >= 2) {
+            setCompareDocIds([items[0].id, items[1].id]);
           }
         }
       } catch (err) {
@@ -136,25 +131,11 @@ export default function InsightsPage() {
     setSummaryResult(null);
 
     try {
-      const res = await fetch("http://localhost:8000/api/v1/intelligence/summarize", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-dev-user-email": "dev@udip.local",
-        },
-        body: JSON.stringify({
-          document_id: summaryDocId,
-          summary_type: summaryType,
-          custom_instruction: summaryType === "custom" ? customSummaryPrompt : undefined,
-        }),
+      const data = await apiClient.summarizeDocument({
+        document_id: summaryDocId,
+        summary_type: summaryType,
+        custom_instruction: summaryType === "custom" ? customSummaryPrompt : undefined,
       });
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail || "Failed to generate summary");
-      }
-
-      const data = await res.json();
       setSummaryResult(data);
     } catch (err: any) {
       setErrorMsg(err.message || "An unexpected error occurred.");
@@ -173,25 +154,11 @@ export default function InsightsPage() {
     setCompareResult(null);
 
     try {
-      const res = await fetch("http://localhost:8000/api/v1/intelligence/compare", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-dev-user-email": "dev@udip.local",
-        },
-        body: JSON.stringify({
-          document_ids: compareDocIds,
-          comparison_type: comparisonType,
-          custom_prompt: comparisonType === "custom" ? customComparePrompt : undefined,
-        }),
+      const data = await apiClient.compareDocuments({
+        document_ids: compareDocIds,
+        comparison_type: comparisonType,
+        custom_prompt: comparisonType === "custom" ? customComparePrompt : undefined,
       });
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail || "Failed to compare documents");
-      }
-
-      const data = await res.json();
       setCompareResult(data);
     } catch (err: any) {
       setErrorMsg(err.message || "An unexpected error occurred.");
@@ -215,25 +182,11 @@ export default function InsightsPage() {
         : undefined;
 
     try {
-      const res = await fetch("http://localhost:8000/api/v1/intelligence/extract", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-dev-user-email": "dev@udip.local",
-        },
-        body: JSON.stringify({
-          document_id: extractDocId,
-          template: extractTemplate,
-          custom_fields: customFieldsList,
-        }),
+      const data = await apiClient.extractDocumentData({
+        document_id: extractDocId,
+        template: extractTemplate,
+        custom_fields: customFieldsList,
       });
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail || "Failed to extract structured data");
-      }
-
-      const data = await res.json();
       setExtractResult(data);
     } catch (err: any) {
       setErrorMsg(err.message || "An unexpected error occurred.");
@@ -249,23 +202,9 @@ export default function InsightsPage() {
     setInsightsResult(null);
 
     try {
-      const res = await fetch("http://localhost:8000/api/v1/intelligence/insights", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-dev-user-email": "dev@udip.local",
-        },
-        body: JSON.stringify({
-          document_id: insightsDocId,
-        }),
+      const data = await apiClient.generateInsights({
+        document_id: insightsDocId,
       });
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail || "Failed to generate analytics");
-      }
-
-      const data = await res.json();
       setInsightsResult(data);
     } catch (err: any) {
       setErrorMsg(err.message || "An unexpected error occurred.");
@@ -276,22 +215,12 @@ export default function InsightsPage() {
 
   const handleExport = async (exportType: string, format: "pdf" | "markdown" | "csv" | "json", payload: any) => {
     try {
-      const res = await fetch("http://localhost:8000/api/v1/intelligence/export", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-dev-user-email": "dev@udip.local",
-        },
-        body: JSON.stringify({
-          export_type: exportType,
-          format: format,
-          payload: payload,
-        }),
+      const blob = await apiClient.exportArtifact({
+        export_type: exportType,
+        format: format,
+        payload: payload,
       });
 
-      if (!res.ok) throw new Error("Failed to export artifact");
-
-      const blob = await res.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;

@@ -96,13 +96,10 @@ def test_worker_runner_stale_job_recovery(session_factory: async_sessionmaker[As
             session.add(stale_job)
             await session.commit()
 
-            runner = WorkerRunner()
-            # Monkeypatch or call recover_stale_jobs with session_factory
-            stale_job.retry_count += 1
-            if stale_job.retry_count < IntelligenceProcessor.MAX_RETRIES:
-                stale_job.status = "QUEUED"
-                stale_job.progress_percentage = 0
-            await session.commit()
+            runner = WorkerRunner(session_factory=session_factory)
+            # Stale timeout 0 minutes ensures any past job in PROCESSING is recovered
+            recovered = await runner.recover_stale_jobs(timeout_minutes=0)
+            assert recovered == 1
 
             await session.refresh(stale_job)
             assert stale_job.status == "QUEUED"

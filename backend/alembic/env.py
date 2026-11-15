@@ -34,6 +34,21 @@ def get_sync_url() -> str:
     """Retrieve synchronous database URL from Alembic config, environment, or application settings."""
     import os
 
+    # 0. Command-line argument override via -x url=...
+    try:
+        x_args = context.get_x_argument(as_dictionary=True)
+        if x_args.get("url"):
+            url = x_args["url"].strip()
+            if url.startswith("postgres://"):
+                return url.replace("postgres://", "postgresql+psycopg://", 1)
+            if url.startswith("postgresql://") and not url.startswith("postgresql+"):
+                return url.replace("postgresql://", "postgresql+psycopg://", 1)
+            if url.startswith("postgresql+asyncpg://"):
+                return url.replace("postgresql+asyncpg://", "postgresql+psycopg://", 1)
+            return url
+    except Exception:
+        pass
+
     # 1. Main option from Alembic Config (set dynamically in alembic.ini or programmatically by test suites)
     main_url = config.get_main_option("sqlalchemy.url")
     if main_url and main_url.strip():
@@ -93,8 +108,9 @@ def run_migrations_online() -> None:
     configuration = config.get_section(config.config_ini_section) or {}
     configuration["sqlalchemy.url"] = url
 
-    is_sqlite = url.startswith("sqlite")
-    poolclass = pool.NullPool if is_sqlite else pool.QueuePool
+    # For migrations, always use NullPool to ensure connections are closed
+    # immediately upon completion without occupying slots in the database pooler.
+    poolclass = pool.NullPool
 
     connectable = engine_from_config(
         configuration,

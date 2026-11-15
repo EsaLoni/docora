@@ -23,6 +23,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { apiClient } from "@/lib/api-client";
 import { DocumentDetailModal, DocumentItem } from "@/components/documents/DocumentDetailModal";
 import { FormattedMessage, CitationItem } from "@/components/chat/FormattedMessage";
 import { useAuth } from "@/context/AuthContext";
@@ -114,45 +115,27 @@ function ChatComponent() {
   useEffect(() => {
     async function loadInitialData() {
       try {
-        const [docsRes, convsRes] = await Promise.all([
-          fetch("http://localhost:8000/api/v1/documents", {
-            headers: { "x-dev-user-email": "dev@udip.local" },
-          }),
-          fetch("http://localhost:8000/api/v1/chat/conversations", {
-            headers: { "x-dev-user-email": "dev@udip.local" },
-          }),
+        const [docsData, convList] = await Promise.all([
+          apiClient.getDocuments().catch(() => ({ items: [], total: 0 })),
+          apiClient.listConversations().catch(() => []),
         ]);
 
-        if (docsRes.ok) {
-          const docsData = await docsRes.json();
-          if (docsData.items && docsData.items.length > 0) {
-            setDocuments(docsData.items);
-          }
+        if (docsData.items && docsData.items.length > 0) {
+          setDocuments(docsData.items as any);
         }
 
-        if (convsRes.ok) {
-          const convList = await convsRes.json();
-          if (Array.isArray(convList) && convList.length > 0) {
-            setConversations(convList);
-            setActiveConvId(convList[0].id);
-          } else {
-            // Create initial conversation in backend
-            const createRes = await fetch("http://localhost:8000/api/v1/chat/conversations", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "x-dev-user-email": "dev@udip.local",
-              },
-              body: JSON.stringify({
-                title: "General Discussion",
-                active_document_ids: [],
-              }),
-            });
-            if (createRes.ok) {
-              const newConv = await createRes.json();
-              setConversations([newConv]);
-              setActiveConvId(newConv.id);
-            }
+        if (Array.isArray(convList) && convList.length > 0) {
+          setConversations(convList as any);
+          setActiveConvId(convList[0].id);
+        } else {
+          // Create initial conversation in backend
+          const newConv = await apiClient.createConversation({
+            title: "General Discussion",
+            active_document_ids: [],
+          }).catch(() => null);
+          if (newConv) {
+            setConversations([newConv as any]);
+            setActiveConvId(newConv.id);
           }
         }
       } catch (err) {
@@ -167,23 +150,18 @@ function ChatComponent() {
     async function loadActiveMessages() {
       if (!isValidUUID(activeConvId)) return;
       try {
-        const res = await fetch(`http://localhost:8000/api/v1/chat/conversations/${activeConvId}`, {
-          headers: { "x-dev-user-email": "dev@udip.local" },
-        });
-        if (res.ok) {
-          const detail = await res.json();
-          if (detail.messages) {
-            setMessages((prev) => ({
-              ...prev,
-              [activeConvId]: detail.messages.map((m: any) => ({
-                id: m.id,
-                sender_type: m.sender_type,
-                content: m.content,
-                created_at: m.created_at,
-                citations: m.citations || [],
-              })),
-            }));
-          }
+        const detail = await apiClient.getConversation(activeConvId);
+        if (detail && detail.messages) {
+          setMessages((prev) => ({
+            ...prev,
+            [activeConvId]: detail.messages.map((m: any) => ({
+              id: m.id,
+              sender_type: m.sender_type,
+              content: m.content,
+              created_at: m.created_at,
+              citations: m.citations || [],
+            })),
+          }));
         }
       } catch (err) {
         console.error("Failed to load conversation messages", err);
@@ -199,20 +177,12 @@ function ChatComponent() {
       async function createDocConv() {
         const doc = documents.find((d) => d.id === docParam);
         try {
-          const res = await fetch("http://localhost:8000/api/v1/chat/conversations", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "x-dev-user-email": "dev@udip.local",
-            },
-            body: JSON.stringify({
-              title: doc ? `Discussion: ${doc.title}` : "Document Discussion",
-              active_document_ids: isValidUUID(docParam) ? [docParam] : [],
-            }),
+          const newConv = await apiClient.createConversation({
+            title: doc ? `Discussion: ${doc.title}` : "Document Discussion",
+            active_document_ids: isValidUUID(docParam) ? [docParam as string] : [],
           });
-          if (res.ok) {
-            const newConv = await res.json();
-            setConversations((prev) => [newConv, ...prev.filter((c) => c.id !== newConv.id)]);
+          if (newConv) {
+            setConversations((prev) => [newConv as any, ...prev.filter((c) => c.id !== newConv.id)]);
             setActiveConvId(newConv.id);
             setMessages((prev) => ({ ...prev, [newConv.id]: [] }));
           }
@@ -238,20 +208,12 @@ function ChatComponent() {
   // Create new conversation
   const handleNewConversation = async () => {
     try {
-      const res = await fetch("http://localhost:8000/api/v1/chat/conversations", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-dev-user-email": "dev@udip.local",
-        },
-        body: JSON.stringify({
-          title: "New Conversation",
-          active_document_ids: isValidUUID(selectedDocId) ? [selectedDocId] : [],
-        }),
+      const newConv = await apiClient.createConversation({
+        title: "New Conversation",
+        active_document_ids: isValidUUID(selectedDocId) ? [selectedDocId] : [],
       });
-      if (res.ok) {
-        const newConv = await res.json();
-        setConversations((prev) => [newConv, ...prev]);
+      if (newConv) {
+        setConversations((prev) => [newConv as any, ...prev]);
         setActiveConvId(newConv.id);
         setMessages((prev) => ({ ...prev, [newConv.id]: [] }));
       }
@@ -265,10 +227,7 @@ function ChatComponent() {
     e.stopPropagation();
     try {
       if (isValidUUID(id)) {
-        await fetch(`http://localhost:8000/api/v1/chat/conversations/${id}`, {
-          method: "DELETE",
-          headers: { "x-dev-user-email": "dev@udip.local" },
-        });
+        await apiClient.deleteConversation(id);
       }
       const filtered = conversations.filter((c) => c.id !== id);
       setConversations(filtered);
@@ -288,14 +247,7 @@ function ChatComponent() {
     if (newTitle && newTitle.trim()) {
       try {
         if (isValidUUID(id)) {
-          await fetch(`http://localhost:8000/api/v1/chat/conversations/${id}`, {
-            method: "PATCH",
-            headers: {
-              "Content-Type": "application/json",
-              "x-dev-user-email": "dev@udip.local",
-            },
-            body: JSON.stringify({ title: newTitle.trim() }),
-          });
+          await apiClient.updateConversation(id, { title: newTitle.trim() });
         }
         setConversations((prev) =>
           prev.map((c) => (c.id === id ? { ...c, title: newTitle.trim(), updated_at: new Date().toISOString() } : c))
@@ -317,22 +269,14 @@ function ChatComponent() {
     // Ensure conversation exists in backend with a real UUID
     if (!isValidUUID(targetConvId)) {
       try {
-        const createRes = await fetch("http://localhost:8000/api/v1/chat/conversations", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-dev-user-email": "dev@udip.local",
-          },
-          body: JSON.stringify({
-            title: query.slice(0, 36) || "New Discussion",
-            active_document_ids: isValidUUID(selectedDocId) ? [selectedDocId] : [],
-          }),
+        const newConv = await apiClient.createConversation({
+          title: query.slice(0, 36) || "New Discussion",
+          active_document_ids: isValidUUID(selectedDocId) ? [selectedDocId] : [],
         });
-        if (createRes.ok) {
-          const newConv = await createRes.json();
+        if (newConv) {
           targetConvId = newConv.id;
           setActiveConvId(targetConvId);
-          setConversations((prev) => [newConv, ...prev.filter((c) => c.id !== activeConvId)]);
+          setConversations((prev) => [newConv as any, ...prev.filter((c) => c.id !== activeConvId)]);
         }
       } catch (err) {
         console.error("Failed to create conversation for message", err);
@@ -373,39 +317,26 @@ function ChatComponent() {
 
     try {
       const docIds = isValidUUID(selectedDocId) ? [selectedDocId] : null;
-      const res = await fetch(`http://localhost:8000/api/v1/chat/conversations/${targetConvId}/messages`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-dev-user-email": "dev@udip.local",
-        },
-        body: JSON.stringify({
-          question: query,
-          retrieval_mode: retrievalMode,
-          selected_document_ids: docIds,
-          stream: false,
-        }),
+      const data = await apiClient.sendConversationMessage(targetConvId, {
+        question: query,
+        retrieval_mode: retrievalMode,
+        selected_document_ids: docIds,
+        stream: false,
       });
 
-      if (res.ok) {
-        const data = await res.json();
-        setMessages((prev) => ({
-          ...prev,
-          [targetConvId]: (prev[targetConvId] || []).map((m) =>
-            m.id === assistantMsgId
-              ? {
-                  ...m,
-                  content: data.answer,
-                  citations: data.citations || [],
-                  isStreaming: false,
-                }
-              : m
-          ),
-        }));
-      } else {
-        const errJson = await res.json().catch(() => ({}));
-        throw new Error(errJson?.error?.message || errJson?.detail || `Server responded with ${res.status}`);
-      }
+      setMessages((prev) => ({
+        ...prev,
+        [targetConvId]: (prev[targetConvId] || []).map((m) =>
+          m.id === assistantMsgId
+            ? {
+                ...m,
+                content: data.answer,
+                citations: data.citations || [],
+                isStreaming: false,
+              }
+            : m
+        ),
+      }));
     } catch (err: any) {
       setMessages((prev) => ({
         ...prev,

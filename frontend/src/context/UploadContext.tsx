@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from "react";
+import { apiClient } from "@/lib/api-client";
 
 export type UploadState =
   | "waiting"
@@ -98,13 +99,6 @@ export function UploadProvider({ children }: { children: React.ReactNode }) {
     );
 
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("title", file.name.replace(/\.[^/.]+$/, ""));
-      if (folderId && folderId !== "all" && folderId !== "root") {
-        formData.append("folder_id", folderId);
-      }
-
       // Simulate partial progress update
       const progressTimer = setTimeout(() => {
         setQueue((prev) =>
@@ -112,40 +106,28 @@ export function UploadProvider({ children }: { children: React.ReactNode }) {
         );
       }, 300);
 
-      const res = await fetch("http://localhost:8000/api/v1/documents/upload", {
-        method: "POST",
-        headers: { "x-dev-user-email": "dev@udip.local" },
-        body: formData,
-      });
-
+      const docData = await apiClient.uploadDocument(file, folderId);
       clearTimeout(progressTimer);
 
-      if (res.ok) {
-        const docData = await res.json();
-        setQueue((prev) =>
-          prev.map((item) =>
-            item.id === itemId
-              ? {
-                  ...item,
-                  status: "processing",
-                  progress: 80,
-                  documentId: docData.id,
-                }
-              : item
-          )
-        );
-        notifySubscribers();
-      } else {
-        const errJson = await res.json().catch(() => ({}));
-        const msg = errJson.error?.message || errJson.detail || "Server rejected upload.";
-        setQueue((prev) =>
-          prev.map((item) => (item.id === itemId ? { ...item, status: "failed", errorMessage: msg } : item))
-        );
-      }
-    } catch {
       setQueue((prev) =>
         prev.map((item) =>
-          item.id === itemId ? { ...item, status: "failed", errorMessage: "Network or server connection failed." } : item
+          item.id === itemId
+            ? {
+                ...item,
+                status: "processing",
+                progress: 80,
+                documentId: docData.id,
+              }
+            : item
+        )
+      );
+      notifySubscribers();
+    } catch (err: any) {
+      setQueue((prev) =>
+        prev.map((item) =>
+          item.id === itemId
+            ? { ...item, status: "failed", errorMessage: err?.message || "Network or server connection failed." }
+            : item
         )
       );
     }
@@ -214,31 +196,25 @@ export function UploadProvider({ children }: { children: React.ReactNode }) {
       for (const item of processingItems) {
         if (!item.documentId) continue;
         try {
-          const res = await fetch(`http://localhost:8000/api/v1/documents/${item.documentId}`, {
-            headers: { "x-dev-user-email": "dev@udip.local" },
-          });
-
-          if (res.ok) {
-            const data = await res.json();
-            if (data.status === "READY") {
-              setQueue((prev) =>
-                prev.map((q) => (q.id === item.id ? { ...q, status: "ready", progress: 100 } : q))
-              );
-              notifySubscribers();
-            } else if (data.status === "FAILED") {
-              setQueue((prev) =>
-                prev.map((q) =>
-                  q.id === item.id
-                    ? {
-                        ...q,
-                        status: "failed",
-                        errorMessage: data.processing_error || "Extraction processing failed.",
-                      }
-                    : q
-                )
-              );
-              notifySubscribers();
-            }
+          const data = await apiClient.getDocument(item.documentId);
+          if (data.status === "READY") {
+            setQueue((prev) =>
+              prev.map((q) => (q.id === item.id ? { ...q, status: "ready", progress: 100 } : q))
+            );
+            notifySubscribers();
+          } else if (data.status === "FAILED") {
+            setQueue((prev) =>
+              prev.map((q) =>
+                q.id === item.id
+                  ? {
+                      ...q,
+                      status: "failed",
+                      errorMessage: data.processing_error || "Extraction processing failed.",
+                    }
+                  : q
+              )
+            );
+            notifySubscribers();
           }
         } catch {
           // Poll retry silently

@@ -32,6 +32,7 @@ class DocumentProcessor:
 
     def __init__(self, settings: Optional[Settings] = None) -> None:
         self.settings = settings or get_settings()
+        self.max_retries = getattr(self.settings, "WORKER_MAX_RETRIES", self.MAX_RETRIES)
         self.chunking_service = ChunkingService(settings=self.settings)
         self.embedding_service = EmbeddingService(settings=self.settings)
 
@@ -220,10 +221,11 @@ class DocumentProcessor:
             job.error_message = error_msg
             document.processing_error = error_msg
 
-            if job.retry_count >= self.MAX_RETRIES:
+            if job.retry_count >= self.max_retries:
                 job.status = "FAILED"
+                job.completed_at = datetime.now(timezone.utc)
                 document.status = "FAILED"
-                logger.warning("Job %s exceeded max retries (%d). Marked FAILED.", job.id, self.MAX_RETRIES)
+                logger.warning("Job %s exceeded max retries (%d). Marked FAILED.", job.id, self.max_retries)
             else:
                 job.status = "QUEUED"
                 document.status = "FAILED"

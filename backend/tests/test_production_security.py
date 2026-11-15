@@ -75,6 +75,77 @@ def test_production_settings_validation_blocks_insecure_secret_key():
         )
 
 
+def test_production_settings_validation_blocks_local_storage():
+    """Verify Settings raises ValueError if STORAGE_PROVIDER is local in production."""
+    with pytest.raises(ValueError, match="STORAGE_PROVIDER cannot be 'local' in production"):
+        Settings(
+            ENVIRONMENT="production",
+            ALLOW_DEV_AUTH=False,
+            SECRET_KEY=SecretStr("valid-production-secret-min32chars-ok!"),
+            STORAGE_PROVIDER="local",
+        )
+
+
+def test_production_settings_validation_blocks_missing_supabase_storage():
+    """Verify Settings raises ValueError if Supabase credentials are placeholders in production."""
+    with pytest.raises(ValueError, match="SUPABASE_URL must be configured"):
+        Settings(
+            ENVIRONMENT="production",
+            ALLOW_DEV_AUTH=False,
+            SECRET_KEY=SecretStr("valid-production-secret-min32chars-ok!"),
+            STORAGE_PROVIDER="supabase",
+            SUPABASE_URL="https://placeholder.supabase.co",
+        )
+
+
+def test_production_settings_validation_blocks_wildcard_cors():
+    """Verify Settings raises ValueError if wildcard origins are configured in production."""
+    with pytest.raises(ValueError, match="Wildcard origins"):
+        Settings(
+            ENVIRONMENT="production",
+            ALLOW_DEV_AUTH=False,
+            SECRET_KEY=SecretStr("valid-production-secret-min32chars-ok!"),
+            STORAGE_PROVIDER="supabase",
+            SUPABASE_URL="https://myproject.supabase.co",
+            SUPABASE_SERVICE_ROLE_KEY=SecretStr("valid-service-role-key-for-test"),
+            ALLOWED_ORIGINS=["*"],
+        )
+
+
+def test_production_settings_validation_blocks_sqlite_database():
+    """Verify Settings raises ValueError if SQLite is configured in production."""
+    with pytest.raises(ValueError, match="SQLite is strictly prohibited in production"):
+        Settings(
+            ENVIRONMENT="production",
+            ALLOW_DEV_AUTH=False,
+            SECRET_KEY=SecretStr("valid-production-secret-min32chars-ok!"),
+            STORAGE_PROVIDER="supabase",
+            SUPABASE_URL="https://myproject.supabase.co",
+            SUPABASE_SERVICE_ROLE_KEY=SecretStr("valid-service-role-key-for-test"),
+            SUPABASE_STORAGE_BUCKET="docora-documents",
+            ALLOWED_ORIGINS=["https://app.docora.ai"],
+            DATABASE_URL="sqlite:///storage/udip.db",
+        )
+
+
+def test_production_settings_valid_configuration_passes():
+    """Verify completely valid production configuration passes all invariant checks."""
+    settings = Settings(
+        ENVIRONMENT="production",
+        ALLOW_DEV_AUTH=False,
+        SECRET_KEY=SecretStr("valid-production-secret-min32chars-ok!"),
+        DATABASE_URL="postgresql+asyncpg://postgres:secret@db.supabase.co:5432/postgres",
+        STORAGE_PROVIDER="supabase",
+        SUPABASE_URL="https://myproject.supabase.co",
+        SUPABASE_SERVICE_ROLE_KEY=SecretStr("valid-service-role-key-for-test"),
+        SUPABASE_STORAGE_BUCKET="docora-documents",
+        ALLOWED_ORIGINS=["https://app.docora.ai"],
+    )
+    assert settings.ENVIRONMENT == "production"
+    assert settings.STORAGE_PROVIDER == "supabase"
+    assert "https://app.docora.ai" in settings.ALLOWED_ORIGINS
+
+
 def test_jwt_verification_rejects_none_algorithm():
     """Verify tokens using alg: none are strictly rejected."""
     payload = {"sub": "user-123", "exp": int(time.time()) + 3600}
@@ -167,3 +238,24 @@ def test_prompt_injection_delimiter_filtering():
     assert "<|im_end|>" not in sanitized
     assert "[FILTERED_TOKEN]" in sanitized
     assert "What is the revenue for Q3?" in sanitized
+
+
+def test_production_api_documentation_disabled():
+    """Verify Swagger UI (/docs), ReDoc (/redoc), and OpenAPI JSON are disabled in production."""
+    from app.main import create_app
+    prod_settings = Settings(
+        ENVIRONMENT="production",
+        ALLOW_DEV_AUTH=False,
+        SECRET_KEY=SecretStr("valid-production-secret-min32chars-ok!"),
+        DATABASE_URL="postgresql+asyncpg://postgres:secret@db.supabase.co:5432/postgres",
+        STORAGE_PROVIDER="supabase",
+        SUPABASE_URL="https://myproject.supabase.co",
+        SUPABASE_SERVICE_ROLE_KEY=SecretStr("valid-service-role-key-for-test"),
+        SUPABASE_STORAGE_BUCKET="docora-documents",
+        ALLOWED_ORIGINS=["https://app.docora.ai"],
+        DEBUG=False,
+    )
+    prod_app = create_app(prod_settings)
+    assert prod_app.docs_url is None
+    assert prod_app.redoc_url is None
+    assert prod_app.openapi_url is None

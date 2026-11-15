@@ -21,7 +21,10 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "Docora Team" }],
   creator: "Docora",
-  metadataBase: new URL("http://localhost:3000"),
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_APP_URL ||
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")
+  ),
   openGraph: {
     title: "Docora — Your documents. Your intelligence.",
     description:

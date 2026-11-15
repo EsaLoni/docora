@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { Settings, ShieldCheck, Database, HardDrive, Bell, Check } from "lucide-react";
+import { apiClient } from "@/lib/api-client";
 import { useAuth } from "@/context/AuthContext";
 
 export default function SettingsPage() {
@@ -85,7 +86,7 @@ export default function SettingsPage() {
 
           <div className="flex items-center justify-between pt-3">
             <span className="text-[11px] text-[#A0AEC0]">
-              Connected to FastAPI backend at <code className="font-mono text-[#F1F5FC]">http://127.0.0.1:8000</code>
+              Connected to FastAPI backend at <code className="font-mono text-[#F1F5FC]">{apiClient.getBaseUrl() || "relative API origin"}</code>
             </span>
 
             <button

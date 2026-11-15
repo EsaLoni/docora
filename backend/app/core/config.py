@@ -42,8 +42,8 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/udip_db"
     DATABASE_SYNC_URL: str = "postgresql+psycopg://postgres:postgres@localhost:5432/udip_db"
     ALEMBIC_DATABASE_URL: Optional[str] = None
-    DB_POOL_SIZE: int = 10
-    DB_MAX_OVERFLOW: int = 20
+    DB_POOL_SIZE: int = 5
+    DB_MAX_OVERFLOW: int = 5
     DB_POOL_TIMEOUT: int = 30
     DB_POOL_RECYCLE: int = 1800
     VECTOR_DIMENSION: int = 384
@@ -133,6 +133,12 @@ class Settings(BaseSettings):
     RATE_LIMIT_INFERENCE_PER_MINUTE: int = 40
     MAX_REQUEST_BODY_SIZE_BYTES: int = 31_457_280  # 30 MB
     WORKER_CONCURRENCY: int = 3
+    WORKER_POLL_INTERVAL_SECONDS: float = 2.0
+    WORKER_MAX_RETRIES: int = 3
+    WORKER_JOB_TIMEOUT_SECONDS: float = 300.0
+    WORKER_BATCH_SIZE: int = 5
+    WORKER_STALE_JOB_TIMEOUT_MINUTES: int = 15
+    WORKER_HEALTHCHECK_FILE: Optional[str] = None
     MALWARE_SCANNER_ENABLED: bool = True
 
     @model_validator(mode="after")
@@ -143,6 +149,27 @@ class Settings(BaseSettings):
                 raise ValueError("Security violation: ALLOW_DEV_AUTH cannot be True in production.")
             if self.SECRET_KEY.get_secret_value() == "insecure-dev-secret-key-change-in-production-min32chars!":
                 raise ValueError("Security violation: SECRET_KEY must be set to a secure secret in production.")
+            if self.STORAGE_PROVIDER == "local":
+                raise ValueError("Configuration violation: STORAGE_PROVIDER cannot be 'local' in production. Set STORAGE_PROVIDER='supabase' to prevent data loss on container restarts.")
+            if self.STORAGE_PROVIDER == "supabase":
+                if not self.SUPABASE_URL or "placeholder" in self.SUPABASE_URL:
+                    raise ValueError("Configuration error: SUPABASE_URL must be configured with a valid Supabase project URL in production.")
+                if not self.SUPABASE_SERVICE_ROLE_KEY.get_secret_value() or "placeholder" in self.SUPABASE_SERVICE_ROLE_KEY.get_secret_value():
+                    raise ValueError("Configuration error: SUPABASE_SERVICE_ROLE_KEY must be configured with a valid Supabase service role key in production.")
+                if not self.SUPABASE_STORAGE_BUCKET:
+                    raise ValueError("Configuration error: SUPABASE_STORAGE_BUCKET must be configured in production.")
+            if any(o.strip() == "*" for o in self.ALLOWED_ORIGINS):
+                raise ValueError("Security violation: Wildcard origins ('*') are strictly prohibited in ALLOWED_ORIGINS in production.")
+            if "sqlite" in self.DATABASE_URL.lower():
+                raise ValueError("Configuration violation: SQLite is strictly prohibited in production. DATABASE_URL must be configured with a PostgreSQL 16 connection string supporting pgvector.")
+            if self.LLM_PROVIDER == "gemini":
+                from app.services.llm.gemini import RETIRED_GEMINI_MODELS
+                model_lower = self.LLM_MODEL_NAME.lower().strip()
+                if model_lower in RETIRED_GEMINI_MODELS:
+                    raise ValueError(
+                        f"Configuration violation: Retired Gemini model '{self.LLM_MODEL_NAME}' "
+                        f"cannot be used in production. Please use an active stable model such as 'gemini-3.8-flash'."
+                    )
 
         # Normalize async application DATABASE_URL
         if self.DATABASE_URL.startswith("postgres://"):

@@ -22,11 +22,23 @@ from app.services.llm.models import LLMMessage, LLMResponse, LLMStreamChunk
 
 logger = get_logger("llm.gemini")
 
-# Active candidate flash models in preferential order for resilience against per-model quotas or deprecations
-FALLBACK_FLASH_MODELS = [
+# Officially retired / shut-down Gemini models according to Google API lifecycle documentation.
+# Note: gemini-2.5-flash is NOT in this retired list as it remains operational, but its access
+# is restricted for new projects, so it is not included in automatic fallback lists.
+RETIRED_GEMINI_MODELS = {
+    "gemini-1.0-pro",
+    "gemini-1.5-flash",
+    "gemini-1.5-flash-8b",
+    "gemini-1.5-pro",
+    "gemini-2.0-flash",
+    "gemini-2.0-flash-exp",
+    "gemini-2.0-flash-thinking-exp",
     "gemini-3-flash-preview",
-    "gemini-3.1-flash-lite",
-    "gemini-3.1-flash-lite-preview",
+}
+
+# Active stable models in preferential order for resilience against per-model quotas or transient outages
+FALLBACK_FLASH_MODELS = [
+    "gemini-3.8-flash",
     "gemini-3.5-flash-lite",
 ]
 
@@ -39,15 +51,19 @@ class GeminiProvider(BaseLLMProvider):
     def __init__(
         self,
         api_key: str,
-        model_name: str = "gemini-3-flash-preview",
+        model_name: str = "gemini-3.8-flash",
+        fallback_models: Optional[List[str]] = None,
         temperature: float = 0.1,
         max_tokens: int = 2048,
         timeout_seconds: float = 90.0,
     ) -> None:
-        # Default to high-availability gemini-3-flash-preview if old/invalid model name supplied
-        resolved_model = model_name
-        if not resolved_model or resolved_model in ("gemini-1.5-flash", "gemini-2.0-flash"):
-            resolved_model = "gemini-3-flash-preview"
+        resolved_model = model_name or "gemini-3.8-flash"
+        if resolved_model in RETIRED_GEMINI_MODELS:
+            logger.warning(
+                "Configured Gemini model '%s' is officially retired/shut down. "
+                "Requests may fail with 404. Consider upgrading to 'gemini-3.8-flash'.",
+                resolved_model,
+            )
 
         super().__init__(
             model_name=resolved_model,
@@ -56,6 +72,7 @@ class GeminiProvider(BaseLLMProvider):
             timeout_seconds=timeout_seconds,
         )
         self.api_key = api_key.strip() if api_key else ""
+        self.fallback_models = fallback_models if fallback_models is not None else list(FALLBACK_FLASH_MODELS)
 
     def validate_credentials(self) -> bool:
         """Validate API key presence without exposing secret."""
@@ -112,7 +129,7 @@ class GeminiProvider(BaseLLMProvider):
         if not self.validate_credentials():
             raise LLMConfigurationError("Gemini API key is not configured. Set GEMINI_API_KEY in environment.")
 
-        models_to_try = [self.model_name] + [m for m in FALLBACK_FLASH_MODELS if m != self.model_name]
+        models_to_try = [self.model_name] + [m for m in self.fallback_models if m != self.model_name]
         payload = self._build_payload(messages, temperature, max_tokens, response_mime_type=response_mime_type)
         last_error = None
 
@@ -123,30 +140,51 @@ class GeminiProvider(BaseLLMProvider):
                     async with httpx.AsyncClient(timeout=self.timeout_seconds) as client:
                         res = await client.post(url, json=payload)
 
-                        if res.status_code == 429:
+                        # 1. Non-retryable: Authentication / Permission / Policy errors (401, 403)
+                        # Must raise immediately and NEVER trigger fallback to avoid concealing credential/policy issues
+                        if res.status_code in (401, 403):
+                            try:
+                                err_msg = res.json().get("error", {}).get("message", res.text)
+                            except Exception:
+                                err_msg = res.text
+                            logger.error("Gemini non-retryable auth/policy error HTTP %d for %s: %s", res.status_code, model_candidate, err_msg)
+                            raise LLMProviderError(f"Gemini API returned non-retryable HTTP {res.status_code}: {err_msg}")
+
+                        # 2. Non-retryable: Invalid model / client request errors (400, 404)
+                        # Must raise immediately and NEVER trigger fallback to avoid concealing misconfiguration or invalid model names
+                        if res.status_code in (400, 404):
+                            try:
+                                err_msg = res.json().get("error", {}).get("message", res.text)
+                            except Exception:
+                                err_msg = res.text
+                            logger.error("Gemini invalid model or request error HTTP %d for %s: %s", res.status_code, model_candidate, err_msg)
+                            raise LLMProviderError(f"Gemini model '{model_candidate}' error (HTTP {res.status_code}): {err_msg}")
+
+                        # 3. Retryable across candidate models: Rate limit / Quota (429) or Service Unavailable / Gateway (500, 502, 503, 504)
+                        if res.status_code in (429, 500, 502, 503, 504):
                             logger.warning(
-                                "Gemini model %s rate limit / quota exceeded (429). Attempting next model candidate...",
+                                "Gemini model %s transient error HTTP %d. Attempting fallback candidate...",
                                 model_candidate,
+                                res.status_code,
                             )
-                            last_error = LLMRateLimitError(
-                                f"Gemini API rate limit reached for {model_candidate} (429)."
-                            )
+                            if res.status_code == 429:
+                                last_error = LLMRateLimitError(
+                                    f"Gemini API rate limit reached for {model_candidate} (429)."
+                                )
+                            else:
+                                last_error = LLMProviderError(
+                                    f"Gemini service unavailable for {model_candidate} (HTTP {res.status_code})."
+                                )
                             await asyncio.sleep(0.5 * (attempt + 1))
                             break  # Try next model candidate
 
-                        if res.status_code == 404:
-                            logger.warning(
-                                "Gemini model %s not found or deprecated (404). Trying next model...",
-                                model_candidate,
-                            )
-                            last_error = LLMProviderError(f"Gemini model {model_candidate} not available (404).")
-                            break  # Try next model candidate
-
                         if res.status_code >= 400:
-                            err_msg = res.json().get("error", {}).get("message", res.text)
+                            try:
+                                err_msg = res.json().get("error", {}).get("message", res.text)
+                            except Exception:
+                                err_msg = res.text
                             logger.error("Gemini HTTP %d for %s: %s", res.status_code, model_candidate, err_msg)
-                            last_error = LLMProviderError(f"Gemini API returned HTTP {res.status_code}: {err_msg}")
-                            break
+                            raise LLMProviderError(f"Gemini API returned HTTP {res.status_code}: {err_msg}")
 
                         data = res.json()
                         candidates = data.get("candidates", [])
@@ -172,9 +210,12 @@ class GeminiProvider(BaseLLMProvider):
                         )
 
                 except httpx.TimeoutException:
-                    last_error = LLMTimeoutError(f"Gemini API timed out after {self.timeout_seconds}s.")
+                    last_error = LLMTimeoutError(f"Gemini API timed out after {self.timeout_seconds}s for {model_candidate}.")
                     await asyncio.sleep(0.5)
-                except (LLMProviderError, LLMRateLimitError, LLMTimeoutError, LLMConfigurationError) as e:
+                except (LLMProviderError, LLMConfigurationError):
+                    # Immediate non-retryable errors (auth, policy, invalid model): propagate immediately
+                    raise
+                except LLMRateLimitError as e:
                     last_error = e
                 except Exception as e:
                     last_error = LLMProviderError(f"Gemini request failed: {e}")
@@ -195,7 +236,7 @@ class GeminiProvider(BaseLLMProvider):
         if not self.validate_credentials():
             raise LLMConfigurationError("Gemini API key is not configured.")
 
-        models_to_try = [self.model_name] + [m for m in FALLBACK_FLASH_MODELS if m != self.model_name]
+        models_to_try = [self.model_name] + [m for m in self.fallback_models if m != self.model_name]
         payload = self._build_payload(messages, temperature, max_tokens, response_mime_type=response_mime_type)
         stream_started = False
 
@@ -204,9 +245,15 @@ class GeminiProvider(BaseLLMProvider):
             try:
                 async with httpx.AsyncClient(timeout=self.timeout_seconds) as client:
                     async with client.stream("POST", url, json=payload) as response:
-                        if response.status_code in (404, 429):
+                        if response.status_code in (401, 403):
+                            raise LLMProviderError(f"Gemini stream non-retryable auth/policy error HTTP {response.status_code}")
+
+                        if response.status_code in (400, 404):
+                            raise LLMProviderError(f"Gemini stream model '{model_candidate}' invalid or not found (HTTP {response.status_code})")
+
+                        if response.status_code in (429, 500, 502, 503, 504):
                             logger.warning(
-                                "Gemini streaming %s returned HTTP %d, falling back to next model...",
+                                "Gemini streaming %s returned retryable HTTP %d, falling back to next candidate...",
                                 model_candidate,
                                 response.status_code,
                             )

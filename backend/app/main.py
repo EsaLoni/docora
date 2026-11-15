@@ -67,7 +67,7 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
         version=settings.APP_VERSION,
         docs_url="/docs" if settings.DEBUG or settings.ENVIRONMENT != "production" else None,
         redoc_url="/redoc" if settings.DEBUG or settings.ENVIRONMENT != "production" else None,
-        openapi_url=f"{settings.API_V1_PREFIX}/openapi.json",
+        openapi_url=f"{settings.API_V1_PREFIX}/openapi.json" if settings.DEBUG or settings.ENVIRONMENT != "production" else None,
         lifespan=lifespan,
     )
 
@@ -101,6 +101,10 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
 
     # Innermost / First on Inbound: Correlation ID (X-Request-ID)
     app.add_middleware(CorrelationIdMiddleware)
+
+    # Reverse proxy header forwarding (Render / Vercel / Nginx)
+    from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
+    app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*")
 
     # 2. Register Centralized Exception Handlers
     register_exception_handlers(app)

@@ -25,7 +25,7 @@ import {
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { ArtifactItem } from "@/lib/api-client";
+import { apiClient, ArtifactItem } from "@/lib/api-client";
 
 interface ArtifactViewerModalProps {
   artifact: ArtifactItem | null;
@@ -117,7 +117,7 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
     data.dialogue || (Array.isArray(data.transcript) ? data.transcript : []);
 
   const downloadUrl = artifact.export_file_path
-    ? `http://localhost:8000/api/v1/notebooks/${artifact.notebook_id || ""}/studio/artifacts/${artifact.id}/download`
+    ? apiClient.buildUrl(`/api/v1/notebooks/${artifact.notebook_id || ""}/studio/artifacts/${artifact.id}/download`)
     : null;
 
   const handleToggleAudio = () => {

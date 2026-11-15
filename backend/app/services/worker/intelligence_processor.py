@@ -36,6 +36,7 @@ class IntelligenceProcessor:
 
     def __init__(self, settings: Optional[Settings] = None) -> None:
         self.settings = settings or get_settings()
+        self.max_retries = getattr(self.settings, "WORKER_MAX_RETRIES", self.MAX_RETRIES)
         self.llm_service = LLMService(settings=self.settings)
         self.summarization_service = SummarizationService(
             settings=self.settings, llm_service=self.llm_service
@@ -158,14 +159,14 @@ class IntelligenceProcessor:
         except Exception as e:
             logger.error("Error processing intelligence job %s: %s\n%s", job_id, e, traceback.format_exc())
             job.retry_count += 1
-            if job.retry_count < self.MAX_RETRIES:
+            if job.retry_count < self.max_retries:
                 job.status = "QUEUED"
                 job.progress_percentage = 0
-                job.error_message = f"Retry {job.retry_count}/{self.MAX_RETRIES}: {str(e)}"
+                job.error_message = f"Retry {job.retry_count}/{self.max_retries}: {str(e)}"
             else:
                 job.status = "FAILED"
                 job.progress_percentage = 0
-                job.error_message = f"Failed after {self.MAX_RETRIES} attempts: {str(e)}"
+                job.error_message = f"Failed after {self.max_retries} attempts: {str(e)}"
                 job.completed_at = datetime.now(timezone.utc)
 
             await db.commit()

@@ -31,6 +31,9 @@ class VectorRetriever:
         folder_id: Optional[uuid.UUID] = None,
     ) -> List[SearchResultItem]:
         """Perform semantic vector search bounded strictly to workspace."""
+        from app.services.embeddings.base import validate_embedding_dimensions
+        validate_embedding_dimensions(query_vector, expected_dim=384)
+
         bind = db.get_bind()
         is_postgres = bind.dialect.name == "postgresql"
 

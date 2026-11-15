@@ -52,14 +52,12 @@ async def get_public_config(
     settings: Settings = Depends(get_settings),
 ) -> PublicConfigResponse:
     """Return public platform configuration for frontend consumption."""
-    model_name = getattr(settings, "LLM_MODEL_NAME", "gemini-3-flash-preview")
+    model_name = getattr(settings, "LLM_MODEL_NAME", "gemini-3.8-flash")
     label_map = {
-        "gemini-3-flash-preview": "Gemini 3 Flash",
-        "gemini-3.1-flash-lite": "Gemini 3.1 Flash-Lite",
+        "gemini-3.8-flash": "Gemini 3.8 Flash",
         "gemini-3.5-flash-lite": "Gemini 3.5 Flash-Lite",
-        "gemini-2.5-flash": "Gemini 2.5 Flash",
     }
-    model_label = label_map.get(model_name, "Gemini 3 Flash")
+    model_label = label_map.get(model_name, "Gemini 3.8 Flash")
 
     return PublicConfigResponse(
         api_url=getattr(settings, "PUBLIC_API_URL", "http://localhost:8000"),

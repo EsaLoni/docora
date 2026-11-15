@@ -39,8 +39,8 @@ SECRET_KEY="<generate-random-64-character-hex-string>"
 # =====================================================================
 # Database & Vector Storage (PostgreSQL 16 + pgvector)
 # =====================================================================
-DATABASE_URL="postgresql+asyncpg://udip_user:SecurePassword123!@postgres:5432/udip_db"
-DATABASE_SYNC_URL="postgresql://udip_user:SecurePassword123!@postgres:5432/udip_db"
+DATABASE_URL="postgresql+asyncpg://udip_user:your-postgres-password@postgres:5432/udip_db"
+DATABASE_SYNC_URL="postgresql://udip_user:your-postgres-password@postgres:5432/udip_db"
 
 # =====================================================================
 # Google Gemini API Configuration

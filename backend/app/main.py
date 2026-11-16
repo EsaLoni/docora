@@ -43,14 +43,14 @@ async def lifespan(app: FastAPI):
         settings.DEBUG,
         settings.STORAGE_PROVIDER,
     )
-    if settings.DATABASE_URL.startswith("sqlite"):
-        from app.core.database import get_async_engine
-        from app.models.base import Base
-        import app.models  # noqa: F401
-        engine = get_async_engine(settings)
-        async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
-        logger.info("Verified/initialized local SQLite database tables")
+    # Verify / initialize schema tables asynchronously using asyncpg
+    from app.core.database import get_async_engine
+    from app.models.base import Base
+    import app.models  # noqa: F401
+    engine = get_async_engine(settings)
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    logger.info("Verified/initialized database schema tables successfully")
 
     worker_task = None
     worker_runner = None

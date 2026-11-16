@@ -23,9 +23,9 @@ class SupabaseStorageAdapter(StorageAdapter):
         if settings is None:
             settings = get_settings()
         self.settings = settings
-        self.supabase_url = settings.SUPABASE_URL.rstrip("/")
-        self.bucket = settings.SUPABASE_STORAGE_BUCKET
-        self.service_key = settings.SUPABASE_SERVICE_ROLE_KEY.get_secret_value()
+        self.supabase_url = settings.SUPABASE_URL.strip().rstrip("/")
+        self.bucket = settings.SUPABASE_STORAGE_BUCKET.strip()
+        self.service_key = settings.SUPABASE_SERVICE_ROLE_KEY.get_secret_value().strip()
 
     @staticmethod
     def _is_jwt(token: str) -> bool:

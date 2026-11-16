@@ -200,6 +200,14 @@ class Settings(BaseSettings):
         self.DATABASE_SYNC_URL = sync_candidate
         return self
 
+    @field_validator("SUPABASE_URL", "DATABASE_URL", "DATABASE_SYNC_URL", "ALEMBIC_DATABASE_URL", mode="before")
+    @classmethod
+    def strip_whitespace_from_urls(cls, v: Optional[str]) -> Optional[str]:
+        """Strip invisible leading or trailing whitespace, tabs, and newlines from URLs."""
+        if isinstance(v, str):
+            return v.strip()
+        return v
+
     @field_validator("ALLOWED_ORIGINS", "ALLOWED_FILE_EXTENSIONS", mode="before")
     @classmethod
     def assemble_cors_origins(cls, v: Union[str, List[str]]) -> List[str]:

@@ -16,6 +16,7 @@ import { CreateNoteModal } from "@/components/notebook/CreateNoteModal";
 import { DeleteConfirmModal } from "@/components/notebook/DeleteConfirmModal";
 import { StudioGenerationModal } from "@/components/notebook/StudioGenerationModal";
 import { ArtifactViewerModal } from "@/components/notebook/ArtifactViewerModal";
+import { GeminiKeyModal } from "@/components/notebook/GeminiKeyModal";
 import { ToastContainer } from "@/components/notebook/ToastContainer";
 import { SourceItem, ArtifactItem } from "@/lib/api-client";
 
@@ -65,6 +66,7 @@ function NotebookWorkspaceContent() {
   const [deleteCandidate, setDeleteCandidate] = useState<SourceItem | null>(null);
   const [activeStudioTool, setActiveStudioTool] = useState<string | null>(null);
   const [viewingArtifact, setViewingArtifact] = useState<ArtifactItem | null>(null);
+  const [isGeminiModalOpen, setIsGeminiModalOpen] = useState(false);
 
   // Redirect to notebooks list if notebookId is missing (executed unconditionally)
   useEffect(() => {
@@ -145,6 +147,7 @@ function NotebookWorkspaceContent() {
             onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
             onSaveTitle={handleSaveTitle}
             onOpenAddSource={() => setIsAddSourceOpen(true)}
+            onOpenGeminiKey={() => setIsGeminiModalOpen(true)}
           />
         }
         sourcesPanel={
@@ -223,6 +226,12 @@ function NotebookWorkspaceContent() {
         source={deleteCandidate}
         onClose={() => setDeleteCandidate(null)}
         onConfirm={handleDeleteSource}
+      />
+
+      {/* Gemini AI API Key Modal */}
+      <GeminiKeyModal
+        isOpen={isGeminiModalOpen}
+        onClose={() => setIsGeminiModalOpen(false)}
       />
 
       {/* Studio Tool Generator Modal */}

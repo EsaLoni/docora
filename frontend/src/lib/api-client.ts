@@ -224,6 +224,10 @@ export class ApiClient {
         if (saved) {
           this.setAuthToken(saved);
         }
+        const savedGeminiKey = localStorage.getItem("docora_user_gemini_key");
+        if (savedGeminiKey) {
+          this.defaultHeaders["X-Gemini-API-Key"] = savedGeminiKey.trim();
+        }
       } catch {
         // localStorage unavailable
       }
@@ -246,6 +250,27 @@ export class ApiClient {
     } else {
       delete this.defaultHeaders["Authorization"];
     }
+  }
+
+  setGeminiApiKey(apiKey: string | null) {
+    if (apiKey && apiKey.trim()) {
+      this.defaultHeaders["X-Gemini-API-Key"] = apiKey.trim();
+      if (typeof window !== "undefined") {
+        localStorage.setItem("docora_user_gemini_key", apiKey.trim());
+      }
+    } else {
+      delete this.defaultHeaders["X-Gemini-API-Key"];
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("docora_user_gemini_key");
+      }
+    }
+  }
+
+  getGeminiApiKey(): string | null {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("docora_user_gemini_key") || this.defaultHeaders["X-Gemini-API-Key"] || null;
+    }
+    return this.defaultHeaders["X-Gemini-API-Key"] || null;
   }
 
   getAuthToken(): string | null {
@@ -280,6 +305,13 @@ export class ApiClient {
       this.token || (typeof window !== "undefined" ? localStorage.getItem("udip_access_token") : null);
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;
+    }
+
+    const geminiKey =
+      this.defaultHeaders["X-Gemini-API-Key"] ||
+      (typeof window !== "undefined" ? localStorage.getItem("docora_user_gemini_key") : null);
+    if (geminiKey) {
+      headers["X-Gemini-API-Key"] = geminiKey.trim();
     }
 
     return fetch(url, {

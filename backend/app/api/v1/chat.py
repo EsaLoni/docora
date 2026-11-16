@@ -8,7 +8,7 @@ from datetime import datetime
 import json
 from typing import Any, Dict, List, Literal, Optional
 import uuid
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, Header, Query, status
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field, model_validator
 from sqlalchemy import select
@@ -324,6 +324,7 @@ async def send_message(
     workspace: Workspace = Depends(get_active_workspace),
     db: AsyncSession = Depends(get_db_session),
     settings: Settings = Depends(get_settings),
+    x_gemini_api_key: Optional[str] = Header(None, alias="X-Gemini-API-Key"),
     _rl: None = Depends(chat_rate_limiter),
 ):
     """Post a user inquiry and receive a grounded assistant answer with citations."""
@@ -339,7 +340,7 @@ async def send_message(
             else:
                 resolved_doc_ids.append(did)
 
-    rag_service = RAGService(settings=settings)
+    rag_service = RAGService(settings=settings, custom_api_key=x_gemini_api_key)
     rag_request = RAGRequest(
         question=request.question,
         conversation_id=conversation_id,

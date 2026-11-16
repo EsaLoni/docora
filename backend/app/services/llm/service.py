@@ -30,9 +30,10 @@ class LLMService:
         self,
         provider: Optional[BaseLLMProvider] = None,
         settings: Optional[Settings] = None,
+        custom_api_key: Optional[str] = None,
     ) -> None:
         self.settings = settings or get_settings()
-        self.provider = provider or LLMProviderFactory.get_provider(self.settings)
+        self.provider = provider or LLMProviderFactory.get_provider(self.settings, custom_api_key=custom_api_key)
 
     async def generate(
         self,

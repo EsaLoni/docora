@@ -35,6 +35,7 @@ interface WorkspaceHeaderProps {
   onOpenCommandPalette: () => void;
   onSaveTitle: (newTitle: string) => Promise<void>;
   onOpenAddSource: () => void;
+  onOpenGeminiKey?: () => void;
 }
 
 export function WorkspaceHeader({
@@ -47,6 +48,7 @@ export function WorkspaceHeader({
   onOpenCommandPalette,
   onSaveTitle,
   onOpenAddSource,
+  onOpenGeminiKey,
 }: WorkspaceHeaderProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [tempTitle, setTempTitle] = useState(title);
@@ -162,11 +164,19 @@ export function WorkspaceHeader({
           )}
         </div>
 
-        {/* Model Badge */}
-        <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--panel-raised)] border border-[var(--border-subtle)] text-xs text-[var(--text-secondary)] font-medium">
-          <Sparkles className="w-3 h-3 text-[var(--accent-blue)]" />
+        {/* Model Badge / Key Configuration */}
+        <button
+          onClick={onOpenGeminiKey}
+          type="button"
+          className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--panel-raised)] border border-[var(--border-subtle)] hover:border-[#6D8FFF]/60 text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-medium transition-all cursor-pointer group shadow-xs"
+          title="Connect or change your Google Gemini API Key"
+        >
+          <Sparkles className="w-3 h-3 text-[var(--accent-blue)] group-hover:scale-110 transition-transform" />
           <span>{modelLabel}</span>
-        </div>
+          <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#6D8FFF]/15 text-[#6D8FFF] font-medium border border-[#6D8FFF]/30 group-hover:bg-[#6D8FFF]/25">
+            Key
+          </span>
+        </button>
       </div>
 
       {/* Right Controls */}
@@ -279,6 +289,19 @@ export function WorkspaceHeader({
                   <Settings className="w-4 h-4 text-[#9299A4]" />
                   <span>Account Settings</span>
                 </Link>
+
+                {onOpenGeminiKey && (
+                  <button
+                    onClick={() => {
+                      setIsAccountOpen(false);
+                      onOpenGeminiKey();
+                    }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-[#B8BDC7] hover:text-[#F1F3F4] hover:bg-[#282828] transition-colors text-left"
+                  >
+                    <Sparkles className="w-4 h-4 text-[#8AB4F8]" />
+                    <span>Gemini AI Key</span>
+                  </button>
+                )}
               </div>
 
               <div className="pt-1 mt-1 border-t border-[#2A2A2A]">

@@ -6,7 +6,7 @@ Modular Monolith API.
 
 from contextlib import asynccontextmanager
 from typing import Optional
-from fastapi import FastAPI, Response
+from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1.health import router as health_router
@@ -127,6 +127,20 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
 
     # Innermost / First on Inbound: Correlation ID (X-Request-ID)
     app.add_middleware(CorrelationIdMiddleware)
+
+    # Capture optional per-user Gemini API Key header for dynamic LLM execution
+    from app.services.llm.factory import user_gemini_api_key_var
+
+    @app.middleware("http")
+    async def capture_user_gemini_api_key(request: Request, call_next):
+        key = request.headers.get("x-gemini-api-key")
+        if key and key.strip():
+            token = user_gemini_api_key_var.set(key.strip())
+            try:
+                return await call_next(request)
+            finally:
+                user_gemini_api_key_var.reset(token)
+        return await call_next(request)
 
     # Reverse proxy header forwarding (Render / Vercel / Nginx)
     from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware

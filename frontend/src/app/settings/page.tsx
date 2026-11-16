@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { Settings, ShieldCheck, Database, HardDrive, Bell, Check } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Settings, ShieldCheck, Database, HardDrive, Bell, Check, Sparkles, Key, ExternalLink } from "lucide-react";
 import { apiClient } from "@/lib/api-client";
 import { useAuth } from "@/context/AuthContext";
 
@@ -9,12 +9,35 @@ export default function SettingsPage() {
   const { user } = useAuth();
   const [devEmail, setDevEmail] = useState(user?.email || "dev@docora.local");
   const [retrievalMode, setRetrievalMode] = useState("hybrid");
+  const [geminiApiKey, setGeminiApiKey] = useState("");
   const [saved, setSaved] = useState(false);
+  const [geminiSaved, setGeminiSaved] = useState(false);
+
+  useEffect(() => {
+    const existingKey = apiClient.getGeminiApiKey();
+    if (existingKey) {
+      setGeminiApiKey(existingKey);
+    }
+  }, []);
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
+  };
+
+  const handleSaveGeminiKey = (e: React.FormEvent) => {
+    e.preventDefault();
+    apiClient.setGeminiApiKey(geminiApiKey.trim() || null);
+    setGeminiSaved(true);
+    setTimeout(() => setGeminiSaved(false), 2000);
+  };
+
+  const handleClearGeminiKey = () => {
+    apiClient.setGeminiApiKey(null);
+    setGeminiApiKey("");
+    setGeminiSaved(true);
+    setTimeout(() => setGeminiSaved(false), 2000);
   };
 
   return (
@@ -50,6 +73,75 @@ export default function SettingsPage() {
               <p className="font-semibold text-[#F1F5FC] mt-0.5 text-sm">100 MB Allocation</p>
             </div>
           </div>
+        </div>
+
+        {/* Google Gemini AI Integration (BYOK) */}
+        <div className="p-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 font-semibold text-sm text-[#F1F5FC]">
+              <Sparkles className="h-5 w-5 text-[#6D8FFF]" />
+              <span>Google Gemini AI Integration</span>
+            </div>
+            <a
+              href="https://aistudio.google.com/app/apikey"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1.5 text-xs text-[#6D8FFF] hover:underline font-medium"
+            >
+              <span>Get Free API Key</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+          </div>
+
+          <p className="text-[#A0AEC0] leading-relaxed text-[13px]">
+            Provide your Google Gemini API key to run grounded RAG synthesis, document querying, and Studio tools directly with zero queue delay or shared rate limits.
+          </p>
+
+          <form onSubmit={handleSaveGeminiKey} className="space-y-3 pt-1">
+            <div className="space-y-1.5">
+              <label className="font-medium text-[#A0AEC0] text-xs">Personal Gemini API Key</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#A0AEC0]">
+                  <Key className="w-4 h-4" />
+                </div>
+                <input
+                  type="password"
+                  value={geminiApiKey}
+                  onChange={(e) => setGeminiApiKey(e.target.value)}
+                  placeholder="AIzaSy..."
+                  className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-[#273247] bg-[#10141D] text-[#F1F5FC] text-xs font-mono focus:border-[#6D8FFF] outline-hidden placeholder:text-[#A0AEC0]/40"
+                />
+              </div>
+              <p className="text-[11px] text-[#A0AEC0]">
+                Keys are stored locally in your browser session and sent encrypted via HTTPS directly to your API endpoint.
+              </p>
+            </div>
+
+            <div className="flex items-center justify-between pt-2">
+              {geminiApiKey ? (
+                <button
+                  type="button"
+                  onClick={handleClearGeminiKey}
+                  className="px-3 py-1.5 rounded-xl text-xs text-red-400 hover:bg-red-400/10 transition-colors"
+                >
+                  Clear Key
+                </button>
+              ) : <div />}
+
+              <button
+                type="submit"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#6D8FFF] text-[#0B0D12] font-semibold text-xs shadow-sm hover:bg-[#84A2FF] transition"
+              >
+                {geminiSaved ? (
+                  <>
+                    <Check className="h-3.5 w-3.5" /> Key Saved
+                  </>
+                ) : (
+                  "Save Gemini Key"
+                )}
+              </button>
+            </div>
+          </form>
         </div>
 
         {/* Runtime Settings Form */}

@@ -36,10 +36,11 @@ class RAGService:
         retrieval_service: Optional[RetrievalService] = None,
         llm_service: Optional[LLMService] = None,
         settings: Optional[Settings] = None,
+        custom_api_key: Optional[str] = None,
     ) -> None:
         self.settings = settings or get_settings()
         self.retrieval_service = retrieval_service or RetrievalService(settings=self.settings)
-        self.llm_service = llm_service or LLMService(settings=self.settings)
+        self.llm_service = llm_service or LLMService(settings=self.settings, custom_api_key=custom_api_key)
 
         self.context_builder = ContextBuilder(settings=self.settings)
         self.prompt_builder = PromptBuilder()

@@ -74,7 +74,7 @@ class Settings(BaseSettings):
     SIGNED_URL_EXPIRATION_SECONDS: int = 3600
     MAX_UPLOAD_SIZE_BYTES: int = 26_214_400  # 25 MB
     DEFAULT_WORKSPACE_STORAGE_QUOTA_BYTES: int = 104_857_600  # 100 MB
-    ALLOWED_FILE_EXTENSIONS: List[str] = [
+    ALLOWED_FILE_EXTENSIONS: Union[str, List[str]] = [
         ".pdf",
         ".docx",
         ".xlsx",
@@ -200,7 +200,7 @@ class Settings(BaseSettings):
         self.DATABASE_SYNC_URL = sync_candidate
         return self
 
-    @field_validator("ALLOWED_ORIGINS", mode="before")
+    @field_validator("ALLOWED_ORIGINS", "ALLOWED_FILE_EXTENSIONS", mode="before")
     @classmethod
     def assemble_cors_origins(cls, v: Union[str, List[str]]) -> List[str]:
         """Parse allowed origins from JSON string or comma-separated list."""

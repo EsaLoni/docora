@@ -51,7 +51,7 @@ class LLMProviderFactory:
                 else:
                     api_key = _resolve_secret(gemini_raw) or _resolve_secret(cfg.LLM_API_KEY)
 
-            model = cfg.LLM_MODEL_NAME if "gemini" in cfg.LLM_MODEL_NAME and "preview" not in cfg.LLM_MODEL_NAME else "gemini-2.5-flash"
+            model = cfg.LLM_MODEL_NAME if "gemini" in cfg.LLM_MODEL_NAME and "preview" not in cfg.LLM_MODEL_NAME and "2.5" not in cfg.LLM_MODEL_NAME and "3.8" not in cfg.LLM_MODEL_NAME else "gemini-3.5-flash"
             # If user provided their own key, instantiate dynamically without polluting singleton
             if effective_custom_key:
                 return GeminiProvider(

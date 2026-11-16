@@ -38,10 +38,9 @@ RETIRED_GEMINI_MODELS = {
 
 # Active stable models in preferential order for resilience against per-model quotas or transient outages
 FALLBACK_FLASH_MODELS = [
-    "gemini-2.5-flash",
-    "gemini-3.8-flash",
     "gemini-3.5-flash",
     "gemini-3.5-flash-lite",
+    "gemini-3.8-flash",
 ]
 
 
@@ -53,13 +52,13 @@ class GeminiProvider(BaseLLMProvider):
     def __init__(
         self,
         api_key: str,
-        model_name: str = "gemini-2.5-flash",
+        model_name: str = "gemini-3.5-flash",
         fallback_models: Optional[List[str]] = None,
         temperature: float = 0.1,
         max_tokens: int = 2048,
         timeout_seconds: float = 25.0,
     ) -> None:
-        resolved_model = model_name or "gemini-3.8-flash"
+        resolved_model = model_name or "gemini-3.5-flash"
         if resolved_model in RETIRED_GEMINI_MODELS:
             logger.warning(
                 "Configured Gemini model '%s' is officially retired/shut down. "
@@ -152,15 +151,19 @@ class GeminiProvider(BaseLLMProvider):
                             logger.error("Gemini non-retryable auth/policy error HTTP %d for %s: %s", res.status_code, model_candidate, err_msg)
                             raise LLMProviderError(f"Gemini API returned non-retryable HTTP {res.status_code}: {err_msg}")
 
-                        # 2. Non-retryable: Invalid model / client request errors (400, 404)
-                        # Must raise immediately and NEVER trigger fallback to avoid concealing misconfiguration or invalid model names
-                        if res.status_code in (400, 404):
+                        # 2. Model not found (404): fall back to next candidate model
+                        if res.status_code == 404:
+                            logger.warning("Gemini model '%s' not found (404). Falling back to next candidate...", model_candidate)
+                            last_error = LLMProviderError(f"Gemini model '{model_candidate}' not found (HTTP 404)")
+                            break
+
+                        if res.status_code == 400:
                             try:
                                 err_msg = res.json().get("error", {}).get("message", res.text)
                             except Exception:
                                 err_msg = res.text
-                            logger.error("Gemini invalid model or request error HTTP %d for %s: %s", res.status_code, model_candidate, err_msg)
-                            raise LLMProviderError(f"Gemini model '{model_candidate}' error (HTTP {res.status_code}): {err_msg}")
+                            logger.error("Gemini invalid request error HTTP 400 for %s: %s", model_candidate, err_msg)
+                            raise LLMProviderError(f"Gemini model '{model_candidate}' error (HTTP 400): {err_msg}")
 
                         # 3. Retryable across candidate models: Rate limit / Quota (429) or Service Unavailable / Gateway (500, 502, 503, 504)
                         if res.status_code in (429, 500, 502, 503, 504):
@@ -255,8 +258,12 @@ class GeminiProvider(BaseLLMProvider):
                         if response.status_code in (401, 403):
                             raise LLMProviderError(f"Gemini stream non-retryable auth/policy error HTTP {response.status_code}")
 
-                        if response.status_code in (400, 404):
-                            raise LLMProviderError(f"Gemini stream model '{model_candidate}' invalid or not found (HTTP {response.status_code})")
+                        if response.status_code == 404:
+                            logger.warning("Gemini stream model '%s' not found (404), falling back to next candidate...", model_candidate)
+                            continue
+
+                        if response.status_code == 400:
+                            raise LLMProviderError(f"Gemini stream model '{model_candidate}' invalid request (HTTP 400)")
 
                         if response.status_code in (429, 500, 502, 503, 504):
                             logger.warning(

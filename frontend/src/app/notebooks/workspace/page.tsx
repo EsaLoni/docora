@@ -173,6 +173,7 @@ function NotebookWorkspaceContent() {
             onSaveAsNote={handleSaveAsNote}
             sourcesCount={sources.filter((s) => s.is_active_for_queries).length}
             notebookTitle={notebook?.title}
+            onOpenGeminiKey={() => setIsGeminiModalOpen(true)}
           />
         }
         studioPanel={
@@ -245,6 +246,7 @@ function NotebookWorkspaceContent() {
           setViewingArtifact(newArt);
         }}
         showToast={showToast}
+        onOpenGeminiKey={() => setIsGeminiModalOpen(true)}
       />
 
       {/* Full Artifact Viewer Modal */}

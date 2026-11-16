@@ -54,6 +54,15 @@ export function WorkspaceHeader({
   const [tempTitle, setTempTitle] = useState(title);
   const [copiedShare, setCopiedShare] = useState(false);
   const [isDark, setIsDark] = useState(false);
+  const [hasGeminiKey, setHasGeminiKey] = useState(false);
+
+  useEffect(() => {
+    setHasGeminiKey(Boolean(apiClient.getGeminiApiKey()));
+    const interval = setInterval(() => {
+      setHasGeminiKey(Boolean(apiClient.getGeminiApiKey()));
+    }, 1500);
+    return () => clearInterval(interval);
+  }, []);
 
   const router = useRouter();
   const { user, logout } = useAuth();
@@ -168,14 +177,24 @@ export function WorkspaceHeader({
         <button
           onClick={onOpenGeminiKey}
           type="button"
-          className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--panel-raised)] border border-[var(--border-subtle)] hover:border-[#6D8FFF]/60 text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-medium transition-all cursor-pointer group shadow-xs"
-          title="Connect or change your Google Gemini API Key"
+          className={`hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-medium transition-all cursor-pointer group shadow-xs ${
+            hasGeminiKey
+              ? "bg-[var(--panel-raised)] border-emerald-500/30 text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+              : "bg-amber-500/10 border-amber-500/40 text-amber-300 hover:bg-amber-500/20"
+          }`}
+          title={hasGeminiKey ? "Gemini 3.8 Flash Connected (Click to configure)" : "Click to connect your free Google Gemini API Key"}
         >
-          <Sparkles className="w-3 h-3 text-[var(--accent-blue)] group-hover:scale-110 transition-transform" />
+          <Sparkles className={`w-3.5 h-3.5 ${hasGeminiKey ? "text-[var(--accent-blue)]" : "text-amber-400"} group-hover:scale-110 transition-transform`} />
           <span>{modelLabel}</span>
-          <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#6D8FFF]/15 text-[#6D8FFF] font-medium border border-[#6D8FFF]/30 group-hover:bg-[#6D8FFF]/25">
-            Key
-          </span>
+          {hasGeminiKey ? (
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-medium">
+              Connected
+            </span>
+          ) : (
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-400 text-black font-semibold animate-pulse">
+              Connect Key
+            </span>
+          )}
         </button>
       </div>
 

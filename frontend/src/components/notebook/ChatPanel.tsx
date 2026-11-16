@@ -35,6 +35,7 @@ interface ChatPanelProps {
   onSaveAsNote: (msg: ChatMessage) => Promise<void>;
   sourcesCount: number;
   notebookTitle?: string;
+  onOpenGeminiKey?: () => void;
 }
 
 export function ChatPanel({
@@ -48,12 +49,22 @@ export function ChatPanel({
   onSaveAsNote,
   sourcesCount,
   notebookTitle,
+  onOpenGeminiKey,
 }: ChatPanelProps) {
   const [showStyleMenu, setShowStyleMenu] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [savedNoteId, setSavedNoteId] = useState<string | null>(null);
+  const [hasGeminiKey, setHasGeminiKey] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    setHasGeminiKey(Boolean(apiClient.getGeminiApiKey()));
+    const interval = setInterval(() => {
+      setHasGeminiKey(Boolean(apiClient.getGeminiApiKey()));
+    }, 1500);
+    return () => clearInterval(interval);
+  }, []);
 
   // Auto scroll
   useEffect(() => {
@@ -77,6 +88,10 @@ export function ChatPanel({
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
+      if (!hasGeminiKey && onOpenGeminiKey) {
+        onOpenGeminiKey();
+        return;
+      }
       onSendMessage();
     }
   };
@@ -208,6 +223,21 @@ export function ChatPanel({
 
       {/* Floating Composer Container */}
       <div className="p-3 sm:p-4 bg-transparent shrink-0">
+        {!hasGeminiKey && (
+          <div
+            onClick={onOpenGeminiKey}
+            className="max-w-3xl mx-auto mb-2.5 p-2.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-300 flex items-center justify-between cursor-pointer hover:bg-amber-500/20 transition-colors shadow-xs"
+          >
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
+              <span>Connect your Google Gemini API key to ask questions & generate answers.</span>
+            </div>
+            <span className="font-semibold underline shrink-0 px-2 py-0.5 rounded bg-amber-400 text-black text-[11px]">
+              Connect Key
+            </span>
+          </div>
+        )}
+
         <div className="max-w-3xl mx-auto rounded-3xl border border-[var(--border-subtle)] bg-[var(--composer)] shadow-lg p-2 transition-all focus-within:ring-1 focus-within:ring-[var(--accent-blue)]">
           {/* Text Area */}
           <textarea
@@ -272,7 +302,13 @@ export function ChatPanel({
 
             {/* Send Button */}
             <button
-              onClick={onSendMessage}
+              onClick={() => {
+                if (!hasGeminiKey && onOpenGeminiKey) {
+                  onOpenGeminiKey();
+                  return;
+                }
+                onSendMessage();
+              }}
               disabled={!inputQuery.trim() || isGenerating}
               className={`h-8 w-8 rounded-full flex items-center justify-center transition-all ${
                 inputQuery.trim() && !isGenerating

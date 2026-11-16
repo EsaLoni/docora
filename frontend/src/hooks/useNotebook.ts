@@ -71,6 +71,9 @@ export function useNotebook(notebookId: string) {
         apiClient.getDocuments().catch(() => ({ items: [], total: 0 })),
       ]);
       setNotebook(nb);
+      if (nb.workspace_id) {
+        apiClient.setWorkspaceId(nb.workspace_id);
+      }
       setSources(nb.sources || []);
       setNotes(nb.notes || []);
       setArtifacts(nb.artifacts || []);

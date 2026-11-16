@@ -24,6 +24,7 @@ import {
   User as UserIcon,
 } from "lucide-react";
 import { BrandLogo } from "@/components/brand/BrandLogo";
+import { apiClient } from "@/lib/api-client";
 
 interface WorkspaceHeaderProps {
   title: string;

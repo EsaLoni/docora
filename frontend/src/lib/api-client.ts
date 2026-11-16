@@ -228,6 +228,10 @@ export class ApiClient {
         if (savedGeminiKey) {
           this.defaultHeaders["X-Gemini-API-Key"] = savedGeminiKey.trim();
         }
+        const savedWs = localStorage.getItem("udip_active_workspace_id");
+        if (savedWs) {
+          this.defaultHeaders["X-Workspace-ID"] = savedWs.trim();
+        }
       } catch {
         // localStorage unavailable
       }
@@ -271,6 +275,27 @@ export class ApiClient {
       return localStorage.getItem("docora_user_gemini_key") || this.defaultHeaders["X-Gemini-API-Key"] || null;
     }
     return this.defaultHeaders["X-Gemini-API-Key"] || null;
+  }
+
+  setWorkspaceId(workspaceId: string | null) {
+    if (workspaceId && workspaceId.trim()) {
+      this.defaultHeaders["X-Workspace-ID"] = workspaceId.trim();
+      if (typeof window !== "undefined") {
+        localStorage.setItem("udip_active_workspace_id", workspaceId.trim());
+      }
+    } else {
+      delete this.defaultHeaders["X-Workspace-ID"];
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("udip_active_workspace_id");
+      }
+    }
+  }
+
+  getWorkspaceId(): string | null {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("udip_active_workspace_id") || this.defaultHeaders["X-Workspace-ID"] || null;
+    }
+    return this.defaultHeaders["X-Workspace-ID"] || null;
   }
 
   getAuthToken(): string | null {
@@ -399,6 +424,9 @@ export class ApiClient {
       if (typeof window !== "undefined") {
         localStorage.setItem("udip_access_token", res.access_token);
       }
+      if (res.user?.workspaces && res.user.workspaces.length > 0) {
+        this.setWorkspaceId(res.user.workspaces[0].id);
+      }
     }
     return res;
   }
@@ -409,6 +437,9 @@ export class ApiClient {
       this.setAuthToken(res.access_token);
       if (typeof window !== "undefined") {
         localStorage.setItem("udip_access_token", res.access_token);
+      }
+      if (res.user?.workspaces && res.user.workspaces.length > 0) {
+        this.setWorkspaceId(res.user.workspaces[0].id);
       }
     }
     return res;

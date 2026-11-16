@@ -38,7 +38,9 @@ RETIRED_GEMINI_MODELS = {
 
 # Active stable models in preferential order for resilience against per-model quotas or transient outages
 FALLBACK_FLASH_MODELS = [
+    "gemini-2.5-flash",
     "gemini-3.8-flash",
+    "gemini-3.5-flash",
     "gemini-3.5-flash-lite",
 ]
 
@@ -162,18 +164,23 @@ class GeminiProvider(BaseLLMProvider):
 
                         # 3. Retryable across candidate models: Rate limit / Quota (429) or Service Unavailable / Gateway (500, 502, 503, 504)
                         if res.status_code in (429, 500, 502, 503, 504):
+                            try:
+                                body_err = res.json().get("error", {}).get("message", res.text[:200])
+                            except Exception:
+                                body_err = res.text[:200]
                             logger.warning(
-                                "Gemini model %s transient error HTTP %d. Attempting fallback candidate...",
+                                "Gemini model %s transient error HTTP %d: %s. Attempting fallback candidate...",
                                 model_candidate,
                                 res.status_code,
+                                body_err,
                             )
                             if res.status_code == 429:
                                 last_error = LLMRateLimitError(
-                                    f"Gemini API rate limit reached for {model_candidate} (429)."
+                                    f"Gemini API rate limit reached for {model_candidate} (429): {body_err}"
                                 )
                             else:
                                 last_error = LLMProviderError(
-                                    f"Gemini service unavailable for {model_candidate} (HTTP {res.status_code})."
+                                    f"Gemini error for {model_candidate} (HTTP {res.status_code}): {body_err}"
                                 )
                             await asyncio.sleep(0.5 * (attempt + 1))
                             break  # Try next model candidate

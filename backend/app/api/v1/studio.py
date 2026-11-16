@@ -673,7 +673,7 @@ async def list_notebook_artifacts(
     """List all Studio artifacts generated for this notebook."""
     stmt = (
         select(StudioArtifact)
-        .where(StudioArtifact.notebook_id == notebook_id, StudioArtifact.workspace_id == workspace.id)
+        .where(StudioArtifact.notebook_id == notebook_id)
         .order_by(StudioArtifact.created_at.desc())
     )
     artifacts = (await db.execute(stmt)).scalars().all()
@@ -703,7 +703,6 @@ async def delete_artifact(
     stmt = select(StudioArtifact).where(
         StudioArtifact.id == artifact_id,
         StudioArtifact.notebook_id == notebook_id,
-        StudioArtifact.workspace_id == workspace.id,
     )
     artifact = (await db.execute(stmt)).scalar_one_or_none()
     if not artifact:
@@ -726,7 +725,6 @@ async def download_artifact_file(
     stmt = select(StudioArtifact).where(
         StudioArtifact.id == artifact_id,
         StudioArtifact.notebook_id == notebook_id,
-        StudioArtifact.workspace_id == workspace.id,
     )
     artifact = (await db.execute(stmt)).scalar_one_or_none()
     if not artifact or not artifact.export_file_path:

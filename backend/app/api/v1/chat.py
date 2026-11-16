@@ -340,6 +340,11 @@ async def send_message(
             else:
                 resolved_doc_ids.append(did)
 
+    target_workspace_id = workspace.id
+    conv_check = (await db.execute(select(Conversation.workspace_id).where(Conversation.id == conversation_id))).scalar_one_or_none()
+    if conv_check:
+        target_workspace_id = conv_check
+
     rag_service = RAGService(settings=settings, custom_api_key=x_gemini_api_key)
     rag_request = RAGRequest(
         question=request.question,
@@ -356,7 +361,7 @@ async def send_message(
         async def event_generator():
             async for event_dict in rag_service.answer_question_stream(
                 db=db,
-                workspace_id=workspace.id,
+                workspace_id=target_workspace_id,
                 user_id=current_user.id,
                 request=rag_request,
             ):
@@ -385,7 +390,7 @@ async def send_message(
     # Standard non-streaming JSON response
     response: RAGResponse = await rag_service.answer_question(
         db=db,
-        workspace_id=workspace.id,
+        workspace_id=target_workspace_id,
         user_id=current_user.id,
         request=rag_request,
     )

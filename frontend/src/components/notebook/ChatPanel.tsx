@@ -12,7 +12,7 @@ import {
   ThumbsDown,
   RotateCcw,
 } from "lucide-react";
-import { ChatMessage } from "@/lib/api-client";
+import { ChatMessage, apiClient } from "@/lib/api-client";
 import { FormattedMessage } from "@/components/chat/FormattedMessage";
 
 const RESPONSE_STYLES = [

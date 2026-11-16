@@ -49,6 +49,7 @@ class WorkerRunner:
         self.concurrency = self.settings.WORKER_CONCURRENCY
         self._semaphore = asyncio.Semaphore(self.concurrency)
         self._running = False
+        self._stopping = False
         self._worker_id = f"worker-{uuid.uuid4().hex[:8]}"
         self._jobs_processed_total = 0
 
@@ -138,23 +139,62 @@ class WorkerRunner:
 
         return recovered_count
 
-    async def claim_ingestion_jobs(self, limit: int) -> List[uuid.UUID]:
+    async def claim_ingestion_jobs(
+        self,
+        limit: int,
+        workspace_id: Optional[uuid.UUID] = None,
+    ) -> List[uuid.UUID]:
         """Atomically claim up to limit QUEUED ingestion jobs using FOR UPDATE SKIP LOCKED.
 
+        Guarantees:
+        - When workspace_id is provided, strictly tenant-scoped to that workspace and its documents.
+        - Concurrency protection: No job is claimed if another job for that same document is currently PROCESSING.
+        - In-batch deduplication: Never claims multiple jobs targeting the same document concurrently.
         Immediately marks them PROCESSING and commits so no competing worker can claim them.
         """
         claimed: List[uuid.UUID] = []
         async with self.session_factory() as db:
+            conditions = [ProcessingJob.status == "QUEUED"]
+
+            # Concurrency guard: Do not claim jobs for documents currently being processed
+            processing_docs = select(ProcessingJob.document_id).where(
+                ProcessingJob.status == "PROCESSING"
+            )
+            conditions.append(ProcessingJob.document_id.not_in(processing_docs))
+
+            if workspace_id is not None:
+                # Tenant isolation: job workspace and document workspace must match
+                conditions.append(ProcessingJob.workspace_id == workspace_id)
+                conditions.append(
+                    ProcessingJob.document_id.in_(
+                        select(Document.id).where(
+                            Document.workspace_id == workspace_id,
+                            Document.is_deleted == False,
+                        )
+                    )
+                )
+            else:
+                # Global worker mode: process all authorized documents that are not deleted
+                conditions.append(
+                    ProcessingJob.document_id.in_(
+                        select(Document.id).where(Document.is_deleted == False)
+                    )
+                )
+
             stmt = (
                 select(ProcessingJob)
-                .where(ProcessingJob.status == "QUEUED")
+                .where(*conditions)
                 .order_by(ProcessingJob.created_at.asc())
                 .limit(limit)
                 .with_for_update(skip_locked=True)
             )
             jobs = (await db.execute(stmt)).scalars().all()
             now = datetime.now(timezone.utc)
+            seen_doc_ids = set()
             for job in jobs:
+                if job.document_id in seen_doc_ids:
+                    continue
+                seen_doc_ids.add(job.document_id)
                 job.status = "PROCESSING"
                 job.started_at = now
                 job.progress_percentage = 5
@@ -163,16 +203,25 @@ class WorkerRunner:
                 await db.commit()
         return claimed
 
-    async def claim_intelligence_jobs(self, limit: int) -> List[uuid.UUID]:
+    async def claim_intelligence_jobs(
+        self,
+        limit: int,
+        workspace_id: Optional[uuid.UUID] = None,
+    ) -> List[uuid.UUID]:
         """Atomically claim up to limit QUEUED intelligence jobs using FOR UPDATE SKIP LOCKED.
 
+        If workspace_id is provided, strictly filters by workspace_id.
         Immediately marks them PROCESSING and commits so no competing worker can claim them.
         """
         claimed: List[uuid.UUID] = []
         async with self.session_factory() as db:
+            conditions = [IntelligenceJob.status == "QUEUED"]
+            if workspace_id is not None:
+                conditions.append(IntelligenceJob.workspace_id == workspace_id)
+
             stmt = (
                 select(IntelligenceJob)
-                .where(IntelligenceJob.status == "QUEUED")
+                .where(*conditions)
                 .order_by(IntelligenceJob.created_at.asc())
                 .limit(limit)
                 .with_for_update(skip_locked=True)
@@ -188,15 +237,22 @@ class WorkerRunner:
                 await db.commit()
         return claimed
 
-    async def process_next_batch(self, batch_size: Optional[int] = None) -> int:
-        """Atomically claim and execute up to batch_size ingestion and intelligence jobs."""
+    async def process_next_batch(
+        self,
+        batch_size: Optional[int] = None,
+        workspace_id: Optional[uuid.UUID] = None,
+    ) -> int:
+        """Atomically claim and execute up to batch_size ingestion and intelligence jobs.
+
+        If workspace_id is provided, execution is strictly tenant-scoped to that workspace.
+        """
         limit = batch_size if batch_size is not None else self.settings.WORKER_BATCH_SIZE
         processed_count = 0
 
         # 1. Claim and process ingestion jobs
-        ingest_job_ids = await self.claim_ingestion_jobs(limit)
+        ingest_job_ids = await self.claim_ingestion_jobs(limit, workspace_id=workspace_id)
         for job_id in ingest_job_ids:
-            if not self._running:
+            if self._stopping:
                 break
             logger.info("Worker %s processing claimed ingestion job %s", self._worker_id, job_id)
             async with self.session_factory() as db:
@@ -212,10 +268,10 @@ class WorkerRunner:
 
         # 2. Claim and process intelligence jobs with remaining slots
         remaining_slots = limit - len(ingest_job_ids)
-        if remaining_slots > 0 and self._running:
-            intel_job_ids = await self.claim_intelligence_jobs(remaining_slots)
+        if remaining_slots > 0 and not self._stopping:
+            intel_job_ids = await self.claim_intelligence_jobs(remaining_slots, workspace_id=workspace_id)
             for ijob_id in intel_job_ids:
-                if not self._running:
+                if self._stopping:
                     break
                 logger.info("Worker %s processing claimed intelligence job %s", self._worker_id, ijob_id)
                 async with self.session_factory() as db:
@@ -229,8 +285,8 @@ class WorkerRunner:
                     processed_count += 1
                     self._jobs_processed_total += 1
 
-        # 3. Process due reminders
-        if self._running:
+        # 3. Process due reminders (only in global worker mode)
+        if not self._stopping and workspace_id is None:
             try:
                 async with self.session_factory() as db:
                     reminders_sent = await self.reminder_scheduler.dispatch_due_reminders(db)
@@ -299,6 +355,8 @@ class WorkerRunner:
     def stop(self) -> None:
         """Signal worker to stop processing after current item."""
         self._running = False
+        self._stopping = True
+        logger.info("Worker runner %s received stop signal", self._worker_id)
 
 
 async def process_document_now(

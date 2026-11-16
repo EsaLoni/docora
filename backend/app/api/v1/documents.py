@@ -774,3 +774,40 @@ async def get_document_page_detail(
         metadata=meta,
         created_at=doc_page.created_at.isoformat(),
     )
+
+
+jobs_rate_limiter = RateLimitDependency(calls_per_minute=10, scope="jobs_process")
+
+
+@router.post("/process-pending", status_code=status.HTTP_200_OK)
+async def process_pending_jobs(
+    workspace: Workspace = Depends(get_active_workspace),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db_session),
+    settings: Settings = Depends(get_settings),
+    _rl: None = Depends(jobs_rate_limiter),
+):
+    """Trigger processing for pending/queued jobs in the current workspace.
+
+    Protected endpoint requiring authentication, workspace authorization, and rate limiting.
+    Provides an explicit, bounded execution mechanism for free/serverless hosting
+    environments where a continuous background worker daemon is not available.
+    """
+    from sqlalchemy.ext.asyncio import async_sessionmaker
+    from app.services.worker.runner import WorkerRunner
+    session_factory = async_sessionmaker(
+        bind=db.bind,
+        class_=AsyncSession,
+        expire_on_commit=False,
+        autoflush=False,
+    )
+    runner = WorkerRunner(settings, session_factory=session_factory)
+    processed = await runner.process_next_batch(
+        batch_size=settings.WORKER_BATCH_SIZE,
+        workspace_id=workspace.id,
+    )
+    return {
+        "status": "success",
+        "processed_jobs_count": processed,
+        "workspace_id": str(workspace.id),
+    }

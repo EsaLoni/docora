@@ -190,7 +190,7 @@ export default function NotebooksPage() {
             return (
               <Link
                 key={nb.id}
-                href={`/notebooks/${nb.id}`}
+                href={`/notebooks/workspace?id=${nb.id}`}
                 className="group relative flex flex-col justify-between rounded-2xl border border-[#273247] bg-[#151B27] p-5 hover:border-[#3A4A68] hover:bg-[#1B2332] hover:shadow-md transition-all cursor-pointer overflow-hidden"
               >
                 {/* Top Accent Pill & Actions */}

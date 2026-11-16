@@ -139,6 +139,7 @@ class Settings(BaseSettings):
     WORKER_BATCH_SIZE: int = 5
     WORKER_STALE_JOB_TIMEOUT_MINUTES: int = 15
     WORKER_HEALTHCHECK_FILE: Optional[str] = None
+    ENABLE_IN_PROCESS_WORKER: bool = False
     MALWARE_SCANNER_ENABLED: bool = True
 
     @model_validator(mode="after")

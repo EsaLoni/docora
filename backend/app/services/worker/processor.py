@@ -54,13 +54,26 @@ class DocumentProcessor:
             logger.info("Job %s is already completed. Skipping.", job_id)
             return True
 
-        # Fetch associated document
-        doc_stmt = select(Document).where(Document.id == job.document_id)
+        # Fetch associated document with row-level lock and tenant check
+        doc_stmt = select(Document).where(Document.id == job.document_id).with_for_update()
         document = (await db.execute(doc_stmt)).scalar_one_or_none()
         if not document or document.is_deleted:
             logger.error("Document for job %s not found or deleted.", job_id)
             job.status = "FAILED"
             job.error_message = "Associated document was deleted or not found."
+            await db.commit()
+            return False
+
+        if document.workspace_id != job.workspace_id:
+            logger.error(
+                "Tenant mismatch: job %s workspace %s does not match document %s workspace %s",
+                job_id,
+                job.workspace_id,
+                document.id,
+                document.workspace_id,
+            )
+            job.status = "FAILED"
+            job.error_message = "Tenant mismatch: job workspace does not match document workspace."
             await db.commit()
             return False
 
@@ -133,7 +146,8 @@ class DocumentProcessor:
 
             # 7. Intelligent Document Chunking
             job.progress_percentage = 70
-            await db.commit()
+            job.started_at = datetime.now(timezone.utc)  # Lease extension / heartbeat
+            await db.flush()
 
             chunks = self.chunking_service.chunk_document_pages(
                 pages=created_pages,
@@ -143,7 +157,8 @@ class DocumentProcessor:
 
             # 8. Vector Embedding Generation & Vector Persistence
             job.progress_percentage = 85
-            await db.commit()
+            job.started_at = datetime.now(timezone.utc)  # Lease extension / heartbeat
+            await db.flush()
 
             if chunks:
                 embeddings = await self.embedding_service.embed_chunks(chunks)

@@ -75,3 +75,37 @@ def test_cross_tenant_document_deletion_rejected(client: TestClient):
         headers={"Authorization": f"Bearer {token_b}", "X-Workspace-ID": ws_b_id},
     )
     assert get_res.status_code == 200
+
+
+def test_cross_tenant_process_pending_rejected_and_isolated(client: TestClient):
+    """Verify process-pending requires auth, rejects unauthorized workspace headers, and is tenant-scoped."""
+    token_a = make_test_token(user_id=f"ua-{uuid.uuid4().hex[:6]}", email="ua@corp.local")
+    token_b = make_test_token(user_id=f"ub-{uuid.uuid4().hex[:6]}", email="ub@corp.local")
+
+    me_a = client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {token_a}"}).json()
+    me_b = client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {token_b}"}).json()
+
+    ws_a_id = me_a["workspaces"][0]["id"]
+    ws_b_id = me_b["workspaces"][0]["id"]
+
+    # 1. Unauthenticated request rejected
+    unauth_res = client.post("/api/v1/documents/process-pending")
+    assert unauth_res.status_code == 401
+
+    # 2. User A attempts to trigger processing in Workspace B -> 403 Forbidden
+    cross_res = client.post(
+        "/api/v1/documents/process-pending",
+        headers={"Authorization": f"Bearer {token_a}", "X-Workspace-ID": ws_b_id},
+    )
+    assert cross_res.status_code == 403
+    assert cross_res.json()["error"]["code"] == "WORKSPACE_ACCESS_DENIED"
+
+    # 3. User A triggers processing in own Workspace A -> 200 OK scoped strictly to Workspace A
+    auth_res = client.post(
+        "/api/v1/documents/process-pending",
+        headers={"Authorization": f"Bearer {token_a}", "X-Workspace-ID": ws_a_id},
+    )
+    assert auth_res.status_code == 200
+    data = auth_res.json()
+    assert data["status"] == "success"
+    assert data["workspace_id"] == ws_a_id

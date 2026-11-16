@@ -6,7 +6,7 @@ Create Date: 2026-11-15 02:15:00.000000
 """
 
 from typing import Sequence, Union
-from alembic import op
+from alembic import context, op
 import sqlalchemy as sa
 
 revision: str = "20261115_0005"
@@ -16,6 +16,12 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
+    if context.is_offline_mode():
+        # Offline SQL generation: emit DDL directly without live database reflection
+        op.add_column("users", sa.Column("password_hash", sa.String(255), nullable=True))
+        return
+
+    # Online mode: inspect live database schema and add column only if not present
     conn = op.get_bind()
     insp = sa.inspect(conn)
     cols = [c["name"] for c in insp.get_columns("users")]
@@ -24,6 +30,12 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    if context.is_offline_mode():
+        # Offline SQL generation: emit DDL directly without live database reflection
+        op.drop_column("users", "password_hash")
+        return
+
+    # Online mode: inspect live database schema and drop column only if present
     conn = op.get_bind()
     insp = sa.inspect(conn)
     cols = [c["name"] for c in insp.get_columns("users")]

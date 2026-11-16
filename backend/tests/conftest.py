@@ -29,6 +29,8 @@ os.environ["DATABASE_URL"] = "sqlite+aiosqlite:///:memory:"
 os.environ["DATABASE_SYNC_URL"] = "sqlite:///:memory:"
 os.environ["EMBEDDING_PROVIDER"] = "mock"
 os.environ["LLM_PROVIDER"] = "mock"
+os.environ["STORAGE_PROVIDER"] = "local"
+os.environ["LOCAL_STORAGE_PATH"] = "./local_test_storage"
 
 from app.core.config import Settings, get_settings
 from app.core.database import get_db_session
@@ -109,6 +111,7 @@ def app(test_settings: Settings, session_factory: async_sessionmaker[AsyncSessio
                 await session.close()
 
     test_app.dependency_overrides[get_db_session] = override_get_db_session
+    test_app.dependency_overrides[get_settings] = lambda: test_settings
 
     # Attach test error endpoints to verify exception handlers
     @test_app.get("/api/v1/test-error/domain")

@@ -431,3 +431,106 @@ def test_idempotent_reprocessing_cleans_pages_and_chunks(
             assert len(new_chunk_ids) == len(chunks2)
 
     asyncio.run(_test())
+
+
+def test_tenant_scoped_job_claiming(
+    session_factory: async_sessionmaker[AsyncSession], test_settings: Settings
+):
+    """Verify that claiming with workspace_id is strictly tenant-scoped."""
+    async def _test():
+        async with session_factory() as session:
+            user_a, ws_a, adapter_a = await _seed_test_env(session, test_settings)
+            user_b, ws_b, adapter_b = await _seed_test_env(session, test_settings)
+
+            doc_a, job_a = await _create_test_doc_and_job(session, user_a, ws_a, adapter_a)
+            doc_b, job_b = await _create_test_doc_and_job(session, user_b, ws_b, adapter_b)
+
+            runner = WorkerRunner(settings=test_settings, session_factory=session_factory)
+
+            # Claim for Workspace A only
+            claimed_a = await runner.claim_ingestion_jobs(limit=10, workspace_id=ws_a.id)
+            assert job_a.id in claimed_a
+            assert job_b.id not in claimed_a
+
+            # Verify Workspace B job is still QUEUED
+            await session.refresh(job_b)
+            assert job_b.status == "QUEUED"
+
+            # Claim for Workspace B
+            claimed_b = await runner.claim_ingestion_jobs(limit=10, workspace_id=ws_b.id)
+            assert job_b.id in claimed_b
+            assert job_a.id not in claimed_b
+
+    asyncio.run(_test())
+
+
+def test_cross_tenant_document_mismatch_rejected(
+    session_factory: async_sessionmaker[AsyncSession], test_settings: Settings
+):
+    """Verify that a job pointing to a document in another workspace is not claimed and rejected."""
+    async def _test():
+        async with session_factory() as session:
+            user_a, ws_a, adapter_a = await _seed_test_env(session, test_settings)
+            user_b, ws_b, adapter_b = await _seed_test_env(session, test_settings)
+
+            doc_b, _ = await _create_test_doc_and_job(session, user_b, ws_b, adapter_b)
+
+            # Create rogue job: Workspace A pointing to Document in Workspace B
+            rogue_job = ProcessingJob(
+                id=uuid.uuid4(),
+                workspace_id=ws_a.id,
+                document_id=doc_b.id,
+                job_type="FULL_INGESTION",
+                status="QUEUED",
+            )
+            session.add(rogue_job)
+            await session.commit()
+
+            runner = WorkerRunner(settings=test_settings, session_factory=session_factory)
+            claimed = await runner.claim_ingestion_jobs(limit=10, workspace_id=ws_a.id)
+
+            # Rogue job must NOT be claimed because document is not in Workspace A
+            assert rogue_job.id not in claimed
+
+            # Even if directly invoked on processor, tenant check aborts processing
+            processor = DocumentProcessor(test_settings)
+            success = await processor.process_job(rogue_job.id, session, adapter_a)
+            assert success is False
+            await session.refresh(rogue_job)
+            assert rogue_job.status == "FAILED"
+            assert "tenant mismatch" in (rogue_job.error_message or "").lower()
+
+    asyncio.run(_test())
+
+
+def test_concurrent_duplicate_document_jobs_prevented(
+    session_factory: async_sessionmaker[AsyncSession], test_settings: Settings
+):
+    """Verify that multiple jobs targeting the same document are not claimed concurrently."""
+    async def _test():
+        async with session_factory() as session:
+            user, ws, adapter = await _seed_test_env(session, test_settings)
+            doc, job1 = await _create_test_doc_and_job(session, user, ws, adapter)
+
+            job2 = ProcessingJob(
+                id=uuid.uuid4(),
+                workspace_id=ws.id,
+                document_id=doc.id,
+                job_type="FULL_INGESTION",
+                status="QUEUED",
+            )
+            session.add(job2)
+            await session.commit()
+
+            runner = WorkerRunner(settings=test_settings, session_factory=session_factory)
+
+            # When claiming a batch, only one job per document is claimed
+            claimed = await runner.claim_ingestion_jobs(limit=10, workspace_id=ws.id)
+            assert len(claimed) == 1
+            assert claimed[0] == job1.id
+
+            # While job1 is PROCESSING, a subsequent claim must NOT claim job2 for the same doc
+            claimed_second = await runner.claim_ingestion_jobs(limit=10, workspace_id=ws.id)
+            assert job2.id not in claimed_second
+
+    asyncio.run(_test())

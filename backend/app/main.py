@@ -51,7 +51,33 @@ async def lifespan(app: FastAPI):
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
         logger.info("Verified/initialized local SQLite database tables")
+
+    worker_task = None
+    worker_runner = None
+    if settings.ENABLE_IN_PROCESS_WORKER:
+        import asyncio
+        from app.services.worker.runner import WorkerRunner
+        worker_runner = WorkerRunner(settings)
+        worker_task = asyncio.create_task(worker_runner.run())
+        logger.info("In-process background worker task started (zero-cost MVP mode)")
+
     yield
+
+    if worker_runner and worker_task:
+        logger.info("Stopping in-process background worker...")
+        worker_runner.stop()
+        worker_task.cancel()
+        try:
+            import asyncio
+            await asyncio.wait_for(worker_task, timeout=5.0)
+            logger.info("In-process background worker shut down cleanly.")
+        except asyncio.CancelledError:
+            logger.info("In-process background worker task cancelled successfully.")
+        except asyncio.TimeoutError:
+            logger.warning("In-process background worker did not terminate within 5.0s shutdown timeout.")
+        except Exception as exc:
+            logger.error("Unexpected error during in-process background worker shutdown: %s", exc, exc_info=True)
+
     logger.info("Shutting down %s", settings.APP_NAME)
     await close_db_connections()
 

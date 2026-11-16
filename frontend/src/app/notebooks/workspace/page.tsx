@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, use } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { BookMarked } from "lucide-react";
 import { useNotebook } from "@/hooks/useNotebook";
 import { WorkspaceHeader } from "@/components/notebook/WorkspaceHeader";
@@ -18,14 +19,12 @@ import { ArtifactViewerModal } from "@/components/notebook/ArtifactViewerModal";
 import { ToastContainer } from "@/components/notebook/ToastContainer";
 import { SourceItem, ArtifactItem } from "@/lib/api-client";
 
-export default function NotebookWorkspacePage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const resolvedParams = use(params);
-  const notebookId = resolvedParams.id;
+function NotebookWorkspaceContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const notebookId = searchParams.get("id") || "";
 
+  // Unconditional hook declarations in stable, fixed order
   const {
     notebook,
     sources,
@@ -66,6 +65,38 @@ export default function NotebookWorkspacePage({
   const [deleteCandidate, setDeleteCandidate] = useState<SourceItem | null>(null);
   const [activeStudioTool, setActiveStudioTool] = useState<string | null>(null);
   const [viewingArtifact, setViewingArtifact] = useState<ArtifactItem | null>(null);
+
+  // Redirect to notebooks list if notebookId is missing (executed unconditionally)
+  useEffect(() => {
+    if (!notebookId) {
+      router.replace("/notebooks");
+    }
+  }, [notebookId, router]);
+
+  // Conditional renders strictly below all hook declarations
+  if (!notebookId) {
+    return (
+      <div className="h-screen w-screen flex flex-col items-center justify-center bg-[#0B0D12] text-[#F1F5FC] p-6 space-y-4 font-sans">
+        <div className="h-16 w-16 rounded-2xl bg-[#151B27] border border-[#273247] flex items-center justify-center text-[#6D8FFF]">
+          <BookMarked className="h-8 w-8" />
+        </div>
+        <div className="text-center space-y-1 max-w-sm">
+          <h2 className="text-[20px] font-semibold text-[#F1F5FC]">No Notebook Specified</h2>
+          <p className="text-[13px] text-[#A0AEC0]">
+            Please select a notebook from your workspace collection or create a new one.
+          </p>
+        </div>
+        <div className="flex items-center gap-3 pt-2">
+          <Link
+            href="/notebooks"
+            className="px-4 py-2 rounded-xl bg-[#6D8FFF] text-[#0B0D12] text-xs font-semibold hover:bg-[#84A2FF] transition shadow-sm"
+          >
+            Return to My Notebooks
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -216,5 +247,20 @@ export default function NotebookWorkspacePage({
       {/* Toast Notifications */}
       <ToastContainer toasts={toasts} onRemoveToast={removeToast} />
     </>
+  );
+}
+
+export default function NotebookWorkspacePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="h-screen w-screen flex flex-col items-center justify-center bg-[#0B0D12] text-[#A0AEC0] gap-3 font-sans">
+          <div className="w-8 h-8 rounded-full border-2 border-[#6D8FFF] border-t-transparent animate-spin" />
+          <span className="text-xs font-semibold tracking-wide">Loading workspace...</span>
+        </div>
+      }
+    >
+      <NotebookWorkspaceContent />
+    </Suspense>
   );
 }

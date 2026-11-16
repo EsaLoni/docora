@@ -98,7 +98,7 @@ export default function HomePage() {
       });
       setIsCreateModalOpen(false);
       setNewNotebookTitle("");
-      router.push(`/notebooks/${created.id}`);
+      router.push(`/notebooks/workspace?id=${created.id}`);
     } catch (err) {
       console.error("Failed to create notebook:", err);
     } finally {
@@ -346,7 +346,7 @@ export default function HomePage() {
               notebooks.slice(0, 4).map((nb) => (
                 <Link
                   key={nb.id}
-                  href={`/notebooks/${nb.id}`}
+                  href={`/notebooks/workspace?id=${nb.id}`}
                   className="block p-4 rounded-xl bg-[#151B27] border border-[#273247] hover:border-[#3A4A68] hover:bg-[#1B2332] transition group"
                 >
                   <div className="flex items-start justify-between gap-3">

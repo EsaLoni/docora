@@ -33,7 +33,7 @@ class Settings(BaseSettings):
         default=SecretStr("insecure-dev-secret-key-change-in-production-min32chars!"),
         description="Application secret key used for cryptographic signatures",
     )
-    ALLOWED_ORIGINS: List[str] = [
+    ALLOWED_ORIGINS: Union[str, List[str]] = [
         "http://localhost:3000",
         "http://127.0.0.1:3000",
     ]

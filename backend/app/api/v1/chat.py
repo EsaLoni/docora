@@ -20,6 +20,7 @@ from app.core.database import get_db_session
 from app.core.exceptions import UDIPException
 from app.core.logging import get_logger
 from app.core.rate_limit import RateLimitDependency
+from app.models.chat import Conversation
 from app.models.notebook import NotebookSource
 from app.models.user import User
 from app.models.workspace import Workspace

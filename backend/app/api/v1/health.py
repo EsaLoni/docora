@@ -151,6 +151,53 @@ async def readiness_probe(settings: Settings = Depends(get_settings)) -> Readine
     )
 
 
+@router.get("/health/gemini", summary="Diagnostic probe for Gemini API connectivity")
+async def test_gemini_models(
+    key: Optional[str] = Query(None, description="Optional custom Gemini key to test"),
+    settings: Settings = Depends(get_settings),
+) -> Dict[str, Any]:
+    """Test connectivity to Google Gemini API across supported models."""
+    import httpx
+    def _get_sec(v: Any) -> str:
+        if hasattr(v, "get_secret_value"):
+            return v.get_secret_value()
+        return str(v or "")
+
+    raw_key = key or _get_sec(getattr(settings, "GEMINI_API_KEY", "")) or _get_sec(settings.LLM_API_KEY)
+    if not raw_key:
+        return {"status": "error", "message": "No GEMINI_API_KEY configured"}
+
+    masked_key = f"{raw_key[:6]}...{raw_key[-4:]}" if len(raw_key) > 10 else "***"
+    models_to_test = ["gemini-2.5-flash", "gemini-3.8-flash", "gemini-3.5-flash", "gemini-3.5-flash-lite"]
+    results = {}
+
+    for model in models_to_test:
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={raw_key}"
+        payload = {"contents": [{"role": "user", "parts": [{"text": "Hello"}]}]}
+        try:
+            async with httpx.AsyncClient(timeout=8.0) as client:
+                res = await client.post(url, json=payload)
+                if res.status_code == 200:
+                    data = res.json()
+                    parts = data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])
+                    reply = parts[0].get("text", "")[:100] if parts else ""
+                    results[model] = {"status": "ok", "http_code": 200, "reply": reply}
+                else:
+                    try:
+                        err_json = res.json()
+                    except Exception:
+                        err_json = res.text[:200]
+                    results[model] = {"status": "error", "http_code": res.status_code, "detail": err_json}
+        except Exception as e:
+            results[model] = {"status": "exception", "error": f"{type(e).__name__}: {str(e)}"}
+
+    return {
+        "key_masked": masked_key,
+        "key_length": len(raw_key),
+        "models": results,
+    }
+
+
 @router.get(
     "/metrics",
     summary="Operational Metrics Endpoint",

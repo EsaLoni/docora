@@ -59,7 +59,7 @@ class LLMProviderFactory:
                     model_name=model,
                     temperature=cfg.LLM_TEMPERATURE,
                     max_tokens=cfg.LLM_MAX_TOKENS,
-                    timeout_seconds=getattr(cfg, "LLM_TIMEOUT_SECONDS", 90.0),
+                    timeout_seconds=25.0,
                 )
 
             if cls._instance is not None:
@@ -70,7 +70,7 @@ class LLMProviderFactory:
                 model_name=model,
                 temperature=cfg.LLM_TEMPERATURE,
                 max_tokens=cfg.LLM_MAX_TOKENS,
-                timeout_seconds=getattr(cfg, "LLM_TIMEOUT_SECONDS", 90.0),
+                timeout_seconds=25.0,
             )
             return cls._instance
         elif provider_name in ("ollama", "openai_compatible"):

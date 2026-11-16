@@ -53,11 +53,11 @@ class GeminiProvider(BaseLLMProvider):
     def __init__(
         self,
         api_key: str,
-        model_name: str = "gemini-3.8-flash",
+        model_name: str = "gemini-2.5-flash",
         fallback_models: Optional[List[str]] = None,
         temperature: float = 0.1,
         max_tokens: int = 2048,
-        timeout_seconds: float = 90.0,
+        timeout_seconds: float = 25.0,
     ) -> None:
         resolved_model = model_name or "gemini-3.8-flash"
         if resolved_model in RETIRED_GEMINI_MODELS:

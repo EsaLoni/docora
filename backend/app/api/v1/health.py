@@ -5,7 +5,7 @@ without exposing credentials or sensitive internals.
 """
 
 import time
-from typing import Any, Dict, Literal
+from typing import Any, Dict, Literal, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from pydantic import BaseModel, Field
 from sqlalchemy import text

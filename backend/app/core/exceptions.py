@@ -75,7 +75,7 @@ class IngestionValidationError(UDIPException):
     def __init__(self, message: str, details: Optional[Dict[str, Any]] = None):
         super().__init__(
             message=message,
-            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             error_code="INGESTION_VALIDATION_ERROR",
             details=details,
         )
@@ -127,7 +127,7 @@ def register_exception_handlers(app: FastAPI) -> None:
             })
         detail_msg = "; ".join(f"{e['field']}: {e['message']}" for e in formatted_errors) or "Invalid request parameters or payload."
         return JSONResponse(
-            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             content={
                 "success": False,
                 "detail": detail_msg,

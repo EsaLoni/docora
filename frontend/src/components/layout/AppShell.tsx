@@ -1,13 +1,16 @@
 "use client";
 
-import React, { useState } from "react";
-import { usePathname } from "next/navigation";
+import React, { useState, useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Header } from "@/components/layout/Header";
 import { UploadQueueWidget } from "@/components/upload/UploadQueueWidget";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { isAuthenticated, isLoading } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const isNotebookWorkspace = Boolean(
@@ -19,6 +22,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     pathname === "/forgot-password" ||
     pathname === "/reset-password"
   );
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated && !isAuthPage) {
+      router.replace(`/login?redirect=${encodeURIComponent(pathname || "/notebooks")}`);
+    }
+  }, [isLoading, isAuthenticated, isAuthPage, pathname, router]);
 
   if (isAuthPage) {
     return (

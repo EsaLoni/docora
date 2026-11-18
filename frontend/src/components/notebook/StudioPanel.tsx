@@ -221,16 +221,16 @@ export function StudioPanel({
                         key={tool.id}
                         type="button"
                         onClick={() => onOpenTool(tool.id)}
-                        className="flex items-center gap-3 p-2.5 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.05] hover:border-indigo-500/30 transition-all text-left group cursor-pointer shadow-[inset_0_1px_0_0_rgba(255,255,255,0.03)] active:scale-[0.99]"
+                        className="flex items-center gap-3 p-3 rounded-xl border border-white/[0.08] bg-[#12151F]/80 hover:bg-[#171B28] hover:border-indigo-500/40 hover:shadow-[0_4px_16px_rgba(99,102,241,0.12)] transition-all text-left group cursor-pointer active:scale-[0.99]"
                       >
-                        <div className="p-2 rounded-xl bg-white/[0.04] text-neutral-300 group-hover:text-indigo-400 group-hover:bg-indigo-500/10 border border-white/[0.06] shrink-0 transition-colors">
+                        <div className="p-2 rounded-xl bg-white/[0.04] text-neutral-300 group-hover:text-indigo-400 group-hover:bg-indigo-500/10 border border-white/[0.06] shrink-0 transition-colors shadow-xs">
                           <ToolIcon className="w-4 h-4" />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <span className="text-xs font-semibold text-neutral-100 group-hover:text-indigo-300 transition-colors block truncate">
+                          <span className="text-xs font-semibold text-neutral-100 group-hover:text-indigo-200 transition-colors block truncate">
                             {tool.title}
                           </span>
-                          <span className="text-[11px] text-neutral-400 line-clamp-1 mt-0.5">
+                          <span className="text-[11px] text-neutral-400 line-clamp-1 mt-0.5 leading-snug">
                             {tool.desc}
                           </span>
                         </div>
@@ -258,19 +258,20 @@ export function StudioPanel({
                 <div
                   key={art.id}
                   onClick={() => onViewArtifact(art)}
-                  className="group flex items-center justify-between p-2.5 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.05] hover:border-indigo-500/30 cursor-pointer transition-all shadow-[inset_0_1px_0_0_rgba(255,255,255,0.03)]"
+                  className="group flex items-center justify-between p-3 rounded-xl border border-white/[0.08] bg-[#12151F]/90 hover:bg-[#171B28] hover:border-indigo-500/40 cursor-pointer transition-all shadow-[0_4px_16px_rgba(0,0,0,0.3)] active:scale-[0.99]"
                 >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="p-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06] shrink-0">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="p-2 rounded-xl bg-white/[0.04] border border-white/[0.06] shrink-0 group-hover:bg-indigo-500/10 group-hover:border-indigo-500/30 transition-colors">
                       {getToolIcon(art.artifact_type)}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-xs font-semibold text-neutral-100 truncate group-hover:text-indigo-300 transition-colors">
+                      <p className="text-xs font-semibold text-neutral-100 truncate group-hover:text-indigo-200 transition-colors">
                         {art.title}
                       </p>
-                      <div className="flex items-center gap-1.5 text-[10px] text-neutral-400 mt-0.5">
-                        <span className="capitalize">{art.artifact_type}</span>
-                        <span>•</span>
+                      <div className="flex items-center gap-2 text-[10px] text-neutral-400 mt-0.5">
+                        <span className="capitalize font-mono px-1.5 py-0.5 rounded-md bg-white/[0.04] border border-white/[0.06] text-neutral-300">
+                          {art.artifact_type.replace("_", " ")}
+                        </span>
                         {art.status === "completed" && (
                           <span className="flex items-center gap-1 text-emerald-400 font-medium">
                             <CheckCircle2 className="w-3 h-3" /> Ready
@@ -290,15 +291,18 @@ export function StudioPanel({
                     </div>
                   </div>
 
-                  <div className="opacity-0 group-hover:opacity-100 p-1 rounded-md text-neutral-400 hover:text-white transition-all">
+                  <div className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg bg-white/[0.06] text-neutral-300 hover:text-white transition-all shrink-0">
                     <ExternalLink className="w-3.5 h-3.5" />
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="rounded-xl border border-dashed border-white/[0.08] p-5 text-center text-neutral-400 bg-white/[0.01]">
-              <p className="text-xs font-medium text-neutral-300">No artifacts generated yet</p>
+            <div className="rounded-xl border border-dashed border-white/[0.1] p-6 text-center text-neutral-400 bg-[#12151F]/40">
+              <div className="w-8 h-8 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center mx-auto mb-2 text-indigo-400">
+                <Sparkles className="w-4 h-4" />
+              </div>
+              <p className="text-xs font-semibold text-neutral-200">No artifacts generated yet</p>
               <p className="text-[11px] mt-1 text-neutral-400 leading-relaxed max-w-xs mx-auto">
                 Select an engine above to transform your source knowledge into briefs, podcasts, slides, or quizzes.
               </p>

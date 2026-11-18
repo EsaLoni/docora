@@ -18,7 +18,7 @@ import { StudioGenerationModal } from "@/components/notebook/StudioGenerationMod
 import { ArtifactViewerModal } from "@/components/notebook/ArtifactViewerModal";
 import { GeminiKeyModal } from "@/components/notebook/GeminiKeyModal";
 import { ToastContainer } from "@/components/notebook/ToastContainer";
-import { SourceItem, ArtifactItem } from "@/lib/api-client";
+import { SourceItem, ArtifactItem, apiClient, NotebookItem } from "@/lib/api-client";
 
 function NotebookWorkspaceContent() {
   const router = useRouter();
@@ -68,10 +68,16 @@ function NotebookWorkspaceContent() {
   const [viewingArtifact, setViewingArtifact] = useState<ArtifactItem | null>(null);
   const [isGeminiModalOpen, setIsGeminiModalOpen] = useState(false);
 
-  // Redirect to notebooks list if notebookId is missing (executed unconditionally)
+  // Auto-redirect to first notebook if notebookId is missing
   useEffect(() => {
     if (!notebookId) {
-      router.replace("/notebooks");
+      apiClient.listNotebooks().then((nbs: NotebookItem[]) => {
+        if (nbs && nbs.length > 0) {
+          router.replace(`/notebooks/workspace?id=${nbs[0].id}`);
+        } else {
+          router.replace("/notebooks");
+        }
+      }).catch(() => router.replace("/notebooks"));
     }
   }, [notebookId, router]);
 

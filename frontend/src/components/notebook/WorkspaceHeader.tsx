@@ -137,14 +137,17 @@ export function WorkspaceHeader({
                 }
               }}
               autoFocus
-              className="px-2 py-0.5 rounded-lg text-xs sm:text-sm font-semibold bg-[#12151F] border border-white/[0.1] text-white outline-none ring-1 ring-indigo-500/50 w-full"
+              className="px-2.5 py-1 rounded-lg text-xs sm:text-sm font-semibold bg-[#12151F] border border-white/[0.15] text-white outline-none ring-1 ring-indigo-500/50 w-full shadow-inner"
             />
           ) : (
             <button
               onClick={() => setIsEditing(true)}
-              className="group flex items-center gap-1.5 text-left truncate hover:bg-white/[0.04] px-2 py-1 rounded-lg transition-colors"
+              className="group flex items-center gap-2 text-left truncate hover:bg-white/[0.05] px-2.5 py-1 rounded-lg transition-colors border border-transparent hover:border-white/[0.06]"
               title="Click to rename"
             >
+              <div className="w-5 h-5 rounded-md bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shrink-0 text-indigo-400">
+                <BookOpen className="w-3 h-3" />
+              </div>
               <span className="text-xs sm:text-sm font-semibold truncate text-neutral-100">
                 {title || "Untitled Notebook"}
               </span>
@@ -157,13 +160,13 @@ export function WorkspaceHeader({
         <button
           onClick={onOpenGeminiKey}
           type="button"
-          className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-white/[0.08] bg-white/[0.02] hover:bg-white/[0.06] text-[11px] font-medium text-neutral-300 transition-all cursor-pointer group"
+          className="hidden md:flex items-center gap-1.5 px-3 py-1 rounded-full border border-white/[0.1] bg-[#12151F]/90 hover:bg-[#171B28] hover:border-indigo-500/30 text-[11px] font-medium text-neutral-200 transition-all cursor-pointer group shadow-xs"
           title="Google Gemini AI Active (Click to manage key)"
         >
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
-          <span>Gemini 3.5 Flash</span>
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] shrink-0" />
+          <span>Gemini 2.5 Flash</span>
           {hasGeminiKey ? (
-            <span className="text-[10px] text-indigo-400 font-mono">BYOK</span>
+            <span className="text-[10px] text-indigo-400 font-mono bg-indigo-500/10 px-1 rounded">BYOK</span>
           ) : (
             <span className="text-[10px] text-neutral-400 font-mono">Live</span>
           )}

@@ -405,6 +405,7 @@ async def generate_quiz(
         topic_focus=payload.topic_focus,
         question_count=payload.options.get("question_count", 5),
         difficulty=payload.options.get("difficulty", "medium"),
+        question_types=payload.options.get("question_types") or payload.options.get("format"),
     )
 
     artifact = StudioArtifact(

@@ -3,8 +3,9 @@
 Represents an authenticated user profile synchronized with Supabase Auth or local auth.
 """
 
+from datetime import datetime
 from typing import TYPE_CHECKING, List, Optional
-from sqlalchemy import Boolean, String, Text
+from sqlalchemy import Boolean, DateTime, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
@@ -30,6 +31,10 @@ class User(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     role: Mapped[str] = mapped_column(String(50), default="user", nullable=False)  # 'user', 'admin'
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     password_hash: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+
+    # Login tracking
+    last_login_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    login_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0", nullable=False)
 
     # Relationships
     owned_workspaces: Mapped[List["Workspace"]] = relationship(

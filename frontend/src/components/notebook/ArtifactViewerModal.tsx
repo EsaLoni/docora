@@ -193,17 +193,72 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
     if (audioRef.current) audioRef.current.playbackRate = nextSpeed;
   };
 
+  // Robust Quiz helper resolving options, correct index, and true/false format
+  const resolveQuestionDetails = (q: any) => {
+    let options: string[] = [];
+    if (Array.isArray(q.options) && q.options.length > 0) {
+      options = q.options.map((o: any) => String(o));
+    } else if (q.options && typeof q.options === "object") {
+      options = Object.values(q.options).map((o: any) => String(o));
+    }
+
+    const isTF =
+      q.type === "true_false" ||
+      q.type === "boolean" ||
+      options.length === 2 ||
+      (options.length === 0 && (q.question?.toLowerCase().includes("true or false") || q.answer !== undefined));
+
+    if (isTF && (options.length === 0 || options.length !== 2)) {
+      options = ["True", "False"];
+    } else if (options.length === 0) {
+      options = ["Option A", "Option B", "Option C", "Option D"];
+    }
+
+    let correctIdx: number | undefined = undefined;
+    const raw =
+      q.correct_index !== undefined
+        ? q.correct_index
+        : q.correct_option !== undefined
+        ? q.correct_option
+        : q.correct_indices?.[0] !== undefined
+        ? q.correct_indices[0]
+        : q.correct_answer !== undefined
+        ? q.correct_answer
+        : q.answer;
+
+    if (typeof raw === "number") {
+      correctIdx = raw;
+    } else if (typeof raw === "boolean") {
+      correctIdx = raw ? 0 : 1;
+    } else if (typeof raw === "string") {
+      const s = raw.trim();
+      if (/^\d+$/.test(s)) {
+        correctIdx = parseInt(s, 10);
+      } else if (s.toLowerCase() === "true" || s.toLowerCase() === "t") {
+        correctIdx = 0;
+      } else if (s.toLowerCase() === "false" || s.toLowerCase() === "f") {
+        correctIdx = 1;
+      } else if (["A", "B", "C", "D"].includes(s.toUpperCase())) {
+        correctIdx = { A: 0, B: 1, C: 2, D: 3 }[s.toUpperCase() as "A" | "B" | "C" | "D"];
+      } else {
+        const found = options.findIndex((opt) => opt.toLowerCase().trim() === s.toLowerCase());
+        if (found !== -1) correctIdx = found;
+      }
+    }
+
+    if (correctIdx === undefined || correctIdx < 0 || correctIdx >= options.length) {
+      correctIdx = 0;
+    }
+
+    return { options, correctIdx, isTF };
+  };
+
   // Quiz score calculation
   const calculateScore = () => {
     if (!data.questions || !Array.isArray(data.questions)) return { correct: 0, total: 0, pct: 0 };
     let correct = 0;
     data.questions.forEach((q: any, idx: number) => {
-      const correctIdx =
-        q.correct_index !== undefined
-          ? q.correct_index
-          : q.correct_option !== undefined
-          ? q.correct_option
-          : q.correct_indices?.[0];
+      const { correctIdx } = resolveQuestionDetails(q);
       if (quizAnswers[idx] === correctIdx) correct++;
     });
     const total = data.questions.length;
@@ -365,22 +420,23 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
                   })()}
 
                   {data.questions.map((q: any, qIdx: number) => {
-                    const correctIdx =
-                      q.correct_index !== undefined
-                        ? q.correct_index
-                        : q.correct_option !== undefined
-                        ? q.correct_option
-                        : q.correct_indices?.[0];
+                    const { options, correctIdx, isTF } = resolveQuestionDetails(q);
+                    const selectedIdx = quizAnswers[qIdx];
 
                     return (
                       <div
                         key={qIdx}
-                        className="p-5 rounded-2xl border border-[#273247] bg-[#10141D] space-y-3"
+                        className="p-5 rounded-2xl border border-[#273247] bg-[#10141D] space-y-3.5 shadow-xs"
                       >
-                        <div className="flex items-start justify-between gap-2">
-                          <p className="text-xs font-bold text-[#F1F5FC]">
-                            {qIdx + 1}. {q.question}
-                          </p>
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="space-y-1">
+                            <span className="inline-block text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#151B27] text-[#6D8FFF] border border-[#273247] uppercase tracking-wider">
+                              {isTF ? "True / False" : "Multiple Choice"}
+                            </span>
+                            <p className="text-xs font-bold text-[#F1F5FC] leading-relaxed">
+                              {qIdx + 1}. {q.question}
+                            </p>
+                          </div>
                           {q.citation && (
                             <span className="shrink-0 text-[10px] px-2 py-0.5 rounded-full bg-[#151B27] text-[#34D399] border border-[#273247] font-mono">
                               {q.citation}
@@ -388,9 +444,9 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
                           )}
                         </div>
 
-                        <div className="space-y-2">
-                          {q.options?.map((opt: string, optIdx: number) => {
-                            const isSelected = quizAnswers[qIdx] === optIdx;
+                        <div className={`gap-2.5 ${isTF ? "grid grid-cols-2" : "space-y-2"}`}>
+                          {options.map((opt: string, optIdx: number) => {
+                            const isSelected = selectedIdx === optIdx;
                             const isCorrect = isQuizSubmitted && optIdx === correctIdx;
                             const isWrong = isQuizSubmitted && isSelected && optIdx !== correctIdx;
 
@@ -401,22 +457,34 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
                                 onClick={() => setQuizAnswers({ ...quizAnswers, [qIdx]: optIdx })}
                                 className={`w-full text-left p-3 rounded-xl border text-xs font-medium transition-all ${
                                   isCorrect
-                                    ? "bg-emerald-500/20 border-emerald-500 text-emerald-300"
+                                    ? "bg-emerald-500/20 border-emerald-500 text-emerald-300 font-semibold shadow-sm"
                                     : isWrong
                                     ? "bg-rose-500/20 border-rose-500 text-rose-300"
                                     : isSelected
-                                    ? "bg-[#6D8FFF] text-[#0B0D12] font-semibold border-transparent"
+                                    ? "bg-[#6D8FFF] text-[#0B0D12] font-semibold border-transparent shadow-sm"
                                     : "bg-[#151B27] border-[#273247] text-[#F1F5FC] hover:bg-[#1B2332]"
                                 }`}
                               >
-                                {opt}
+                                <div className="flex items-center justify-between">
+                                  <span>{opt}</span>
+                                  {isQuizSubmitted && isCorrect && (
+                                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/30 text-emerald-300 font-bold">
+                                      ✓ Correct
+                                    </span>
+                                  )}
+                                  {isQuizSubmitted && isWrong && (
+                                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/30 text-rose-300 font-bold">
+                                      ✗ Incorrect
+                                    </span>
+                                  )}
+                                </div>
                               </button>
                             );
                           })}
                         </div>
 
                         {isQuizSubmitted && q.explanation && (
-                          <div className="p-3 rounded-xl bg-[#151B27] text-[11px] text-[#A0AEC0] leading-relaxed border border-[#273247]">
+                          <div className="p-3.5 rounded-xl bg-[#151B27] text-[11px] text-[#A0AEC0] leading-relaxed border border-[#273247]">
                             <span className="font-bold text-[#6D8FFF]">Rationale: </span>
                             {q.explanation}
                           </div>

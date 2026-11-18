@@ -138,14 +138,6 @@ export function StudioGenerationModal({
   };
 
   const handleGenerate = async () => {
-    if (!apiClient.getGeminiApiKey()) {
-      showToast("error", "Gemini API Key Required", "Please connect your Google Gemini API key to generate this artifact.");
-      if (onOpenGeminiKey) {
-        onOpenGeminiKey();
-      }
-      return;
-    }
-
     setIsSubmitting(true);
     try {
       // Map frontend tool names to primary backend endpoint routes
@@ -247,20 +239,6 @@ export function StudioGenerationModal({
       generateButtonText="Generate Now"
     >
       <div className="space-y-4">
-        {/* Gemini Key Missing Notice */}
-        {!apiClient.getGeminiApiKey() && (
-          <div
-            onClick={onOpenGeminiKey}
-            className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex items-center justify-between cursor-pointer hover:bg-amber-500/20 transition-colors"
-          >
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
-              <span>Google Gemini API key required to generate quizzes & studio tools.</span>
-            </div>
-            <span className="font-semibold underline shrink-0">Connect Key</span>
-          </div>
-        )}
-
         {/* Source Selector */}
         <ModalSourceSelector
           sources={sourceOptions}

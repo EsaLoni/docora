@@ -196,6 +196,8 @@ async def register_user(
         role="user",
         is_active=True,
         password_hash=hashed_pwd,
+        last_login_at=datetime.now(timezone.utc),
+        login_count=1,
     )
     db.add(user)
     await db.flush()
@@ -335,6 +337,13 @@ async def login_user(
     )
 
     logger.info("User authenticated: %s (id: %s)", user.email, user.id)
+
+    # Track login timestamp and count
+    user.last_login_at = datetime.now(timezone.utc)
+    user.login_count = (user.login_count or 0) + 1
+    await db.commit()
+    await db.refresh(user)
+
     profile = await _build_user_profile(user, db)
     return AuthResponse(
         access_token=token,

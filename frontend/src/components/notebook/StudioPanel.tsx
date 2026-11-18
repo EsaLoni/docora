@@ -150,30 +150,30 @@ export function StudioPanel({
       : STUDIO_CATEGORIES.filter((c) => c.id === activeCategory);
 
   return (
-    <div className="h-full flex flex-col bg-[#0D0F18] text-[#F3F4F6] select-none">
+    <div className="h-full flex flex-col bg-white text-neutral-900 select-none">
       {/* Studio Header */}
-      <div className="h-11 px-4 border-b border-white/[0.08] flex items-center justify-between shrink-0 bg-[#090B12]">
+      <div className="h-11 px-4 border-b border-black/[0.08] flex items-center justify-between shrink-0 bg-[#F4F5F7]">
         <div className="flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-indigo-400" />
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-white">
+          <Sparkles className="w-4 h-4 text-amber-600" />
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-neutral-900">
             Studio Workshop
           </h3>
         </div>
-        <span className="text-[11px] font-medium text-neutral-400">
+        <span className="text-[11px] font-medium text-neutral-500">
           {artifacts.length} {artifacts.length === 1 ? "Artifact" : "Artifacts"}
         </span>
       </div>
 
       {/* Category Filter Pills */}
-      <div className="px-3 py-2 bg-[#0D0F18] border-b border-white/[0.06] flex items-center gap-1.5 overflow-x-auto shrink-0">
+      <div className="px-3 py-2 bg-white border-b border-black/[0.06] flex items-center gap-1.5 overflow-x-auto shrink-0">
         <button
           type="button"
           onClick={() => setActiveCategory("all")}
           className={cn(
             "px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors shrink-0",
             activeCategory === "all"
-              ? "bg-white/[0.1] text-white border border-white/[0.1] font-semibold"
-              : "text-neutral-400 hover:text-white"
+              ? "bg-neutral-900 text-white font-semibold shadow-xs"
+              : "text-neutral-500 hover:text-neutral-900"
           )}
         >
           All (9)
@@ -186,8 +186,8 @@ export function StudioPanel({
             className={cn(
               "px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors shrink-0",
               activeCategory === cat.id
-                ? "bg-white/[0.1] text-white border border-white/[0.1] font-semibold"
-                : "text-neutral-400 hover:text-white"
+                ? "bg-neutral-900 text-white font-semibold shadow-xs"
+                : "text-neutral-500 hover:text-neutral-900"
             )}
           >
             {cat.name}
@@ -204,13 +204,13 @@ export function StudioPanel({
             return (
               <div key={cat.id} className="space-y-2">
                 <div className="flex items-center justify-between px-1">
-                  <div className="flex items-center gap-1.5 text-neutral-400">
-                    <CatIcon className="w-3.5 h-3.5 text-neutral-400" />
-                    <span className="text-[11px] font-semibold uppercase tracking-wider text-neutral-300">
+                  <div className="flex items-center gap-1.5 text-neutral-500">
+                    <CatIcon className="w-3.5 h-3.5 text-neutral-500" />
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-neutral-700">
                       {cat.name}
                     </span>
                   </div>
-                  <span className="text-[10px] text-neutral-500 font-mono">{cat.tools.length}</span>
+                  <span className="text-[10px] text-neutral-400 font-mono">{cat.tools.length}</span>
                 </div>
 
                 <div className="grid grid-cols-1 gap-2">
@@ -221,20 +221,20 @@ export function StudioPanel({
                         key={tool.id}
                         type="button"
                         onClick={() => onOpenTool(tool.id)}
-                        className="flex items-center gap-3 p-3 rounded-xl border border-white/[0.08] bg-[#131726] hover:bg-[#181D30] hover:border-indigo-500/40 hover:shadow-[0_4px_16px_rgba(99,102,241,0.12)] transition-all text-left group cursor-pointer active:scale-[0.99]"
+                        className="flex items-center gap-3 p-3 rounded-xl border border-black/[0.08] bg-[#F8F9FA] hover:bg-white hover:border-amber-500/40 hover:shadow-md transition-all text-left group cursor-pointer active:scale-[0.99] shadow-xs"
                       >
-                        <div className="p-2 rounded-xl bg-white/[0.04] text-neutral-300 group-hover:text-indigo-400 group-hover:bg-indigo-500/10 border border-white/[0.06] shrink-0 transition-colors shadow-xs">
+                        <div className="p-2 rounded-xl bg-white text-neutral-700 group-hover:text-amber-700 group-hover:bg-amber-50 border border-black/[0.06] shrink-0 transition-colors shadow-xs">
                           <ToolIcon className="w-4 h-4" />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <span className="text-xs font-semibold text-neutral-100 group-hover:text-indigo-200 transition-colors block truncate">
+                          <span className="text-xs font-semibold text-neutral-900 group-hover:text-amber-800 transition-colors block truncate">
                             {tool.title}
                           </span>
-                          <span className="text-[11px] text-neutral-400 line-clamp-1 mt-0.5 leading-snug">
+                          <span className="text-[11px] text-neutral-500 line-clamp-1 mt-0.5 leading-snug">
                             {tool.desc}
                           </span>
                         </div>
-                        <ArrowRight className="w-3.5 h-3.5 text-neutral-600 group-hover:text-indigo-400 group-hover:translate-x-0.5 transition-all shrink-0 opacity-0 group-hover:opacity-100" />
+                        <ArrowRight className="w-3.5 h-3.5 text-neutral-400 group-hover:text-amber-700 group-hover:translate-x-0.5 transition-all shrink-0 opacity-0 group-hover:opacity-100" />
                       </button>
                     );
                   })}
@@ -245,9 +245,9 @@ export function StudioPanel({
         </div>
 
         {/* Generated Artifacts Section */}
-        <div className="pt-3 border-t border-white/[0.06] space-y-2.5">
+        <div className="pt-3 border-t border-black/[0.06] space-y-2.5">
           <div className="flex items-center justify-between px-1">
-            <h4 className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wider">
+            <h4 className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider">
               Output Library ({artifacts.length})
             </h4>
           </div>
@@ -258,32 +258,32 @@ export function StudioPanel({
                 <div
                   key={art.id}
                   onClick={() => onViewArtifact(art)}
-                  className="group flex items-center justify-between p-3 rounded-xl border border-white/[0.08] bg-[#131726] hover:bg-[#181D30] hover:border-indigo-500/40 cursor-pointer transition-all shadow-[0_4px_16px_rgba(0,0,0,0.3)] active:scale-[0.99]"
+                  className="group flex items-center justify-between p-3 rounded-xl border border-black/[0.08] bg-[#F8F9FA] hover:bg-white hover:border-black/[0.16] cursor-pointer transition-all shadow-xs hover:shadow-md active:scale-[0.99]"
                 >
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="p-2 rounded-xl bg-white/[0.04] border border-white/[0.06] shrink-0 group-hover:bg-indigo-500/10 group-hover:border-indigo-500/30 transition-colors">
+                    <div className="p-2 rounded-xl bg-white border border-black/[0.06] shrink-0 group-hover:bg-amber-50 transition-colors shadow-xs">
                       {getToolIcon(art.artifact_type)}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-xs font-semibold text-neutral-100 truncate group-hover:text-indigo-200 transition-colors">
+                      <p className="text-xs font-semibold text-neutral-900 truncate group-hover:text-amber-800 transition-colors">
                         {art.title}
                       </p>
-                      <div className="flex items-center gap-2 text-[10px] text-neutral-400 mt-0.5">
-                        <span className="capitalize font-mono px-1.5 py-0.5 rounded-md bg-white/[0.04] border border-white/[0.06] text-neutral-300">
+                      <div className="flex items-center gap-2 text-[10px] text-neutral-500 mt-0.5">
+                        <span className="capitalize font-mono px-1.5 py-0.5 rounded-md bg-white border border-black/[0.06] text-neutral-700">
                           {art.artifact_type.replace("_", " ")}
                         </span>
                         {art.status === "completed" && (
-                          <span className="flex items-center gap-1 text-emerald-400 font-medium">
+                          <span className="flex items-center gap-1 text-emerald-700 font-medium">
                             <CheckCircle2 className="w-3 h-3" /> Ready
                           </span>
                         )}
                         {art.status === "processing" && (
-                          <span className="flex items-center gap-1 text-amber-400 font-medium">
+                          <span className="flex items-center gap-1 text-amber-700 font-medium">
                             <Clock className="w-3 h-3 animate-spin" /> Generating
                           </span>
                         )}
                         {art.status === "failed" && (
-                          <span className="flex items-center gap-1 text-rose-400 font-medium">
+                          <span className="flex items-center gap-1 text-rose-600 font-medium">
                             <AlertCircle className="w-3 h-3" /> Error
                           </span>
                         )}
@@ -291,19 +291,19 @@ export function StudioPanel({
                     </div>
                   </div>
 
-                  <div className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg bg-white/[0.06] text-neutral-300 hover:text-white transition-all shrink-0">
+                  <div className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg bg-white border border-black/[0.06] text-neutral-600 hover:text-neutral-900 transition-all shrink-0 shadow-xs">
                     <ExternalLink className="w-3.5 h-3.5" />
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="rounded-xl border border-dashed border-white/[0.1] p-6 text-center text-neutral-400 bg-[#12151F]/40">
-              <div className="w-8 h-8 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center mx-auto mb-2 text-indigo-400">
+            <div className="rounded-xl border border-dashed border-black/[0.12] p-6 text-center text-neutral-500 bg-neutral-50/50">
+              <div className="w-8 h-8 rounded-xl bg-white border border-black/[0.08] flex items-center justify-center mx-auto mb-2 text-amber-600 shadow-xs">
                 <Sparkles className="w-4 h-4" />
               </div>
-              <p className="text-xs font-semibold text-neutral-200">No artifacts generated yet</p>
-              <p className="text-[11px] mt-1 text-neutral-400 leading-relaxed max-w-xs mx-auto">
+              <p className="text-xs font-semibold text-neutral-800">No artifacts generated yet</p>
+              <p className="text-[11px] mt-1 text-neutral-500 leading-relaxed max-w-xs mx-auto">
                 Select an engine above to transform your source knowledge into briefs, podcasts, slides, or quizzes.
               </p>
             </div>

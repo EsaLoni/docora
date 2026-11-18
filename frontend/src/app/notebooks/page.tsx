@@ -112,38 +112,38 @@ export default function NotebooksPage() {
   return (
     <div className="min-h-[calc(100vh-4rem)] max-w-6xl mx-auto space-y-8 select-none pb-16">
       {/* Editorial Top Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-6 border-b border-white/[0.08]">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-6 border-b border-black/[0.08]">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-indigo-400">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-amber-700 font-mono">
               Workspace Atelier
             </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-semibold text-white tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-semibold text-neutral-900 tracking-tight">
             Research Notebooks
           </h1>
-          <p className="text-sm text-neutral-400 mt-1 max-w-xl">
+          <p className="text-sm text-neutral-600 mt-1 max-w-xl">
             Grounded intelligence workspaces with conversational RAG, multi-source citations, and automated studio synthesis.
           </p>
         </div>
 
         <div className="flex items-center gap-3 shrink-0">
           {/* Refined Search input */}
-          <div className="relative flex items-center bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 py-2 focus-within:border-indigo-500/60 focus-within:ring-1 focus-within:ring-indigo-500/40 transition-all w-52 sm:w-64">
+          <div className="relative flex items-center bg-white border border-black/[0.08] rounded-xl px-3 py-2 focus-within:border-amber-500/60 focus-within:ring-1 focus-within:ring-amber-500/40 transition-all w-52 sm:w-64 shadow-xs">
             <Search className="h-3.5 w-3.5 text-neutral-400 mr-2 shrink-0" />
             <input
               type="text"
               placeholder="Search notebooks..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-transparent text-xs text-neutral-100 placeholder-neutral-500 outline-none w-full"
+              className="bg-transparent text-xs text-neutral-900 placeholder-neutral-400 outline-none w-full"
             />
           </div>
 
           {/* New Notebook CTA */}
           <button
             onClick={() => setIsCreateOpen(true)}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-500 active:scale-[0.98] transition-all shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2)] shrink-0"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#E5A93B] text-neutral-950 text-xs font-bold hover:bg-[#D97706] active:scale-[0.98] transition-all shadow-xs shrink-0"
           >
             <Plus className="h-3.5 w-3.5 stroke-[2.5]" />
             <span>New Notebook</span>
@@ -157,30 +157,30 @@ export default function NotebooksPage() {
           {[1, 2, 3].map((i) => (
             <div
               key={i}
-              className="h-44 rounded-2xl border border-white/[0.06] bg-[#0D0F18] animate-pulse p-5 space-y-3 shadow-[0_4px_20px_rgba(0,0,0,0.3)]"
+              className="h-44 rounded-2xl border border-black/[0.06] bg-white animate-pulse p-5 space-y-3 shadow-xs"
             >
-              <div className="h-4 bg-white/[0.06] rounded w-2/3" />
-              <div className="h-3 bg-white/[0.03] rounded w-full" />
-              <div className="h-3 bg-white/[0.03] rounded w-4/5" />
+              <div className="h-4 bg-neutral-100 rounded w-2/3" />
+              <div className="h-3 bg-neutral-50 rounded w-full" />
+              <div className="h-3 bg-neutral-50 rounded w-4/5" />
             </div>
           ))}
         </div>
       ) : filteredNotebooks.length === 0 ? (
         <div className="max-w-md mx-auto my-20 text-center space-y-4">
-          <div className="h-12 w-12 rounded-2xl bg-white/[0.04] text-neutral-300 border border-white/[0.08] mx-auto flex items-center justify-center shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]">
-            <BookMarked className="h-5 w-5 text-indigo-400" />
+          <div className="h-12 w-12 rounded-2xl bg-white text-neutral-700 border border-black/[0.08] mx-auto flex items-center justify-center shadow-xs">
+            <BookMarked className="h-5 w-5 text-amber-600" />
           </div>
           <div className="space-y-1.5">
-            <h3 className="text-base font-semibold text-white tracking-tight">No Notebooks Found</h3>
-            <p className="text-xs text-neutral-400 leading-relaxed max-w-sm mx-auto">
+            <h3 className="text-base font-semibold text-neutral-900 tracking-tight">No Notebooks Found</h3>
+            <p className="text-xs text-neutral-600 leading-relaxed max-w-sm mx-auto">
               Create a research notebook to ingest PDFs, web URLs, or transcripts and begin generating grounded studio artifacts.
             </p>
           </div>
           <button
             onClick={() => setIsCreateOpen(true)}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white/[0.08] hover:bg-white/[0.12] border border-white/[0.1] text-white text-xs font-semibold active:scale-[0.98] transition-all"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#E5A93B] hover:bg-[#D97706] text-neutral-950 text-xs font-bold active:scale-[0.98] transition-all shadow-xs"
           >
-            <Plus className="h-3.5 w-3.5" />
+            <Plus className="h-3.5 w-3.5 stroke-[2.5]" />
             Create Notebook
           </button>
         </div>
@@ -193,21 +193,21 @@ export default function NotebooksPage() {
                 key={nb.id}
                 href={`/notebooks/workspace?id=${nb.id}`}
                 prefetch={false}
-                className="group relative flex flex-col justify-between rounded-2xl border border-white/[0.08] bg-[#0D0F18] p-5 hover:border-indigo-500/40 hover:bg-[#131726] shadow-[0_4px_20px_rgba(0,0,0,0.3)] hover:shadow-xl transition-all duration-200 cursor-pointer overflow-hidden"
+                className="group relative flex flex-col justify-between rounded-2xl border border-black/[0.08] bg-white p-5 hover:border-black/[0.16] hover:bg-neutral-50 shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer overflow-hidden"
               >
                 {/* Top Accent Dot & Delete Action */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span className={cn("h-2 w-2 rounded-full shrink-0 shadow-xs", colorCfg.badge)} />
-                      <span className="text-[11px] font-medium text-neutral-400 uppercase tracking-wider">
+                      <span className="text-[11px] font-medium text-neutral-500 uppercase tracking-wider font-mono">
                         Notebook
                       </span>
                     </div>
 
                     <button
                       onClick={(e) => handleDeleteNotebook(nb.id, e)}
-                      className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg hover:bg-white/[0.08] text-neutral-400 hover:text-rose-400 transition-all"
+                      className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg hover:bg-neutral-100 text-neutral-400 hover:text-rose-600 transition-all"
                       title="Delete notebook"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
@@ -215,7 +215,7 @@ export default function NotebooksPage() {
                   </div>
 
                   <div>
-                    <h3 className="text-base font-semibold text-neutral-100 group-hover:text-indigo-400 transition-colors line-clamp-1 tracking-tight">
+                    <h3 className="text-base font-semibold text-neutral-900 group-hover:text-amber-800 transition-colors line-clamp-1 tracking-tight">
                       {nb.title}
                     </h3>
                     <p className="text-xs text-neutral-400 line-clamp-2 mt-1 leading-relaxed">

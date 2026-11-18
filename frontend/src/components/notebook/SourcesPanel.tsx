@@ -60,19 +60,16 @@ export function SourcesPanel({
   const activeSourcesCount = sources.filter((s) => s.is_active_for_queries).length;
 
   return (
-    <div className="h-full flex flex-col min-h-0 bg-[#0D0F18] text-[#F3F4F6] select-none">
-      {/* Top subtle highlight rim */}
-      <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-white/[0.12] to-transparent shrink-0" />
-
+    <div className="h-full flex flex-col min-h-0 bg-white text-neutral-900 select-none">
       {/* Header Tabs */}
-      <div className="p-3 border-b border-white/[0.08] flex items-center justify-between gap-2 shrink-0 bg-[#090B12]">
-        <div className="flex items-center gap-1 bg-white/[0.04] p-1 rounded-xl border border-white/[0.06]">
+      <div className="p-3 border-b border-black/[0.08] flex items-center justify-between gap-2 shrink-0 bg-[#F4F5F7]">
+        <div className="flex items-center gap-1 bg-black/[0.04] p-1 rounded-xl border border-black/[0.06]">
           <button
             onClick={() => setActiveTab("sources")}
             className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
               activeTab === "sources"
-                ? "bg-white/[0.1] text-white shadow-xs"
-                : "text-neutral-400 hover:text-white"
+                ? "bg-white text-neutral-900 shadow-xs"
+                : "text-neutral-500 hover:text-neutral-900"
             }`}
           >
             Sources ({sources.length})
@@ -81,8 +78,8 @@ export function SourcesPanel({
             onClick={() => setActiveTab("notes")}
             className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
               activeTab === "notes"
-                ? "bg-white/[0.1] text-white shadow-xs"
-                : "text-neutral-400 hover:text-white"
+                ? "bg-white text-neutral-900 shadow-xs"
+                : "text-neutral-500 hover:text-neutral-900"
             }`}
           >
             Notes ({notes.length})
@@ -93,28 +90,28 @@ export function SourcesPanel({
         {activeTab === "sources" ? (
           <button
             onClick={onOpenAddSource}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-500 transition-all shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2)] active:scale-[0.98]"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#E5A93B] text-neutral-950 text-xs font-bold hover:bg-[#D97706] transition-all shadow-xs active:scale-[0.98]"
           >
-            <Plus className="w-3.5 h-3.5" />
+            <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
             <span>Add</span>
           </button>
         ) : (
           <button
             onClick={onOpenCreateNote}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-500 transition-all shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2)] active:scale-[0.98]"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#E5A93B] text-neutral-950 text-xs font-bold hover:bg-[#D97706] transition-all shadow-xs active:scale-[0.98]"
           >
-            <Plus className="w-3.5 h-3.5" />
+            <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
             <span>Note</span>
           </button>
         )}
       </div>
 
       {/* Active Count Banner */}
-      <div className="px-3 py-2 border-b border-white/[0.04] flex items-center justify-between text-[11px] text-neutral-400 bg-white/[0.01]">
+      <div className="px-3 py-2 border-b border-black/[0.04] flex items-center justify-between text-[11px] text-neutral-500 bg-neutral-50/50">
         <span>
           {activeSourcesCount} of {sources.length} active in RAG context
         </span>
-        <span className="text-[10px] text-emerald-400 font-mono">Ready</span>
+        <span className="text-[10px] text-emerald-700 font-mono font-medium">Ready</span>
       </div>
 
       {/* Sources Search Bar */}
@@ -127,7 +124,7 @@ export function SourcesPanel({
               placeholder="Search sources..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-8 pr-3 py-1.5 rounded-xl bg-white/[0.03] border border-white/[0.08] text-xs text-neutral-100 placeholder-neutral-500 outline-none focus:ring-1 focus:ring-indigo-500/40"
+              className="w-full pl-8 pr-3 py-1.5 rounded-xl bg-neutral-50 border border-black/[0.08] text-xs text-neutral-900 placeholder-neutral-400 outline-none focus:ring-1 focus:ring-amber-500/40"
             />
           </div>
         </div>
@@ -141,29 +138,29 @@ export function SourcesPanel({
               {filteredSources.map((source) => (
                 <div
                   key={source.id}
-                  className="group relative flex items-start gap-2.5 p-3 rounded-xl border border-white/[0.08] bg-[#131726] hover:bg-[#181D30] hover:border-indigo-500/40 transition-all shadow-[0_4px_16px_rgba(0,0,0,0.3)]"
+                  className="group relative flex items-start gap-2.5 p-3 rounded-xl border border-black/[0.08] bg-[#F8F9FA] hover:bg-white hover:border-black/[0.16] transition-all shadow-xs"
                 >
                   {/* Active Toggle Checkbox */}
                   <input
                     type="checkbox"
                     checked={source.is_active_for_queries}
                     onChange={() => onToggleSource(source.id, source.is_active_for_queries)}
-                    className="mt-1 h-3.5 w-3.5 rounded border-white/[0.1] bg-white/[0.05] text-indigo-500 focus:ring-indigo-500 cursor-pointer"
+                    className="mt-1 h-3.5 w-3.5 rounded border-neutral-300 text-amber-600 focus:ring-amber-500 cursor-pointer"
                     title={source.is_active_for_queries ? "Included in RAG context" : "Excluded from RAG context"}
                   />
 
                   {/* Source Icon */}
-                  <div className="mt-0.5 shrink-0 p-1.5 rounded-lg bg-white/[0.04] border border-white/[0.08]">
+                  <div className="mt-0.5 shrink-0 p-1.5 rounded-lg bg-white border border-black/[0.08] shadow-xs">
                     {getSourceIcon(source.source_type)}
                   </div>
 
                   {/* Title & Info */}
                   <div className="flex-1 min-w-0 pr-6">
-                    <p className="text-xs font-semibold text-white truncate leading-tight" title={source.title}>
+                    <p className="text-xs font-semibold text-neutral-900 truncate leading-tight" title={source.title}>
                       {source.title}
                     </p>
-                    <div className="flex items-center gap-2 mt-1.5 text-[10px] text-neutral-400">
-                      <span className="capitalize px-1.5 py-0.2 rounded bg-white/[0.04] border border-white/[0.06] text-neutral-300">
+                    <div className="flex items-center gap-2 mt-1.5 text-[10px] text-neutral-500">
+                      <span className="capitalize px-1.5 py-0.2 rounded bg-white border border-black/[0.06] text-neutral-700 font-mono">
                         {source.source_type}
                       </span>
                       {source.metadata?.page_count ? (
@@ -172,12 +169,12 @@ export function SourcesPanel({
                         <span>{source.token_count.toLocaleString()} tokens</span>
                       ) : null}
                       {source.extraction_status === "completed" && (
-                        <span className="flex items-center gap-1 text-emerald-400 font-medium ml-auto">
+                        <span className="flex items-center gap-1 text-emerald-700 font-medium ml-auto">
                           <CheckCircle2 className="w-3 h-3" /> Ready
                         </span>
                       )}
                       {source.extraction_status === "processing" && (
-                        <span className="flex items-center gap-1 text-amber-400 font-medium ml-auto">
+                        <span className="flex items-center gap-1 text-amber-700 font-medium ml-auto">
                           <Clock className="w-3 h-3 animate-spin" /> Indexing
                         </span>
                       )}
@@ -187,7 +184,7 @@ export function SourcesPanel({
                   {/* Delete Source Action */}
                   <button
                     onClick={() => onDeleteSource(source)}
-                    className="opacity-0 group-hover:opacity-100 p-1 rounded-lg text-neutral-400 hover:text-rose-400 hover:bg-white/[0.06] transition-all absolute right-2.5 top-2.5"
+                    className="opacity-0 group-hover:opacity-100 p-1 rounded-lg text-neutral-400 hover:text-rose-600 hover:bg-neutral-100 transition-all absolute right-2.5 top-2.5"
                     title="Remove from notebook"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -198,22 +195,22 @@ export function SourcesPanel({
               {/* Add Another Source Action */}
               <button
                 onClick={onOpenAddSource}
-                className="w-full py-2.5 rounded-xl border border-dashed border-white/[0.1] hover:border-indigo-500/40 bg-white/[0.01] hover:bg-white/[0.03] text-xs font-medium text-neutral-400 hover:text-white transition-all flex items-center justify-center gap-1.5 cursor-pointer mt-3"
+                className="w-full py-2.5 rounded-xl border border-dashed border-black/[0.15] hover:border-amber-600 bg-neutral-50 hover:bg-white text-xs font-medium text-neutral-600 hover:text-neutral-900 transition-all flex items-center justify-center gap-1.5 cursor-pointer mt-3 shadow-xs"
               >
-                <Plus className="w-3.5 h-3.5 text-indigo-400" />
+                <Plus className="w-3.5 h-3.5 text-amber-600 stroke-[2.5]" />
                 <span>Add another source</span>
               </button>
             </>
           ) : (
-            <div className="h-full flex flex-col items-center justify-center text-center p-6 text-neutral-400">
-              <BookOpen className="w-8 h-8 stroke-1 mb-2 text-neutral-600" />
-              <p className="text-xs font-medium text-neutral-300">No sources added yet</p>
-              <p className="text-[11px] mt-1 max-w-[200px] leading-relaxed">
+            <div className="h-full flex flex-col items-center justify-center text-center p-6 text-neutral-500">
+              <BookOpen className="w-8 h-8 stroke-1 mb-2 text-neutral-400" />
+              <p className="text-xs font-medium text-neutral-800">No sources added yet</p>
+              <p className="text-[11px] mt-1 max-w-[200px] leading-relaxed text-neutral-500">
                 Add PDFs, documents, URLs, or notes to ground your answers in real evidence.
               </p>
               <button
                 onClick={onOpenAddSource}
-                className="mt-3 px-3 py-1.5 rounded-xl bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-500 transition-colors shadow-xs"
+                className="mt-3 px-3 py-1.5 rounded-xl bg-[#E5A93B] text-neutral-950 text-xs font-bold hover:bg-[#D97706] transition-colors shadow-xs"
               >
                 + Add Source
               </button>

@@ -179,17 +179,17 @@ export default function HomePage() {
       />
 
       {/* Main Header & Primary Actions */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pt-1 border-b border-white/[0.08] pb-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pt-1 border-b border-black/[0.08] pb-6">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-indigo-400">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-amber-700 font-mono">
               Intelligence Atelier
             </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-semibold text-white tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-semibold text-neutral-900 tracking-tight">
             Research Workspace
           </h1>
-          <p className="text-xs sm:text-sm text-neutral-400 mt-1">
+          <p className="text-xs sm:text-sm text-neutral-600 mt-1">
             Grounded multi-source synthesis, instant RAG queries, and verified citation evidence.
           </p>
         </div>
@@ -198,16 +198,16 @@ export default function HomePage() {
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.04] border border-white/[0.08] hover:border-white/[0.16] hover:bg-white/[0.07] text-white text-xs font-semibold transition active:scale-[0.98] cursor-pointer shadow-xs"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-black/[0.1] hover:bg-neutral-50 text-neutral-800 text-xs font-semibold transition active:scale-[0.98] cursor-pointer shadow-xs"
           >
-            <UploadCloud className="h-4 w-4 text-indigo-400" />
+            <UploadCloud className="h-4 w-4 text-amber-600" />
             <span>Upload Document</span>
           </button>
 
           <button
             type="button"
             onClick={() => setIsCreateModalOpen(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition active:scale-[0.98] cursor-pointer shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2)]"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#E5A93B] hover:bg-[#D97706] text-neutral-950 text-xs font-bold transition active:scale-[0.98] cursor-pointer shadow-xs"
           >
             <Plus className="h-4 w-4 stroke-[2.5]" />
             <span>New Notebook</span>
@@ -216,16 +216,16 @@ export default function HomePage() {
       </div>
 
       {/* Quick AI Universal Question Entry Card */}
-      <div className="p-6 rounded-2xl bg-[#0E1118] border border-white/[0.08] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] space-y-4">
+      <div className="p-6 rounded-2xl bg-white border border-black/[0.08] shadow-xs space-y-4">
         <div className="flex items-center gap-2.5">
-          <div className="h-7 w-7 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center border border-indigo-500/20">
+          <div className="h-7 w-7 rounded-lg bg-amber-500/10 text-amber-700 flex items-center justify-center border border-amber-500/20">
             <Sparkles className="h-4 w-4" />
           </div>
-          <h2 className="text-sm font-semibold text-white tracking-tight">
+          <h2 className="text-sm font-semibold text-neutral-900 tracking-tight">
             Ask across all documents
           </h2>
-          <span className="text-[11px] font-medium text-emerald-400 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 ml-auto flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          <span className="text-[11px] font-medium text-emerald-700 px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 ml-auto flex items-center gap-1.5 font-mono">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
             Universal RAG Active
           </span>
         </div>
@@ -236,14 +236,14 @@ export default function HomePage() {
             value={quickQuery}
             onChange={(e) => setQuickQuery(e.target.value)}
             placeholder="Ask a question across all your uploaded documents and notebooks..."
-            className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl pl-4 pr-12 py-3 text-xs sm:text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-indigo-500/70 focus:ring-1 focus:ring-indigo-500/30 transition-all"
+            className="w-full bg-neutral-50 border border-black/[0.08] rounded-xl pl-4 pr-12 py-3 text-xs sm:text-sm text-neutral-900 placeholder-neutral-400 focus:outline-none focus:border-amber-500/70 focus:ring-1 focus:ring-amber-500/30 transition-all"
           />
           <button
             type="submit"
             disabled={!quickQuery.trim() || isAsking}
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-500 disabled:opacity-30 disabled:cursor-not-allowed transition"
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg bg-[#E5A93B] text-neutral-950 hover:bg-[#D97706] disabled:opacity-30 disabled:cursor-not-allowed transition"
           >
-            {isAsking ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
+            {isAsking ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-3.5 w-3.5 stroke-[2.5]" />}
           </button>
         </form>
 
@@ -260,7 +260,7 @@ export default function HomePage() {
                 key={chip}
                 type="button"
                 onClick={() => setQuickQuery(chip)}
-                className="text-[11px] px-2.5 py-1 rounded-lg bg-white/[0.02] border border-white/[0.06] text-neutral-400 hover:text-white hover:border-indigo-500/30 transition"
+                className="text-[11px] px-2.5 py-1 rounded-lg bg-neutral-50 border border-black/[0.06] text-neutral-600 hover:text-neutral-900 hover:border-black/[0.15] transition"
               >
                 "{chip}"
               </button>
@@ -270,10 +270,10 @@ export default function HomePage() {
 
         {/* AI Response Box */}
         {aiAnswer && (
-          <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.08] space-y-3 pt-3">
-            <div className="flex items-center justify-between text-xs text-neutral-400 border-b border-white/[0.06] pb-2">
-              <span className="font-semibold text-white flex items-center gap-1.5">
-                <Sparkles className="h-3.5 w-3.5 text-indigo-400" />
+          <div className="p-4 rounded-xl bg-neutral-50 border border-black/[0.08] space-y-3 pt-3">
+            <div className="flex items-center justify-between text-xs text-neutral-600 border-b border-black/[0.06] pb-2">
+              <span className="font-semibold text-neutral-900 flex items-center gap-1.5">
+                <Sparkles className="h-3.5 w-3.5 text-amber-600" />
                 Universal Grounded Answer
               </span>
               <button
@@ -282,23 +282,23 @@ export default function HomePage() {
                   setAiAnswer(null);
                   setQuickQuery("");
                 }}
-                className="text-[11px] text-neutral-400 hover:text-white underline cursor-pointer"
+                className="text-[11px] text-neutral-500 hover:text-neutral-900 underline cursor-pointer"
               >
                 Clear
               </button>
             </div>
-            <div className="text-xs sm:text-sm leading-relaxed text-neutral-200 whitespace-pre-wrap">
+            <div className="text-xs sm:text-sm leading-relaxed text-neutral-800 whitespace-pre-wrap">
               {aiAnswer}
             </div>
 
             {/* Citation Badges */}
             {citations.length > 0 && (
-              <div className="pt-2 border-t border-white/[0.06] flex flex-wrap items-center gap-2">
-                <span className="text-[11px] font-medium text-neutral-400">Verified Sources:</span>
+              <div className="pt-2 border-t border-black/[0.06] flex flex-wrap items-center gap-2">
+                <span className="text-[11px] font-medium text-neutral-600">Verified Sources:</span>
                 {citations.map((c, idx) => (
                   <span
                     key={idx}
-                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-[11px] font-medium"
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-medium font-mono"
                   >
                     [{idx + 1}] {c.document_filename || "Document"} (p. {c.page_number || 1})
                   </span>
@@ -314,13 +314,13 @@ export default function HomePage() {
         {/* Recent Notebooks Section */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-white tracking-tight">
+            <h2 className="text-lg font-semibold text-neutral-900 tracking-tight">
               Recent Notebooks
             </h2>
             <Link
               href="/notebooks"
               prefetch={false}
-              className="text-xs font-medium text-indigo-400 hover:text-indigo-300 flex items-center gap-1"
+              className="text-xs font-medium text-amber-700 hover:text-amber-800 flex items-center gap-1 font-mono"
             >
               <span>View all</span>
               <ChevronRight className="h-3.5 w-3.5" />
@@ -329,18 +329,18 @@ export default function HomePage() {
 
           <div className="space-y-3">
             {notebooks.length === 0 ? (
-              <div className="p-8 rounded-2xl bg-[#0E1118] border border-white/[0.08] text-center space-y-3">
-                <BookMarked className="h-8 w-8 text-neutral-500 mx-auto" />
-                <p className="text-sm font-semibold text-white">No notebooks yet</p>
-                <p className="text-xs text-neutral-400 max-w-xs mx-auto">
+              <div className="p-8 rounded-2xl bg-white border border-black/[0.08] text-center space-y-3 shadow-xs">
+                <BookMarked className="h-8 w-8 text-neutral-400 mx-auto" />
+                <p className="text-sm font-semibold text-neutral-900">No notebooks yet</p>
+                <p className="text-xs text-neutral-500 max-w-xs mx-auto">
                   Create a dedicated research notebook to organize sources, notes, and AI studio artifacts.
                 </p>
                 <button
                   type="button"
                   onClick={() => setIsCreateModalOpen(true)}
-                  className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-500 transition shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2)]"
+                  className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-[#E5A93B] text-neutral-950 text-xs font-bold hover:bg-[#D97706] transition shadow-xs"
                 >
-                  <Plus className="h-3.5 w-3.5" />
+                  <Plus className="h-3.5 w-3.5 stroke-[2.5]" />
                   <span>Create Notebook</span>
                 </button>
               </div>
@@ -350,23 +350,23 @@ export default function HomePage() {
                   key={nb.id}
                   href={`/notebooks/workspace?id=${nb.id}`}
                   prefetch={false}
-                  className="block p-4 rounded-xl bg-[#0E1118] border border-white/[0.08] hover:border-indigo-500/40 hover:bg-[#131622] transition group shadow-[inset_0_1px_0_0_rgba(255,255,255,0.02)]"
+                  className="block p-4 rounded-xl bg-white border border-black/[0.08] hover:border-black/[0.16] hover:bg-neutral-50 transition group shadow-xs hover:shadow-md"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="h-10 w-10 rounded-xl bg-white/[0.04] text-indigo-400 border border-white/[0.08] flex items-center justify-center shrink-0">
+                      <div className="h-10 w-10 rounded-xl bg-amber-500/10 text-amber-700 border border-amber-500/20 flex items-center justify-center shrink-0">
                         <BookMarked className="h-5 w-5" />
                       </div>
                       <div className="min-w-0">
-                        <h3 className="text-sm font-semibold text-white truncate group-hover:text-indigo-400 transition-colors">
+                        <h3 className="text-sm font-semibold text-neutral-900 truncate group-hover:text-amber-800 transition-colors">
                           {nb.title}
                         </h3>
-                        <p className="text-[11px] text-neutral-400 mt-0.5">
+                        <p className="text-[11px] text-neutral-500 mt-0.5">
                           Updated {new Date(nb.updated_at || nb.created_at).toLocaleDateString()}
                         </p>
                       </div>
                     </div>
-                    <ArrowRight className="h-4 w-4 text-neutral-500 group-hover:text-indigo-400 group-hover:translate-x-0.5 transition" />
+                    <ArrowRight className="h-4 w-4 text-neutral-400 group-hover:text-amber-700 group-hover:translate-x-0.5 transition" />
                   </div>
                 </Link>
               ))
@@ -377,33 +377,33 @@ export default function HomePage() {
         {/* Recently Uploaded Documents Section */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-white tracking-tight">
+            <h2 className="text-lg font-semibold text-neutral-900 tracking-tight">
               Recent Documents
             </h2>
             <Link
               href="/documents"
               prefetch={false}
-              className="text-xs font-medium text-indigo-400 hover:text-indigo-300 flex items-center gap-1"
+              className="text-xs font-medium text-amber-700 hover:text-amber-800 flex items-center gap-1 font-mono"
             >
               <span>View library</span>
               <ChevronRight className="h-3.5 w-3.5" />
             </Link>
           </div>
 
-          <div className="p-2 rounded-2xl bg-[#0E1118] border border-white/[0.08] divide-y divide-white/[0.06]">
+          <div className="p-2 rounded-2xl bg-white border border-black/[0.08] divide-y divide-black/[0.06] shadow-xs">
             {documents.length === 0 ? (
               <div className="p-8 text-center space-y-3">
-                <FileText className="h-8 w-8 text-neutral-500 mx-auto" />
-                <p className="text-sm font-semibold text-white">No documents uploaded</p>
-                <p className="text-xs text-neutral-400 max-w-xs mx-auto">
+                <FileText className="h-8 w-8 text-neutral-400 mx-auto" />
+                <p className="text-sm font-semibold text-neutral-900">No documents uploaded</p>
+                <p className="text-xs text-neutral-500 max-w-xs mx-auto">
                   Upload PDFs, DOCX, XLSX, or TXT files to extract facts, tables, and citations.
                 </p>
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white text-xs font-semibold hover:border-indigo-500/40 transition"
+                  className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-[#E5A93B] text-neutral-950 text-xs font-bold hover:bg-[#D97706] transition shadow-xs"
                 >
-                  <UploadCloud className="h-3.5 w-3.5 text-indigo-400" />
+                  <UploadCloud className="h-3.5 w-3.5 text-neutral-950 stroke-[2.5]" />
                   <span>Upload Now</span>
                 </button>
               </div>
@@ -413,17 +413,17 @@ export default function HomePage() {
                 return (
                   <div
                     key={doc.id}
-                    className="p-3.5 flex items-center justify-between gap-3 hover:bg-white/[0.03] rounded-xl transition group"
+                    className="p-3.5 flex items-center justify-between gap-3 hover:bg-neutral-50 rounded-xl transition group"
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="h-9 w-9 rounded-xl bg-white/[0.04] text-indigo-400 border border-white/[0.08] flex items-center justify-center shrink-0">
+                      <div className="h-9 w-9 rounded-xl bg-neutral-100 text-neutral-700 border border-black/[0.06] flex items-center justify-center shrink-0">
                         <FileText className="h-4 w-4" />
                       </div>
                       <div className="min-w-0">
-                        <p className="text-xs font-semibold text-white truncate">
+                        <p className="text-xs font-semibold text-neutral-900 truncate">
                           {doc.title || doc.filename}
                         </p>
-                        <p className="text-[11px] text-neutral-400">
+                        <p className="text-[11px] text-neutral-500">
                           {formatFileSize(doc.file_size_bytes)} • {doc.page_count || 1} {doc.page_count === 1 ? "page" : "pages"} • {new Date(doc.created_at).toLocaleDateString()}
                         </p>
                       </div>
@@ -432,10 +432,10 @@ export default function HomePage() {
                     <div className="flex items-center gap-2.5 shrink-0">
                       <span
                         className={cn(
-                          "px-2 py-0.5 rounded-md text-[11px] font-semibold",
+                          "px-2 py-0.5 rounded-md text-[11px] font-semibold font-mono",
                           isReady
-                            ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/25"
-                            : "bg-indigo-500/10 text-indigo-400 border border-indigo-500/25 animate-pulse"
+                            ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                            : "bg-amber-50 text-amber-800 border border-amber-200 animate-pulse"
                         )}
                       >
                         {doc.status.toLowerCase()}

@@ -128,25 +128,25 @@ export function WorkspaceShell({
           {isLeftPanelOpen ? (
             <section
               style={{ width: `${leftWidth}px` }}
-              className="h-full shrink-0 rounded-2xl border border-white/[0.08] bg-[#0D0F18] shadow-[0_4px_24px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.03)] overflow-hidden flex flex-col transition-all duration-200"
+              className="h-full shrink-0 rounded-2xl border border-black/[0.08] bg-white shadow-[0_1px_3px_rgba(0,0,0,0.04),0_6px_16px_rgba(0,0,0,0.03)] overflow-hidden flex flex-col transition-all duration-200"
             >
               {sourcesPanel}
             </section>
           ) : (
             <aside
               onClick={() => setIsLeftPanelOpen(true)}
-              className="h-full w-12 shrink-0 rounded-2xl border border-white/[0.08] bg-[#0D0F18] shadow-[0_4px_24px_rgba(0,0,0,0.5)] hover:bg-white/[0.04] cursor-pointer flex flex-col items-center py-4 transition-colors group"
+              className="h-full w-12 shrink-0 rounded-2xl border border-black/[0.08] bg-white shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:bg-neutral-50 cursor-pointer flex flex-col items-center py-4 transition-colors group"
               title="Expand Sources"
             >
-              <div className="p-2 rounded-xl text-neutral-400 group-hover:text-indigo-400">
+              <div className="p-2 rounded-xl text-neutral-500 group-hover:text-amber-600">
                 <ChevronRight className="w-4 h-4" />
               </div>
               <div className="mt-4 flex-1 flex items-center justify-center">
-                <span className="[writing-mode:vertical-lr] rotate-180 text-[11px] font-semibold tracking-wider text-neutral-500 group-hover:text-neutral-200 uppercase">
+                <span className="[writing-mode:vertical-lr] rotate-180 text-[11px] font-semibold tracking-wider text-neutral-500 group-hover:text-neutral-800 uppercase">
                   Sources ({sourcesCount})
                 </span>
               </div>
-              <BookOpen className="w-4 h-4 text-neutral-500" />
+              <BookOpen className="w-4 h-4 text-neutral-400" />
             </aside>
           )}
 
@@ -155,15 +155,15 @@ export function WorkspaceShell({
             <div
               onMouseDown={handleLeftResizeStart}
               onDoubleClick={handleResetLeftWidth}
-              className="w-1.5 h-full cursor-col-resize hover:bg-indigo-500/30 active:bg-indigo-500 transition-colors rounded-full shrink-0 flex items-center justify-center group"
+              className="w-1.5 h-full cursor-col-resize hover:bg-amber-500/30 active:bg-amber-500 transition-colors rounded-full shrink-0 flex items-center justify-center group"
               title="Drag to resize, double-click to reset"
             >
-              <div className="w-0.5 h-8 bg-white/[0.15] rounded-full group-hover:bg-indigo-400" />
+              <div className="w-0.5 h-8 bg-black/[0.12] rounded-full group-hover:bg-amber-600" />
             </div>
           )}
 
           {/* CENTER: CHAT PANEL */}
-          <section className="flex-1 h-full min-w-[320px] rounded-2xl border border-white/[0.12] bg-[#101320] shadow-[0_8px_32px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.06)] overflow-hidden flex flex-col relative">
+          <section className="flex-1 h-full min-w-[320px] rounded-2xl border border-black/[0.08] bg-white shadow-[0_2px_8px_rgba(0,0,0,0.05),0_12px_24px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col relative">
             {chatPanel}
           </section>
 
@@ -172,10 +172,10 @@ export function WorkspaceShell({
             <div
               onMouseDown={handleRightResizeStart}
               onDoubleClick={handleResetRightWidth}
-              className="w-1.5 h-full cursor-col-resize hover:bg-indigo-500/30 active:bg-indigo-500 transition-colors rounded-full shrink-0 flex items-center justify-center group"
+              className="w-1.5 h-full cursor-col-resize hover:bg-amber-500/30 active:bg-amber-500 transition-colors rounded-full shrink-0 flex items-center justify-center group"
               title="Drag to resize, double-click to reset"
             >
-              <div className="w-0.5 h-8 bg-white/[0.15] rounded-full group-hover:bg-indigo-400" />
+              <div className="w-0.5 h-8 bg-black/[0.12] rounded-full group-hover:bg-amber-600" />
             </div>
           )}
 
@@ -183,21 +183,21 @@ export function WorkspaceShell({
           {isRightPanelOpen ? (
             <section
               style={{ width: `${rightWidth}px` }}
-              className="h-full shrink-0 rounded-2xl border border-white/[0.08] bg-[#0D0F18] shadow-[0_4px_24px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.03)] overflow-hidden flex flex-col transition-all duration-200"
+              className="h-full shrink-0 rounded-2xl border border-black/[0.08] bg-white shadow-[0_1px_3px_rgba(0,0,0,0.04),0_6px_16px_rgba(0,0,0,0.03)] overflow-hidden flex flex-col transition-all duration-200"
             >
               {studioPanel}
             </section>
           ) : (
             <aside
               onClick={() => setIsRightPanelOpen(true)}
-              className="h-full w-12 shrink-0 rounded-2xl border border-white/[0.08] bg-[#0E1118] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] hover:bg-white/[0.04] cursor-pointer flex flex-col items-center py-4 transition-colors group"
+              className="h-full w-12 shrink-0 rounded-2xl border border-black/[0.08] bg-white shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:bg-neutral-50 cursor-pointer flex flex-col items-center py-4 transition-colors group"
               title="Expand Studio"
             >
-              <div className="p-2 rounded-xl text-[var(--text-secondary)] group-hover:text-[var(--accent-blue)]">
+              <div className="p-2 rounded-xl text-neutral-500 group-hover:text-amber-600">
                 <ChevronLeft className="w-4 h-4" />
               </div>
               <div className="mt-4 flex-1 flex items-center justify-center">
-                <span className="[writing-mode:vertical-lr] text-xs font-semibold tracking-wider text-[var(--text-muted)] group-hover:text-[var(--text-primary)] uppercase">
+                <span className="[writing-mode:vertical-lr] text-xs font-semibold tracking-wider text-neutral-500 group-hover:text-neutral-800 uppercase">
                   Studio ({artifactsCount})
                 </span>
               </div>

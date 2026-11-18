@@ -31,7 +31,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   if (isAuthPage) {
     return (
-      <div className="min-h-screen w-full bg-[#0B0D12] text-[#F1F5FC] flex flex-col">
+      <div className="min-h-screen w-full bg-[#F8F9FA] text-neutral-900 flex flex-col">
         {children}
       </div>
     );
@@ -39,7 +39,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   if (isNotebookWorkspace) {
     return (
-      <div className="h-screen w-screen overflow-hidden bg-[#0B0D12] text-[#F1F5FC] flex flex-col">
+      <div className="h-screen w-screen overflow-hidden bg-[#F4F5F7] text-neutral-900 flex flex-col">
         {children}
         <UploadQueueWidget />
       </div>
@@ -47,7 +47,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen bg-[#0B0D12] text-[#F1F5FC] font-sans antialiased flex w-full relative">
+    <div className="min-h-screen bg-[#F8F9FA] text-neutral-900 font-sans antialiased flex w-full relative">
       {/* 5-Item Navigation Sidebar (Responsive Desktop & Mobile Drawer) */}
       <Sidebar
         isMobileOpen={isMobileMenuOpen}

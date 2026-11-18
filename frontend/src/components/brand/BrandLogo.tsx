@@ -43,17 +43,17 @@ export function DocoraSymbol({
     >
       <defs>
         <linearGradient id="docora-primary-sym" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#38BDF8" />
-          <stop offset="45%" stopColor="#6366F1" />
-          <stop offset="100%" stopColor="#4338CA" />
+          <stop offset="0%" stopColor="#F59E0B" />
+          <stop offset="50%" stopColor="#D97706" />
+          <stop offset="100%" stopColor="#B45309" />
         </linearGradient>
         <linearGradient id="docora-accent-sym" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#C084FC" />
-          <stop offset="100%" stopColor="#818CF8" />
+          <stop offset="0%" stopColor="#FDE68A" />
+          <stop offset="100%" stopColor="#F59E0B" />
         </linearGradient>
         <linearGradient id="docora-sparkle-sym" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="#FFFFFF" />
-          <stop offset="100%" stopColor="#E0E7FF" />
+          <stop offset="100%" stopColor="#FEF3C7" />
         </linearGradient>
       </defs>
 
@@ -66,8 +66,7 @@ export function DocoraSymbol({
       {/* Inner Document Window / Aperture */}
       <path
         d="M17 11H25C31.5 11 34.5 15.5 34.5 24C34.5 32.5 31.5 37 25 37H17V11Z"
-        fill="currentColor"
-        className="text-[#0B0F19] dark:text-[#0B0F19]"
+        fill="#18181B"
       />
 
       {/* Dimensional Page Fold in Top-Right */}
@@ -83,7 +82,7 @@ export function DocoraSymbol({
       />
 
       {/* Secondary Satellite Node */}
-      <circle cx="31.5" cy="18.5" r="1.5" fill="#38BDF8" />
+      <circle cx="31.5" cy="18.5" r="1.5" fill="#FDE68A" />
     </svg>
   );
 }

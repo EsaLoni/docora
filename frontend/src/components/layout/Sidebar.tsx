@@ -55,24 +55,24 @@ export function Sidebar({ isMobileOpen = false, onCloseMobile }: SidebarProps) {
   };
 
   const navContent = (
-    <div className="flex flex-col justify-between h-full bg-[#0C0E15]">
+    <div className="flex flex-col justify-between h-full bg-[#F8F9FA] border-r border-black/[0.08] text-neutral-900">
       <div>
         {/* Brand Header */}
-        <div className="h-16 flex items-center justify-between px-5 border-b border-white/[0.08]">
+        <div className="h-16 flex items-center justify-between px-5 border-b border-black/[0.08]">
           <Link href="/" prefetch={false} className="flex items-center min-w-0 no-underline hover:opacity-95 transition-opacity">
             <BrandLogo
               variant="full"
               size="sm"
               showTagline
-              tagline="AI Research Workspace"
-              textClassName="text-sm font-semibold text-white tracking-tight"
+              tagline="Document Intelligence"
+              textClassName="text-sm font-semibold text-neutral-900 tracking-tight"
             />
           </Link>
           {onCloseMobile && (
             <button
               type="button"
               onClick={onCloseMobile}
-              className="p-1 rounded-lg text-neutral-400 hover:text-white hover:bg-white/[0.06] md:hidden"
+              className="p-1 rounded-lg text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 md:hidden"
               aria-label="Close menu"
             >
               <X className="h-5 w-5" />
@@ -82,10 +82,10 @@ export function Sidebar({ isMobileOpen = false, onCloseMobile }: SidebarProps) {
 
         {/* Active Workspace Indicator */}
         <div className="px-3 pt-3 pb-2">
-          <div className="px-3 py-2 rounded-xl bg-white/[0.02] border border-white/[0.08] flex items-center justify-between text-xs text-neutral-400 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.02)]">
+          <div className="px-3 py-2 rounded-xl bg-white border border-black/[0.08] flex items-center justify-between text-xs text-neutral-600 shadow-xs">
             <div className="flex items-center gap-2 min-w-0">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" title="Active Workspace" />
-              <span className="text-xs font-medium truncate text-neutral-200">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 shrink-0" title="Active Workspace" />
+              <span className="text-xs font-medium truncate text-neutral-800">
                 {user?.workspaces?.[0]?.name || "Personal Workspace"}
               </span>
             </div>
@@ -113,11 +113,11 @@ export function Sidebar({ isMobileOpen = false, onCloseMobile }: SidebarProps) {
                 className={cn(
                   "flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-all",
                   isActive
-                    ? "bg-indigo-500/10 text-indigo-300 font-semibold border border-indigo-500/20 shadow-xs"
-                    : "text-neutral-400 hover:bg-white/[0.04] hover:text-white"
+                    ? "bg-neutral-900 text-white font-semibold shadow-xs"
+                    : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900"
                 )}
               >
-                <Icon className={cn("h-4 w-4 shrink-0", isActive ? "text-indigo-400" : "text-neutral-400")} />
+                <Icon className={cn("h-4 w-4 shrink-0", isActive ? "text-amber-400" : "text-neutral-500")} />
                 <span>{item.name}</span>
               </Link>
             );
@@ -126,7 +126,7 @@ export function Sidebar({ isMobileOpen = false, onCloseMobile }: SidebarProps) {
       </div>
 
       {/* Bottom Area: Settings & Account Management */}
-      <div className="p-3 border-t border-white/[0.08] space-y-2 bg-[#0C0E15]">
+      <div className="p-3 border-t border-black/[0.08] space-y-2 bg-[#F8F9FA]">
         <Link
           href="/settings"
           prefetch={false}
@@ -134,11 +134,11 @@ export function Sidebar({ isMobileOpen = false, onCloseMobile }: SidebarProps) {
           className={cn(
             "flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium transition-colors",
             pathname === "/settings"
-              ? "bg-indigo-500/10 text-indigo-300 font-semibold border border-indigo-500/20"
-              : "text-neutral-400 hover:bg-white/[0.04] hover:text-white"
+              ? "bg-neutral-900 text-white font-semibold"
+              : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900"
           )}
         >
-          <Settings className="h-4 w-4 shrink-0 text-neutral-400" />
+          <Settings className="h-4 w-4 shrink-0 text-neutral-500" />
           <span>Settings & Isolation</span>
         </Link>
 
@@ -147,17 +147,17 @@ export function Sidebar({ isMobileOpen = false, onCloseMobile }: SidebarProps) {
           <button
             type="button"
             onClick={() => setShowAccountMenu(!showAccountMenu)}
-            className="w-full p-2 rounded-xl bg-white/[0.02] border border-white/[0.08] hover:border-white/[0.15] hover:bg-white/[0.04] transition-all flex items-center justify-between text-left group"
+            className="w-full p-2 rounded-xl bg-white border border-black/[0.08] hover:border-black/[0.16] hover:bg-neutral-50 transition-all flex items-center justify-between text-left group shadow-xs"
           >
             <div className="flex items-center gap-2.5 min-w-0">
-              <div className="h-8 w-8 rounded-lg bg-indigo-600/20 text-indigo-300 border border-indigo-500/30 flex items-center justify-center font-bold text-xs shrink-0">
+              <div className="h-8 w-8 rounded-lg bg-neutral-900 text-white flex items-center justify-center font-bold text-xs shrink-0">
                 {getInitials(user?.full_name, user?.email)}
               </div>
               <div className="flex flex-col min-w-0">
-                <span className="text-xs font-semibold text-neutral-200 truncate">
+                <span className="text-xs font-semibold text-neutral-900 truncate">
                   {user?.full_name || "Research Scientist"}
                 </span>
-                <span className="text-[11px] text-neutral-400 truncate">
+                <span className="text-[11px] text-neutral-500 truncate">
                   {user?.email || "user@docora.internal"}
                 </span>
               </div>

@@ -104,14 +104,14 @@ export function Header({ onToggleMobileMenu }: HeaderProps) {
 
   return (
     <>
-      <header className="h-14 border-b border-white/[0.08] bg-[#08090D]/85 backdrop-blur-md sticky top-0 z-10 flex items-center justify-between px-4 sm:px-6 gap-3 select-none">
+      <header className="h-14 border-b border-black/[0.08] bg-white/95 backdrop-blur-md sticky top-0 z-10 flex items-center justify-between px-4 sm:px-6 gap-3 select-none text-neutral-900 shadow-xs">
         {/* Left Side: Mobile Hamburger & Search Bar */}
         <div className="flex items-center gap-2.5">
           {onToggleMobileMenu && (
             <button
               type="button"
               onClick={onToggleMobileMenu}
-              className="p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-white/[0.06] md:hidden shrink-0 border border-white/[0.08]"
+              className="p-1.5 rounded-lg text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 md:hidden shrink-0 border border-black/[0.08]"
               aria-label="Toggle navigation menu"
             >
               <Menu className="h-4 w-4" />
@@ -122,13 +122,13 @@ export function Header({ onToggleMobileMenu }: HeaderProps) {
           <button
             type="button"
             onClick={() => setIsSearchOpen(true)}
-            className="flex items-center justify-between w-48 sm:w-64 md:w-80 bg-white/[0.02] border border-white/[0.08] rounded-xl px-3 py-1.5 text-xs text-neutral-400 hover:border-white/[0.18] hover:bg-white/[0.04] transition-all text-left group cursor-pointer"
+            className="flex items-center justify-between w-48 sm:w-64 md:w-80 bg-neutral-50 border border-black/[0.08] rounded-xl px-3 py-1.5 text-xs text-neutral-500 hover:border-black/[0.18] hover:bg-neutral-100 transition-all text-left group cursor-pointer shadow-xs"
           >
             <div className="flex items-center gap-2 overflow-hidden">
-              <Search className="h-3.5 w-3.5 shrink-0 text-neutral-400 group-hover:text-indigo-400 transition-colors" />
+              <Search className="h-3.5 w-3.5 shrink-0 text-neutral-400 group-hover:text-amber-700 transition-colors" />
               <span className="truncate">Search documents, citations...</span>
             </div>
-            <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-mono bg-white/[0.04] border border-white/[0.08] rounded-md text-neutral-400">
+            <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-mono bg-white border border-black/[0.08] rounded-md text-neutral-500">
               <Command className="h-2.5 w-2.5" />K
             </kbd>
           </button>
@@ -137,17 +137,17 @@ export function Header({ onToggleMobileMenu }: HeaderProps) {
         {/* Header Right Actions */}
         <div className="flex items-center gap-2 sm:gap-3">
           {/* Backend Status Indicator */}
-          <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border border-white/[0.08] bg-white/[0.02]">
+          <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border border-black/[0.08] bg-neutral-50">
             <span
               className={`h-1.5 w-1.5 rounded-full shrink-0 ${
                 backendStatus === "online"
-                  ? "bg-emerald-400 animate-pulse"
+                  ? "bg-emerald-600"
                   : backendStatus === "checking"
-                  ? "bg-amber-400"
-                  : "bg-rose-400"
+                  ? "bg-amber-500"
+                  : "bg-rose-500"
               }`}
             />
-            <span className="text-neutral-400 text-[11px]">API:</span>
+            <span className="text-neutral-500 text-[11px] font-mono">API:</span>
             <span
               className={`text-[11px] font-medium ${
                 backendStatus === "online"

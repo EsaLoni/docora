@@ -4,61 +4,62 @@
 
 @layer base {
   :root, .dark, [data-theme="dark"] {
-    /* Impeccable Atelier Dark Aesthetic */
-    /* Canvas Base: #08090D */
-    --background: 228 24% 4%;
-    --foreground: 220 14% 96%;
+    /* Impeccable "Paper & Instruments" Aesthetic */
+    /* Canvas Base: Paper #F8F9FA */
+    --background: 210 20% 98%;
+    --foreground: 220 15% 12%;
     
-    /* Panels & Cards: #0E1118 */
-    --card: 223 28% 8%;
-    --card-foreground: 220 14% 96%;
+    /* Panels & Sheets: #FFFFFF */
+    --card: 0 0% 100%;
+    --card-foreground: 220 15% 12%;
     
-    /* Elevated surfaces / popovers: #151823 */
-    --popover: 224 25% 11%;
-    --popover-foreground: 220 14% 96%;
+    /* Elevated surfaces / popovers: #FFFFFF */
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 15% 12%;
     
-    /* Primary Accent: Precision Electric Indigo (#6366F1) */
-    --primary: 239 84% 67%;
-    --primary-foreground: 220 14% 98%;
+    /* Kinpaku Gold: Jewelry / Primary Action */
+    --primary: 38 88% 50%;
+    --primary-foreground: 220 15% 10%;
     
-    --secondary: 224 25% 11%;
-    --secondary-foreground: 220 14% 96%;
+    --secondary: 210 15% 94%;
+    --secondary-foreground: 220 15% 12%;
     
-    --muted: 224 25% 11%;
-    --muted-foreground: 218 11% 65%;
+    --muted: 210 15% 94%;
+    --muted-foreground: 215 16% 45%;
     
-    --accent: 239 84% 67%;
-    --accent-foreground: 220 14% 98%;
+    /* Patina: Grounded / Citations */
+    --accent: 173 80% 36%;
+    --accent-foreground: 0 0% 100%;
     
     --destructive: 0 72% 51%;
-    --destructive-foreground: 220 14% 98%;
+    --destructive-foreground: 0 0% 100%;
     
-    /* Hairline borders */
-    --border: 224 20% 16%;
-    --input: 224 20% 16%;
-    --ring: 239 84% 67%;
+    /* Hairline paper rules */
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 38 88% 50%;
     --radius: 0.875rem;
 
     /* Semantic Hex Variables for Direct CSS & Inline Styles */
-    --canvas: #090A10;
-    --sidebar: #0D0F18;
-    --panel: #0E111A;
-    --panel-raised: #161B2B;
-    --tile: #161B2B;
-    --tile-hover: #1E2438;
-    --card-bg: #141824;
-    --surface-elevated: #181D2E;
-    --border-subtle: rgba(255, 255, 255, 0.08);
-    --border-strong: rgba(255, 255, 255, 0.16);
-    --accent-blue: #6366F1;
-    --accent-hover: #818CF8;
-    --accent-soft: rgba(99, 102, 241, 0.14);
-    --text-primary: #FFFFFF;
-    --text-secondary: #E2E8F0;
-    --text-muted: #94A3B8;
-    --citation-verified: #10B981;
-    --citation-soft: rgba(16, 185, 129, 0.14);
-    --composer: #131726;
+    --canvas: #F8F9FA;
+    --sidebar: #F4F5F7;
+    --panel: #FFFFFF;
+    --panel-raised: #FFFFFF;
+    --tile: #F4F5F7;
+    --tile-hover: #ECEEF2;
+    --card-bg: #FFFFFF;
+    --surface-elevated: #FFFFFF;
+    --border-subtle: rgba(0, 0, 0, 0.08);
+    --border-strong: rgba(0, 0, 0, 0.16);
+    --accent-blue: #0D9488;
+    --accent-hover: #0F766E;
+    --accent-soft: rgba(13, 148, 136, 0.1);
+    --text-primary: #18181B;
+    --text-secondary: #3F3F46;
+    --text-muted: #71717A;
+    --citation-verified: #0D9488;
+    --citation-soft: rgba(13, 148, 136, 0.1);
+    --composer: #FFFFFF;
   }
 }
 
@@ -70,8 +71,8 @@
     @apply bg-background text-foreground antialiased;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
-    background-color: #090A10;
-    color: #FFFFFF;
+    background-color: #F8F9FA;
+    color: #18181B;
     overflow-x: hidden;
   }
 
@@ -84,11 +85,11 @@
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.12);
+    background: rgba(0, 0, 0, 0.15);
     border-radius: 9999px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.22);
+    background: rgba(0, 0, 0, 0.28);
   }
 }
 

@@ -55,25 +55,25 @@ function LoginForm() {
   };
 
   return (
-    <div className="w-full max-w-md p-6 sm:p-8 rounded-3xl bg-[#1F1F1F] border border-[#303030] shadow-2xl relative z-10">
+    <div className="w-full max-w-md p-7 sm:p-9 rounded-3xl bg-[#0F121A]/90 border border-white/[0.08] backdrop-blur-xl shadow-[0_24px_64px_-12px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(255,255,255,0.06)] relative z-10 select-none">
       {/* Brand Header */}
       <div className="text-center mb-8">
-        <div className="inline-flex items-center justify-center mb-4">
-          <DocoraSymbol size={52} />
+        <div className="inline-flex items-center justify-center mb-4 transition-transform hover:scale-105 duration-200">
+          <DocoraSymbol size={48} />
         </div>
-        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-[#F1F3F4]">
+        <h1 className="text-2xl sm:text-[26px] font-semibold tracking-tight text-white">
           Welcome to Docora
         </h1>
-        <p className="text-sm text-[#B8BDC7] mt-1.5">
+        <p className="text-xs text-neutral-400 mt-1.5 tracking-normal">
           Your documents. Your intelligence.
         </p>
       </div>
 
       {/* Error Alert */}
       {errorMessage && (
-        <div className="mb-6 p-3.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-start gap-2.5">
-          <span className="text-red-400 font-bold">•</span>
-          <span>{errorMessage}</span>
+        <div className="mb-6 p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs flex items-start gap-2.5 animate-in fade-in duration-150">
+          <span className="text-rose-400 font-bold shrink-0">•</span>
+          <span className="leading-relaxed">{errorMessage}</span>
         </div>
       )}
 
@@ -82,12 +82,12 @@ function LoginForm() {
         <div>
           <label
             htmlFor="email"
-            className="block text-xs font-medium uppercase tracking-wider text-[#9299A4] mb-1.5"
+            className="block text-[11px] font-semibold uppercase tracking-wider text-neutral-400 mb-1.5"
           >
             Email Address
           </label>
           <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#9299A4]">
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-500">
               <Mail className="w-4 h-4" />
             </div>
             <input
@@ -98,7 +98,7 @@ function LoginForm() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="name@company.com"
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#141414] border border-[#303030] text-[#F1F3F4] placeholder-[#666] text-sm focus:outline-none focus:border-[#8AB4F8] focus:ring-1 focus:ring-[#8AB4F8] transition-colors"
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.08] text-white placeholder-neutral-500 text-xs focus:outline-none focus:border-indigo-500/70 focus:ring-1 focus:ring-indigo-500/30 transition-all"
             />
           </div>
         </div>
@@ -107,19 +107,20 @@ function LoginForm() {
           <div className="flex items-center justify-between mb-1.5">
             <label
               htmlFor="password"
-              className="block text-xs font-medium uppercase tracking-wider text-[#9299A4]"
+              className="block text-[11px] font-semibold uppercase tracking-wider text-neutral-400"
             >
               Password
             </label>
             <Link
               href="/forgot-password"
-              className="text-xs text-[#8AB4F8] hover:underline transition-colors"
+              prefetch={false}
+              className="text-[11px] text-indigo-400 hover:text-indigo-300 transition-colors"
             >
               Forgot password?
             </Link>
           </div>
           <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#9299A4]">
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-500">
               <Lock className="w-4 h-4" />
             </div>
             <input
@@ -130,12 +131,12 @@ function LoginForm() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-[#141414] border border-[#303030] text-[#F1F3F4] placeholder-[#666] text-sm focus:outline-none focus:border-[#8AB4F8] focus:ring-1 focus:ring-[#8AB4F8] transition-colors"
+              className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.08] text-white placeholder-neutral-500 text-xs focus:outline-none focus:border-indigo-500/70 focus:ring-1 focus:ring-indigo-500/30 transition-all"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[#9299A4] hover:text-[#F1F3F4] transition-colors"
+              className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-neutral-500 hover:text-neutral-300 transition-colors"
             >
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
@@ -143,13 +144,13 @@ function LoginForm() {
         </div>
 
         <div className="flex items-center justify-between pt-1">
-          <label className="flex items-center gap-2 text-xs text-[#B8BDC7] cursor-pointer">
+          <label className="flex items-center gap-2 text-xs text-neutral-400 cursor-pointer">
             <input
               id="remember_me"
               type="checkbox"
               checked={rememberMe}
               onChange={(e) => setRememberMe(e.target.checked)}
-              className="w-4 h-4 rounded border-[#303030] bg-[#141414] text-[#8AB4F8] focus:ring-0 cursor-pointer"
+              className="w-3.5 h-3.5 rounded border-white/[0.1] bg-white/[0.05] text-indigo-500 focus:ring-0 cursor-pointer"
             />
             <span>Remember this device</span>
           </label>
@@ -158,7 +159,7 @@ function LoginForm() {
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full py-3 px-4 rounded-xl bg-[#3156D8] hover:bg-[#2546C4] text-white font-medium text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-500/10 transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+          className="w-full py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs flex items-center justify-center gap-2 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2)] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-2"
         >
           {isLoading ? (
             <>
@@ -168,29 +169,30 @@ function LoginForm() {
           ) : (
             <>
               <span>Sign In</span>
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-3.5 h-3.5" />
             </>
           )}
         </button>
       </form>
 
       {/* Demo helper */}
-      <div className="mt-6 pt-5 border-t border-[#2A2A2A] text-center">
+      <div className="mt-6 pt-5 border-t border-white/[0.06] text-center">
         <button
           type="button"
           onClick={handleQuickFillDev}
-          className="text-xs text-[#6D8FFF] hover:text-[#84A2FF] font-medium transition-colors underline decoration-dotted"
+          className="text-xs text-indigo-400 hover:text-indigo-300 font-medium transition-colors"
         >
-          Quick fill demo credentials (dev@docora.local)
+          Quick fill demo credentials
         </button>
       </div>
 
       {/* Footer Registration Link */}
-      <div className="mt-6 text-center text-xs text-[#B8BDC7]">
+      <div className="mt-5 text-center text-xs text-neutral-400">
         Don't have an account?{" "}
         <Link
           href={`/register?redirect=${encodeURIComponent(redirectUrl)}`}
-          className="text-[#8AB4F8] font-medium hover:underline ml-1"
+          prefetch={false}
+          className="text-indigo-400 font-medium hover:underline ml-1"
         >
           Create one now
         </Link>
@@ -201,13 +203,13 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen w-full bg-[#0B0B0B] flex flex-col items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen w-full bg-[#08090D] flex flex-col items-center justify-center p-4 relative overflow-hidden">
       {/* Subtle background glow */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#8AB4F8]/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
       <Suspense
         fallback={
-          <div className="text-sm text-[#9299A4] flex items-center gap-2">
-            <Loader2 className="w-4 h-4 animate-spin text-[#8AB4F8]" />
+          <div className="text-xs text-neutral-400 flex items-center gap-2">
+            <Loader2 className="w-4 h-4 animate-spin text-indigo-400" />
             Loading authentication...
           </div>
         }

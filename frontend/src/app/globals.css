@@ -4,59 +4,61 @@
 
 @layer base {
   :root, .dark, [data-theme="dark"] {
-    /* Phase 15 Dark-First Color Palette */
-    /* Canvas: #0B0D12 (HSL: 223 24% 6%) */
-    --background: 223 24% 6%;
-    /* Primary Text: #F1F5FC (HSL: 218 61% 97%) */
-    --foreground: 218 61% 97%;
+    /* Impeccable Atelier Dark Aesthetic */
+    /* Canvas Base: #08090D */
+    --background: 228 24% 4%;
+    --foreground: 220 14% 96%;
     
-    /* Cards: #151B27 (HSL: 220 30% 12%) */
-    --card: 220 30% 12%;
-    --card-foreground: 218 61% 97%;
+    /* Panels & Cards: #0E1118 */
+    --card: 223 28% 8%;
+    --card-foreground: 220 14% 96%;
     
-    /* Elevated surfaces / popovers: #1B2332 (HSL: 219 30% 15%) */
-    --popover: 219 30% 15%;
-    --popover-foreground: 218 61% 97%;
+    /* Elevated surfaces / popovers: #151823 */
+    --popover: 224 25% 11%;
+    --popover-foreground: 220 14% 96%;
     
-    /* Accent: #6D8FFF (HSL: 226 100% 71%) */
-    --primary: 226 100% 71%;
-    --primary-foreground: 223 24% 6%;
+    /* Primary Accent: Precision Electric Indigo (#6366F1) */
+    --primary: 239 84% 67%;
+    --primary-foreground: 220 14% 98%;
     
-    --secondary: 219 30% 15%;
-    --secondary-foreground: 218 61% 97%;
+    --secondary: 224 25% 11%;
+    --secondary-foreground: 220 14% 96%;
     
-    --muted: 219 30% 15%;
-    /* Secondary text: #A0AEC0 (HSL: 214 20% 69%) */
-    --muted-foreground: 214 20% 69%;
+    --muted: 224 25% 11%;
+    --muted-foreground: 218 11% 65%;
     
-    --accent: 226 100% 71%;
-    --accent-foreground: 223 24% 6%;
+    --accent: 239 84% 67%;
+    --accent-foreground: 220 14% 98%;
     
     --destructive: 0 72% 51%;
-    --destructive-foreground: 218 61% 97%;
+    --destructive-foreground: 220 14% 98%;
     
-    /* Borders: #273247 (HSL: 219 29% 22%) */
-    --border: 219 29% 22%;
-    --input: 219 29% 22%;
-    --ring: 226 100% 71%;
-    --radius: 0.75rem;
+    /* Hairline borders */
+    --border: 224 20% 16%;
+    --input: 224 20% 16%;
+    --ring: 239 84% 67%;
+    --radius: 0.875rem;
 
     /* Semantic Hex Variables for Direct CSS & Inline Styles */
-    --canvas: #0B0D12;
-    --sidebar: #10141D;
-    --card-bg: #151B27;
-    --surface-elevated: #1B2332;
-    --border-subtle: #273247;
-    --border-strong: #3A4A68;
-    --accent-blue: #6D8FFF;
-    --accent-hover: #84A2FF;
-    --accent-soft: rgba(109, 143, 255, 0.12);
-    --text-primary: #F1F5FC;
-    --text-secondary: #A0AEC0;
-    --text-muted: #7E8B9B;
-    --citation-verified: #34D399;
-    --citation-soft: rgba(52, 211, 153, 0.15);
-    --composer: #151B27;
+    --canvas: #08090D;
+    --sidebar: #0C0E15;
+    --panel: #0E1118;
+    --panel-raised: #151823;
+    --tile: #151823;
+    --tile-hover: #1C202E;
+    --card-bg: #11141D;
+    --surface-elevated: #181C28;
+    --border-subtle: rgba(255, 255, 255, 0.08);
+    --border-strong: rgba(255, 255, 255, 0.16);
+    --accent-blue: #6366F1;
+    --accent-hover: #818CF8;
+    --accent-soft: rgba(99, 102, 241, 0.14);
+    --text-primary: #F3F4F6;
+    --text-secondary: #9CA3AF;
+    --text-muted: #6B7280;
+    --citation-verified: #10B981;
+    --citation-soft: rgba(16, 185, 129, 0.14);
+    --composer: #11141D;
   }
 }
 
@@ -66,69 +68,89 @@
   }
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    font-feature-settings: "rlig" 1, "calt" 1;
-    background-color: #0B0D12;
-    color: #F1F5FC;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    background-color: #08090D;
+    color: #F3F4F6;
+    overflow-x: hidden;
+  }
+
+  /* Custom Sleek Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.22);
   }
 }
 
-/* Phase 15 Premium Reading Typography Scale */
+/* Typography Hierarchy */
 .page-title {
-  font-size: 30px;
-  line-height: 36px;
+  font-size: 28px;
+  line-height: 34px;
   font-weight: 600;
-  letter-spacing: -0.02em;
-  color: #F1F5FC;
+  letter-spacing: -0.025em;
+  color: #F3F4F6;
 }
 
 .section-title {
-  font-size: 22px;
-  line-height: 28px;
+  font-size: 20px;
+  line-height: 26px;
   font-weight: 600;
-  letter-spacing: -0.01em;
-  color: #F1F5FC;
+  letter-spacing: -0.02em;
+  color: #F3F4F6;
 }
 
 .card-title {
-  font-size: 16px;
-  line-height: 24px;
+  font-size: 15px;
+  line-height: 22px;
   font-weight: 600;
-  color: #F1F5FC;
+  letter-spacing: -0.01em;
+  color: #F3F4F6;
 }
 
 .body-reading {
   font-size: 15px;
-  line-height: 1.6;
+  line-height: 1.65;
   font-weight: 400;
-  color: #F1F5FC;
+  color: #E5E7EB;
 }
 
 .body-secondary {
   font-size: 13px;
   line-height: 1.5;
   font-weight: 400;
-  color: #A0AEC0;
+  color: #9CA3AF;
 }
 
 .meta-label {
-  font-size: 12px;
-  line-height: 16px;
-  font-weight: 500;
-  color: #A0AEC0;
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #6B7280;
 }
 
 .btn-label {
-  font-size: 14px;
-  line-height: 20px;
+  font-size: 13px;
+  line-height: 18px;
   font-weight: 500;
 }
 
 /* Markdown Reading Content Formatting */
 .prose-reading {
   font-size: 15px;
-  line-height: 1.6;
-  color: #F1F5FC;
+  line-height: 1.65;
+  color: #E5E7EB;
 }
 .prose-reading p {
   margin-bottom: 0.85em;
@@ -136,22 +158,23 @@
 .prose-reading h1 {
   font-size: 22px;
   font-weight: 600;
-  color: #F1F5FC;
+  color: #F3F4F6;
   margin-top: 1.2em;
   margin-bottom: 0.5em;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
 }
 .prose-reading h2 {
   font-size: 18px;
   font-weight: 600;
-  color: #F1F5FC;
+  color: #F3F4F6;
   margin-top: 1em;
   margin-bottom: 0.4em;
+  letter-spacing: -0.015em;
 }
 .prose-reading h3 {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
-  color: #F1F5FC;
+  color: #F3F4F6;
   margin-top: 0.8em;
   margin-bottom: 0.3em;
 }
@@ -166,18 +189,19 @@
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 13px;
   padding: 0.15em 0.4em;
-  border-radius: 4px;
-  background-color: #1B2332;
-  border: 1px solid #273247;
-  color: #6D8FFF;
+  border-radius: 6px;
+  background-color: #151823;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #818CF8;
 }
 .prose-reading pre {
-  background-color: #10141D;
-  border: 1px solid #273247;
-  border-radius: 8px;
-  padding: 0.85rem;
+  background-color: #0E1118;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 0.95rem;
   overflow-x: auto;
-  margin: 0.85em 0;
+  margin: 0.9em 0;
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.04);
 }
 .prose-reading table {
   width: 100%;
@@ -187,10 +211,11 @@
 }
 .prose-reading th, .prose-reading td {
   padding: 8px 12px;
-  border: 1px solid #273247;
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 .prose-reading th {
-  background-color: #1B2332;
+  background-color: #151823;
   font-weight: 600;
   text-align: left;
+  color: #F3F4F6;
 }

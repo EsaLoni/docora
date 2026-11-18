@@ -128,25 +128,25 @@ export function WorkspaceShell({
           {isLeftPanelOpen ? (
             <section
               style={{ width: `${leftWidth}px` }}
-              className="h-full shrink-0 rounded-3xl border border-[var(--border-subtle)] bg-[var(--panel)] shadow-sm overflow-hidden flex flex-col transition-all duration-200"
+              className="h-full shrink-0 rounded-2xl border border-white/[0.08] bg-[#0E1118] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] overflow-hidden flex flex-col transition-all duration-200"
             >
               {sourcesPanel}
             </section>
           ) : (
             <aside
               onClick={() => setIsLeftPanelOpen(true)}
-              className="h-full w-12 shrink-0 rounded-3xl border border-[var(--border-subtle)] bg-[var(--panel)] shadow-sm hover:bg-[var(--tile-hover)] cursor-pointer flex flex-col items-center py-4 transition-colors group"
+              className="h-full w-12 shrink-0 rounded-2xl border border-white/[0.08] bg-[#0E1118] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] hover:bg-white/[0.04] cursor-pointer flex flex-col items-center py-4 transition-colors group"
               title="Expand Sources"
             >
-              <div className="p-2 rounded-xl text-[var(--text-secondary)] group-hover:text-[var(--accent-blue)]">
+              <div className="p-2 rounded-xl text-neutral-400 group-hover:text-indigo-400">
                 <ChevronRight className="w-4 h-4" />
               </div>
               <div className="mt-4 flex-1 flex items-center justify-center">
-                <span className="[writing-mode:vertical-lr] rotate-180 text-xs font-semibold tracking-wider text-[var(--text-muted)] group-hover:text-[var(--text-primary)] uppercase">
+                <span className="[writing-mode:vertical-lr] rotate-180 text-[11px] font-semibold tracking-wider text-neutral-500 group-hover:text-neutral-200 uppercase">
                   Sources ({sourcesCount})
                 </span>
               </div>
-              <BookOpen className="w-4 h-4 text-[var(--text-muted)]" />
+              <BookOpen className="w-4 h-4 text-neutral-500" />
             </aside>
           )}
 
@@ -155,15 +155,15 @@ export function WorkspaceShell({
             <div
               onMouseDown={handleLeftResizeStart}
               onDoubleClick={handleResetLeftWidth}
-              className="w-1.5 h-full cursor-col-resize hover:bg-[var(--accent-blue)]/30 active:bg-[var(--accent-blue)] transition-colors rounded-full shrink-0 flex items-center justify-center group"
+              className="w-1.5 h-full cursor-col-resize hover:bg-indigo-500/30 active:bg-indigo-500 transition-colors rounded-full shrink-0 flex items-center justify-center group"
               title="Drag to resize, double-click to reset"
             >
-              <div className="w-0.5 h-8 bg-[var(--border-strong)] rounded-full group-hover:bg-[var(--accent-blue)]" />
+              <div className="w-0.5 h-8 bg-white/[0.15] rounded-full group-hover:bg-indigo-400" />
             </div>
           )}
 
           {/* CENTER: CHAT PANEL */}
-          <section className="flex-1 h-full min-w-[320px] rounded-3xl border border-[var(--border-subtle)] bg-[var(--panel)] shadow-sm overflow-hidden flex flex-col">
+          <section className="flex-1 h-full min-w-[320px] rounded-2xl border border-white/[0.08] bg-[#0E1118] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] overflow-hidden flex flex-col">
             {chatPanel}
           </section>
 
@@ -172,10 +172,10 @@ export function WorkspaceShell({
             <div
               onMouseDown={handleRightResizeStart}
               onDoubleClick={handleResetRightWidth}
-              className="w-1.5 h-full cursor-col-resize hover:bg-[var(--accent-blue)]/30 active:bg-[var(--accent-blue)] transition-colors rounded-full shrink-0 flex items-center justify-center group"
+              className="w-1.5 h-full cursor-col-resize hover:bg-indigo-500/30 active:bg-indigo-500 transition-colors rounded-full shrink-0 flex items-center justify-center group"
               title="Drag to resize, double-click to reset"
             >
-              <div className="w-0.5 h-8 bg-[var(--border-strong)] rounded-full group-hover:bg-[var(--accent-blue)]" />
+              <div className="w-0.5 h-8 bg-white/[0.15] rounded-full group-hover:bg-indigo-400" />
             </div>
           )}
 
@@ -183,14 +183,14 @@ export function WorkspaceShell({
           {isRightPanelOpen ? (
             <section
               style={{ width: `${rightWidth}px` }}
-              className="h-full shrink-0 rounded-3xl border border-[var(--border-subtle)] bg-[var(--panel)] shadow-sm overflow-hidden flex flex-col transition-all duration-200"
+              className="h-full shrink-0 rounded-2xl border border-white/[0.08] bg-[#0E1118] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] overflow-hidden flex flex-col transition-all duration-200"
             >
               {studioPanel}
             </section>
           ) : (
             <aside
               onClick={() => setIsRightPanelOpen(true)}
-              className="h-full w-12 shrink-0 rounded-3xl border border-[var(--border-subtle)] bg-[var(--panel)] shadow-sm hover:bg-[var(--tile-hover)] cursor-pointer flex flex-col items-center py-4 transition-colors group"
+              className="h-full w-12 shrink-0 rounded-2xl border border-white/[0.08] bg-[#0E1118] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] hover:bg-white/[0.04] cursor-pointer flex flex-col items-center py-4 transition-colors group"
               title="Expand Studio"
             >
               <div className="p-2 rounded-xl text-[var(--text-secondary)] group-hover:text-[var(--accent-blue)]">

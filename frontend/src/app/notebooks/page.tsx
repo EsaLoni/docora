@@ -10,8 +10,8 @@ import {
   Sparkles,
   ArrowRight,
   Trash2,
-  Calendar,
   Layers,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { apiClient } from "@/lib/api-client";
@@ -33,13 +33,13 @@ interface NotebookItem {
   artifact_count?: number;
 }
 
-const COLOR_MAP: Record<string, { bg: string; border: string; badge: string; text: string }> = {
-  blue: { bg: "bg-[#6D8FFF]/10", border: "border-[#6D8FFF]/30", badge: "bg-[#6D8FFF]", text: "text-[#6D8FFF]" },
-  indigo: { bg: "bg-indigo-500/10", border: "border-indigo-500/30", badge: "bg-indigo-500", text: "text-indigo-400" },
-  emerald: { bg: "bg-[#34D399]/10", border: "border-[#34D399]/30", badge: "bg-[#34D399]", text: "text-[#34D399]" },
-  purple: { bg: "bg-purple-500/10", border: "border-purple-500/30", badge: "bg-purple-500", text: "text-purple-400" },
-  amber: { bg: "bg-amber-500/10", border: "border-amber-500/30", badge: "bg-amber-500", text: "text-amber-400" },
-  rose: { bg: "bg-rose-500/10", border: "border-rose-500/30", badge: "bg-rose-500", text: "text-rose-400" },
+const COLOR_MAP: Record<string, { badge: string; ring: string }> = {
+  blue: { badge: "bg-sky-400", ring: "ring-sky-400" },
+  indigo: { badge: "bg-indigo-400", ring: "ring-indigo-400" },
+  emerald: { badge: "bg-emerald-400", ring: "ring-emerald-400" },
+  purple: { badge: "bg-purple-400", ring: "ring-purple-400" },
+  amber: { badge: "bg-amber-400", ring: "ring-amber-400" },
+  rose: { badge: "bg-rose-400", ring: "ring-rose-400" },
 };
 
 export default function NotebooksPage() {
@@ -50,7 +50,7 @@ export default function NotebooksPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [newDesc, setNewDesc] = useState("");
-  const [newColor, setNewColor] = useState("emerald");
+  const [newColor, setNewColor] = useState("indigo");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const loadNotebooks = async () => {
@@ -93,7 +93,7 @@ export default function NotebooksPage() {
   const handleDeleteNotebook = async (id: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!confirm("Are you sure you want to delete this notebook and all its studio artifacts?")) return;
+    if (!confirm("Are you sure you want to delete this notebook and its studio artifacts?")) return;
 
     try {
       await apiClient.deleteNotebook(id);
@@ -110,44 +110,42 @@ export default function NotebooksPage() {
   );
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] max-w-6xl mx-auto space-y-8 select-none pb-12">
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#273247]">
+    <div className="min-h-[calc(100vh-4rem)] max-w-6xl mx-auto space-y-8 select-none pb-16">
+      {/* Editorial Top Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-6 border-b border-white/[0.08]">
         <div>
-          <div className="flex items-center gap-2.5">
-            <div className="h-8 w-8 rounded-xl bg-[#1B2332] text-[#6D8FFF] border border-[#273247] flex items-center justify-center font-bold">
-              <BookMarked className="h-4 w-4" />
-            </div>
-            <h1 className="text-[30px] font-semibold text-[#F1F5FC] tracking-tight leading-tight">
-              My Notebooks
-            </h1>
-            <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#6D8FFF]/10 text-[#6D8FFF] font-semibold border border-[#6D8FFF]/30">
-              Gemini Studio
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-indigo-400">
+              Workspace Atelier
             </span>
           </div>
-          <p className="text-[13px] text-[#A0AEC0] mt-1">
-            Dedicated research environments with multi-source grounding, conversational RAG, and AI Studio artifact generation.
+          <h1 className="text-2xl sm:text-3xl font-semibold text-white tracking-tight">
+            Research Notebooks
+          </h1>
+          <p className="text-sm text-neutral-400 mt-1 max-w-xl">
+            Grounded intelligence workspaces with conversational RAG, multi-source citations, and automated studio synthesis.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          {/* Search bar */}
-          <div className="relative flex items-center bg-[#151B27] border border-[#273247] rounded-xl px-3 py-1.5 focus-within:border-[#6D8FFF] transition-all w-52 sm:w-64">
-            <Search className="h-3.5 w-3.5 text-[#A0AEC0] mr-2 shrink-0" />
+        <div className="flex items-center gap-3 shrink-0">
+          {/* Refined Search input */}
+          <div className="relative flex items-center bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 py-2 focus-within:border-indigo-500/60 focus-within:ring-1 focus-within:ring-indigo-500/40 transition-all w-52 sm:w-64">
+            <Search className="h-3.5 w-3.5 text-neutral-400 mr-2 shrink-0" />
             <input
               type="text"
               placeholder="Search notebooks..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-transparent text-xs text-[#F1F5FC] placeholder-[#A0AEC0]/60 outline-hidden w-full"
+              className="bg-transparent text-xs text-neutral-100 placeholder-neutral-500 outline-none w-full"
             />
           </div>
 
+          {/* New Notebook CTA */}
           <button
             onClick={() => setIsCreateOpen(true)}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#6D8FFF] text-[#0B0D12] text-xs font-semibold hover:bg-[#84A2FF] transition-all shadow-sm shrink-0"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-500 active:scale-[0.98] transition-all shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2)] shrink-0"
           >
-            <Plus className="h-4 w-4 stroke-[2.5]" />
+            <Plus className="h-3.5 w-3.5 stroke-[2.5]" />
             <span>New Notebook</span>
           </button>
         </div>
@@ -155,57 +153,61 @@ export default function NotebooksPage() {
 
       {/* Grid of Notebooks */}
       {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-44 rounded-2xl border border-[#273247] bg-[#151B27] animate-pulse p-5 space-y-3">
-              <div className="h-4 bg-[#1B2332] rounded w-2/3" />
-              <div className="h-3 bg-[#1B2332]/60 rounded w-full" />
-              <div className="h-3 bg-[#1B2332]/60 rounded w-4/5" />
+            <div
+              key={i}
+              className="h-44 rounded-2xl border border-white/[0.06] bg-[#0E1118] animate-pulse p-5 space-y-3 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.03)]"
+            >
+              <div className="h-4 bg-white/[0.06] rounded w-2/3" />
+              <div className="h-3 bg-white/[0.03] rounded w-full" />
+              <div className="h-3 bg-white/[0.03] rounded w-4/5" />
             </div>
           ))}
         </div>
       ) : filteredNotebooks.length === 0 ? (
-        <div className="max-w-md mx-auto my-16 text-center space-y-4">
-          <div className="h-14 w-14 rounded-2xl bg-[#1B2332] text-[#6D8FFF] border border-[#273247] mx-auto flex items-center justify-center">
-            <BookMarked className="h-7 w-7" />
+        <div className="max-w-md mx-auto my-20 text-center space-y-4">
+          <div className="h-12 w-12 rounded-2xl bg-white/[0.04] text-neutral-300 border border-white/[0.08] mx-auto flex items-center justify-center shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]">
+            <BookMarked className="h-5 w-5 text-indigo-400" />
           </div>
-          <div className="space-y-1">
-            <h3 className="text-[16px] font-semibold text-[#F1F5FC]">No Notebooks Found</h3>
-            <p className="text-[13px] text-[#A0AEC0]">
-              Create your first AI Notebook to add PDF documents, web sources, or notes and start generating Studio artifacts.
+          <div className="space-y-1.5">
+            <h3 className="text-base font-semibold text-white tracking-tight">No Notebooks Found</h3>
+            <p className="text-xs text-neutral-400 leading-relaxed max-w-sm mx-auto">
+              Create a research notebook to ingest PDFs, web URLs, or transcripts and begin generating grounded studio artifacts.
             </p>
           </div>
           <button
             onClick={() => setIsCreateOpen(true)}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#6D8FFF] text-[#0B0D12] text-xs font-semibold hover:bg-[#84A2FF] transition-all shadow-sm"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white/[0.08] hover:bg-white/[0.12] border border-white/[0.1] text-white text-xs font-semibold active:scale-[0.98] transition-all"
           >
-            <Plus className="h-4 w-4" />
+            <Plus className="h-3.5 w-3.5" />
             Create Notebook
           </button>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {filteredNotebooks.map((nb) => {
-            const colorCfg = COLOR_MAP[nb.color] || COLOR_MAP.emerald;
+            const colorCfg = COLOR_MAP[nb.color] || COLOR_MAP.indigo;
             return (
               <Link
                 key={nb.id}
                 href={`/notebooks/workspace?id=${nb.id}`}
-                className="group relative flex flex-col justify-between rounded-2xl border border-[#273247] bg-[#151B27] p-5 hover:border-[#3A4A68] hover:bg-[#1B2332] hover:shadow-md transition-all cursor-pointer overflow-hidden"
+                prefetch={false}
+                className="group relative flex flex-col justify-between rounded-2xl border border-white/[0.08] bg-[#0E1118] p-5 hover:border-indigo-500/40 hover:bg-[#131622] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] hover:shadow-lg transition-all duration-200 cursor-pointer overflow-hidden"
               >
-                {/* Top Accent Pill & Actions */}
+                {/* Top Accent Dot & Delete Action */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className={cn("h-2.5 w-2.5 rounded-full shrink-0", colorCfg.badge)} />
-                      <span className="text-[11px] font-medium text-[#A0AEC0] uppercase tracking-wider">
+                      <span className={cn("h-2 w-2 rounded-full shrink-0 shadow-xs", colorCfg.badge)} />
+                      <span className="text-[11px] font-medium text-neutral-400 uppercase tracking-wider">
                         Notebook
                       </span>
                     </div>
 
                     <button
                       onClick={(e) => handleDeleteNotebook(nb.id, e)}
-                      className="opacity-0 group-hover:opacity-100 p-1 rounded-lg hover:bg-[#151B27] text-[#A0AEC0] hover:text-rose-400 transition-all"
+                      className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg hover:bg-white/[0.08] text-neutral-400 hover:text-rose-400 transition-all"
                       title="Delete notebook"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
@@ -213,30 +215,30 @@ export default function NotebooksPage() {
                   </div>
 
                   <div>
-                    <h3 className="text-[16px] font-semibold text-[#F1F5FC] group-hover:text-[#6D8FFF] transition-colors line-clamp-1 tracking-tight">
+                    <h3 className="text-base font-semibold text-neutral-100 group-hover:text-indigo-400 transition-colors line-clamp-1 tracking-tight">
                       {nb.title}
                     </h3>
-                    <p className="text-[13px] text-[#A0AEC0] line-clamp-2 mt-1 leading-relaxed">
-                      {nb.description || "Interactive research notebook with multi-source grounding."}
+                    <p className="text-xs text-neutral-400 line-clamp-2 mt-1 leading-relaxed">
+                      {nb.description || "Grounded research workspace with multi-source synthesis."}
                     </p>
                   </div>
                 </div>
 
                 {/* Footer Metrics & Link */}
-                <div className="pt-5 mt-4 border-t border-[#273247] flex items-center justify-between text-[11px] text-[#A0AEC0]">
-                  <div className="flex items-center gap-3">
-                    <span className="flex items-center gap-1 text-[#A0AEC0]">
-                      <BookOpen className="h-3 w-3 text-[#6D8FFF]" />
+                <div className="pt-4 mt-4 border-t border-white/[0.06] flex items-center justify-between text-xs text-neutral-400">
+                  <div className="flex items-center gap-3 text-[11px]">
+                    <span className="flex items-center gap-1.5 text-neutral-400">
+                      <BookOpen className="h-3 w-3 text-neutral-400" />
                       Sources
                     </span>
-                    <span className="flex items-center gap-1 text-[#A0AEC0]">
-                      <Sparkles className="h-3 w-3 text-[#34D399]" />
+                    <span className="flex items-center gap-1.5 text-neutral-400">
+                      <Sparkles className="h-3 w-3 text-indigo-400" />
                       Studio
                     </span>
                   </div>
 
-                  <span className="inline-flex items-center gap-1 text-[#6D8FFF] font-medium text-[11px] group-hover:translate-x-0.5 transition-transform">
-                    Open Workspace <ArrowRight className="h-3 w-3" />
+                  <span className="inline-flex items-center gap-1 text-indigo-400 font-medium text-xs group-hover:translate-x-0.5 transition-transform">
+                    Enter Workspace <ArrowRight className="h-3 w-3" />
                   </span>
                 </div>
               </Link>
@@ -247,44 +249,53 @@ export default function NotebooksPage() {
 
       {/* Modal: Create Notebook */}
       {isCreateOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="relative w-full max-w-md rounded-2xl border border-[#273247] bg-[#151B27] p-6 shadow-2xl space-y-5">
-            <div>
-              <h2 className="text-[18px] font-semibold text-[#F1F5FC]">Create New Notebook</h2>
-              <p className="text-[13px] text-[#A0AEC0] mt-0.5">
-                Define the title, scope, and theme for this research workspace.
-              </p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="relative w-full max-w-md rounded-2xl border border-white/[0.1] bg-[#12151F] p-6 shadow-2xl space-y-5">
+            <div className="flex items-start justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-white tracking-tight">Create New Notebook</h2>
+                <p className="text-xs text-neutral-400 mt-0.5">
+                  Set the topic, scope, and accent for your research workspace.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsCreateOpen(false)}
+                className="p-1 rounded-lg text-neutral-400 hover:text-white hover:bg-white/[0.08] transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </button>
             </div>
 
             <form onSubmit={handleCreateNotebook} className="space-y-4">
               <div>
-                <label className="block text-xs font-medium text-[#A0AEC0] mb-1.5">
+                <label className="block text-xs font-medium text-neutral-300 mb-1.5">
                   Notebook Title <span className="text-rose-400">*</span>
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Market Analysis 2026, Biology Study Guide"
+                  placeholder="e.g. Q4 Financial Review, Quantum Computing Primer"
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#273247] bg-[#10141D] text-xs text-[#F1F5FC] outline-hidden focus:border-[#6D8FFF] transition-all"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-white/[0.08] bg-[#0A0C12] text-xs text-white outline-none focus:border-indigo-500/70 focus:ring-1 focus:ring-indigo-500/30 transition-all placeholder-neutral-500"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-[#A0AEC0] mb-1.5">Description</label>
+                <label className="block text-xs font-medium text-neutral-300 mb-1.5">Description (Optional)</label>
                 <textarea
                   rows={2}
-                  placeholder="Brief summary of topics or documents..."
+                  placeholder="Brief summary of research focus or sources..."
                   value={newDesc}
                   onChange={(e) => setNewDesc(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#273247] bg-[#10141D] text-xs text-[#F1F5FC] outline-hidden focus:border-[#6D8FFF] transition-all resize-none"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-white/[0.08] bg-[#0A0C12] text-xs text-white outline-none focus:border-indigo-500/70 focus:ring-1 focus:ring-indigo-500/30 transition-all resize-none placeholder-neutral-500"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-[#A0AEC0] mb-1.5">Accent Color</label>
-                <div className="flex items-center gap-2">
+                <label className="block text-xs font-medium text-neutral-300 mb-2">Accent Theme</label>
+                <div className="flex items-center gap-2.5">
                   {Object.keys(COLOR_MAP).map((cKey) => {
                     const isSelected = newColor === cKey;
                     return (
@@ -293,9 +304,11 @@ export default function NotebooksPage() {
                         key={cKey}
                         onClick={() => setNewColor(cKey)}
                         className={cn(
-                          "h-6 w-6 rounded-full transition-transform",
+                          "h-6 w-6 rounded-full transition-all",
                           COLOR_MAP[cKey].badge,
-                          isSelected ? "ring-2 ring-[#6D8FFF] ring-offset-2 ring-offset-[#151B27] scale-110" : "opacity-80 hover:opacity-100"
+                          isSelected
+                            ? "ring-2 ring-white ring-offset-2 ring-offset-[#12151F] scale-110 shadow-sm"
+                            : "opacity-60 hover:opacity-100"
                         )}
                         title={cKey}
                       />
@@ -304,18 +317,18 @@ export default function NotebooksPage() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#273247]">
+              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-white/[0.08]">
                 <button
                   type="button"
                   onClick={() => setIsCreateOpen(false)}
-                  className="px-4 py-2 rounded-xl border border-[#273247] text-xs text-[#A0AEC0] hover:text-[#F1F5FC] hover:bg-[#1B2332] transition-colors"
+                  className="px-4 py-2 rounded-xl text-xs font-medium text-neutral-400 hover:text-white hover:bg-white/[0.06] transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={!newTitle.trim() || isSubmitting}
-                  className="px-4 py-2 rounded-xl bg-[#6D8FFF] text-[#0B0D12] text-xs font-semibold hover:bg-[#84A2FF] disabled:opacity-50 transition-colors shadow-sm"
+                  className="px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-500 disabled:opacity-50 active:scale-[0.98] transition-all shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2)]"
                 >
                   {isSubmitting ? "Creating..." : "Create Notebook"}
                 </button>

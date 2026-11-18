@@ -19,6 +19,7 @@ import {
   GraduationCap,
   Clapperboard,
   Database,
+  ArrowRight,
 } from "lucide-react";
 import { ArtifactItem } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
@@ -34,87 +35,78 @@ const STUDIO_CATEGORIES = [
   {
     id: "learning",
     name: "Interactive Learning",
-    description: "Assess understanding and study key concepts",
+    description: "Assessment quizzes, flashcards & study guides",
     icon: GraduationCap,
     tools: [
       {
         id: "quiz",
         title: "Interactive Quiz",
-        desc: "Knowledge check with scoring",
+        desc: "Knowledge check with True/False and MCQ scoring",
         icon: HelpCircle,
-        color: "text-[#6D8FFF] bg-[#6D8FFF]/10 border-[#6D8FFF]/30",
       },
       {
         id: "flashcards",
         title: "Flashcards",
-        desc: "Spaced-repetition cards",
+        desc: "Spaced-repetition revision cards",
         icon: Layers,
-        color: "text-purple-400 bg-purple-950/30 border-purple-800/40",
       },
       {
         id: "report",
         title: "Study Guide",
-        desc: "In-depth structured brief",
+        desc: "Exhaustive multi-section synthesis brief",
         icon: FileText,
-        color: "text-[#34D399] bg-[#34D399]/10 border-[#34D399]/30",
       },
     ],
   },
   {
     id: "media",
     name: "Audio & Visual Media",
-    description: "Dynamic dialogues, slides, and storyboards",
+    description: "Podcasts, slide decks & storyboards",
     icon: Clapperboard,
     tools: [
       {
         id: "audio",
         title: "Audio Overview",
-        desc: "Two-host AI podcast dialogue",
+        desc: "Two-host AI discussion podcast dialogue",
         icon: Headphones,
-        color: "text-amber-400 bg-amber-950/30 border-amber-800/40",
-      },
-      {
-        id: "video",
-        title: "Video Summary",
-        desc: "Visual storyboard explainer",
-        icon: Video,
-        color: "text-rose-400 bg-rose-950/30 border-rose-800/40",
       },
       {
         id: "slides",
         title: "Slide Deck",
         desc: "Executive presentation deck",
         icon: PresentationIcon,
-        color: "text-indigo-400 bg-indigo-950/30 border-indigo-800/40",
+      },
+      {
+        id: "video",
+        title: "Video Summary",
+        desc: "Scene-by-scene storyboard narrative",
+        icon: Video,
       },
     ],
   },
   {
     id: "synthesis",
-    name: "Synthesis & Structured Data",
-    description: "Hierarchical graphs and tabular extractions",
+    name: "Structured Synthesis",
+    description: "Hierarchical mind maps & extracted data tables",
     icon: Database,
     tools: [
       {
         id: "mindmap",
         title: "Mind Map",
-        desc: "Hierarchical visual graph",
+        desc: "Visual knowledge ontology and concept graph",
         icon: GitFork,
-        color: "text-[#34D399] bg-[#34D399]/10 border-[#34D399]/30",
       },
       {
         id: "infographic",
         title: "Infographic",
-        desc: "Bento-grid data statistics",
+        desc: "Bento-grid data statistics and metrics",
         icon: LayoutGrid,
-        color: "text-teal-400 bg-teal-950/30 border-teal-800/40",
       },
       {
         id: "data_table",
         title: "Data Tables",
-        desc: "Extract structured metrics",
+        desc: "Structured schema and entity extractions",
         icon: FileSpreadsheet,
-        color: "text-orange-400 bg-orange-950/30 border-orange-800/40",
       },
     ],
   },
@@ -135,20 +127,20 @@ export function StudioPanel({
       case "video":
         return <Video className="w-4 h-4 text-rose-400" />;
       case "quiz":
-        return <HelpCircle className="w-4 h-4 text-[#6D8FFF]" />;
+        return <HelpCircle className="w-4 h-4 text-indigo-400" />;
       case "flashcards":
         return <Layers className="w-4 h-4 text-purple-400" />;
       case "mindmap":
-        return <GitFork className="w-4 h-4 text-[#34D399]" />;
+        return <GitFork className="w-4 h-4 text-emerald-400" />;
       case "slides":
-        return <PresentationIcon className="w-4 h-4 text-indigo-400" />;
+        return <PresentationIcon className="w-4 h-4 text-sky-400" />;
       case "infographic":
         return <LayoutGrid className="w-4 h-4 text-teal-400" />;
       case "data_table":
         return <FileSpreadsheet className="w-4 h-4 text-orange-400" />;
       case "report":
       default:
-        return <FileText className="w-4 h-4 text-[#34D399]" />;
+        return <FileText className="w-4 h-4 text-indigo-400" />;
     }
   };
 
@@ -158,30 +150,30 @@ export function StudioPanel({
       : STUDIO_CATEGORIES.filter((c) => c.id === activeCategory);
 
   return (
-    <div className="h-full flex flex-col bg-[#10141D] text-[#F1F5FC] select-none">
-      {/* Header */}
-      <div className="h-12 px-4 border-b border-[#273247] flex items-center justify-between shrink-0 bg-[#0B0D12]">
+    <div className="h-full flex flex-col bg-[#0E1118] text-[#F3F4F6] select-none">
+      {/* Studio Header */}
+      <div className="h-13 px-4 border-b border-white/[0.08] flex items-center justify-between shrink-0 bg-[#0A0C12]">
         <div className="flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-[#6D8FFF]" />
-          <h3 className="text-xs font-bold uppercase tracking-wider text-[#F1F5FC]">
-            Studio
+          <Sparkles className="w-4 h-4 text-indigo-400" />
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-white">
+            Studio Workshop
           </h3>
         </div>
-        <span className="text-[11px] font-medium text-[#A0AEC0]">
-          {artifacts.length} Artifact{artifacts.length === 1 ? "" : "s"}
+        <span className="text-[11px] font-medium text-neutral-400">
+          {artifacts.length} {artifacts.length === 1 ? "Artifact" : "Artifacts"}
         </span>
       </div>
 
       {/* Category Filter Pills */}
-      <div className="px-3 py-2 bg-[#151B27] border-b border-[#273247] flex flex-wrap items-center gap-1.5 shrink-0">
+      <div className="px-3 py-2 bg-[#0E1118] border-b border-white/[0.06] flex items-center gap-1.5 overflow-x-auto shrink-0">
         <button
           type="button"
           onClick={() => setActiveCategory("all")}
           className={cn(
             "px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors shrink-0",
             activeCategory === "all"
-              ? "bg-[#1B2332] text-[#6D8FFF] border border-[#273247] font-semibold"
-              : "text-[#A0AEC0] hover:text-[#F1F5FC]"
+              ? "bg-white/[0.1] text-white border border-white/[0.1] font-semibold"
+              : "text-neutral-400 hover:text-white"
           )}
         >
           All (9)
@@ -194,8 +186,8 @@ export function StudioPanel({
             className={cn(
               "px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors shrink-0",
               activeCategory === cat.id
-                ? "bg-[#1B2332] text-[#6D8FFF] border border-[#273247] font-semibold"
-                : "text-[#A0AEC0] hover:text-[#F1F5FC]"
+                ? "bg-white/[0.1] text-white border border-white/[0.1] font-semibold"
+                : "text-neutral-400 hover:text-white"
             )}
           >
             {cat.name}
@@ -211,14 +203,14 @@ export function StudioPanel({
             const CatIcon = cat.icon;
             return (
               <div key={cat.id} className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5 text-[#A0AEC0]">
-                    <CatIcon className="w-3.5 h-3.5 text-[#6D8FFF]" />
-                    <span className="text-[12px] font-semibold uppercase tracking-wider text-[#F1F5FC]">
+                <div className="flex items-center justify-between px-1">
+                  <div className="flex items-center gap-1.5 text-neutral-400">
+                    <CatIcon className="w-3.5 h-3.5 text-neutral-400" />
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-neutral-300">
                       {cat.name}
                     </span>
                   </div>
-                  <span className="text-[10px] text-[#A0AEC0]">{cat.tools.length} engines</span>
+                  <span className="text-[10px] text-neutral-500 font-mono">{cat.tools.length}</span>
                 </div>
 
                 <div className="grid grid-cols-1 gap-2">
@@ -229,19 +221,20 @@ export function StudioPanel({
                         key={tool.id}
                         type="button"
                         onClick={() => onOpenTool(tool.id)}
-                        className="flex items-center gap-3 p-2.5 rounded-xl border border-[#273247] bg-[#151B27] hover:bg-[#1B2332] hover:border-[#3A4A68] transition-all text-left group cursor-pointer"
+                        className="flex items-center gap-3 p-2.5 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.05] hover:border-indigo-500/30 transition-all text-left group cursor-pointer shadow-[inset_0_1px_0_0_rgba(255,255,255,0.03)] active:scale-[0.99]"
                       >
-                        <div className={`p-2 rounded-xl border shrink-0 ${tool.color}`}>
+                        <div className="p-2 rounded-xl bg-white/[0.04] text-neutral-300 group-hover:text-indigo-400 group-hover:bg-indigo-500/10 border border-white/[0.06] shrink-0 transition-colors">
                           <ToolIcon className="w-4 h-4" />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <span className="text-xs font-semibold text-[#F1F5FC] group-hover:text-[#6D8FFF] transition-colors block truncate">
+                          <span className="text-xs font-semibold text-neutral-100 group-hover:text-indigo-300 transition-colors block truncate">
                             {tool.title}
                           </span>
-                          <span className="text-[11px] text-[#A0AEC0] line-clamp-1">
+                          <span className="text-[11px] text-neutral-400 line-clamp-1 mt-0.5">
                             {tool.desc}
                           </span>
                         </div>
+                        <ArrowRight className="w-3.5 h-3.5 text-neutral-600 group-hover:text-indigo-400 group-hover:translate-x-0.5 transition-all shrink-0 opacity-0 group-hover:opacity-100" />
                       </button>
                     );
                   })}
@@ -252,10 +245,10 @@ export function StudioPanel({
         </div>
 
         {/* Generated Artifacts Section */}
-        <div className="pt-2 border-t border-[#273247] space-y-2.5">
-          <div className="flex items-center justify-between">
-            <h4 className="text-[12px] font-semibold text-[#A0AEC0] uppercase tracking-wider">
-              Generated Artifacts ({artifacts.length})
+        <div className="pt-3 border-t border-white/[0.06] space-y-2.5">
+          <div className="flex items-center justify-between px-1">
+            <h4 className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wider">
+              Output Library ({artifacts.length})
             </h4>
           </div>
 
@@ -265,49 +258,49 @@ export function StudioPanel({
                 <div
                   key={art.id}
                   onClick={() => onViewArtifact(art)}
-                  className="group flex items-center justify-between p-2.5 rounded-xl border border-[#273247] bg-[#151B27] hover:bg-[#1B2332] hover:border-[#3A4A68] cursor-pointer transition-all"
+                  className="group flex items-center justify-between p-2.5 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.05] hover:border-indigo-500/30 cursor-pointer transition-all shadow-[inset_0_1px_0_0_rgba(255,255,255,0.03)]"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="p-1.5 rounded-lg bg-[#10141D] border border-[#273247] shrink-0">
+                    <div className="p-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06] shrink-0">
                       {getToolIcon(art.artifact_type)}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-xs font-semibold text-[#F1F5FC] truncate group-hover:text-[#6D8FFF] transition-colors">
+                      <p className="text-xs font-semibold text-neutral-100 truncate group-hover:text-indigo-300 transition-colors">
                         {art.title}
                       </p>
-                      <div className="flex items-center gap-1.5 text-[10px] text-[#A0AEC0] mt-0.5">
+                      <div className="flex items-center gap-1.5 text-[10px] text-neutral-400 mt-0.5">
                         <span className="capitalize">{art.artifact_type}</span>
                         <span>•</span>
                         {art.status === "completed" && (
-                          <span className="flex items-center gap-0.5 text-[#34D399] font-medium">
+                          <span className="flex items-center gap-1 text-emerald-400 font-medium">
                             <CheckCircle2 className="w-3 h-3" /> Ready
                           </span>
                         )}
                         {art.status === "processing" && (
-                          <span className="flex items-center gap-0.5 text-amber-400 font-medium">
-                            <Clock className="w-3 h-3 animate-spin" /> Working
+                          <span className="flex items-center gap-1 text-amber-400 font-medium">
+                            <Clock className="w-3 h-3 animate-spin" /> Generating
                           </span>
                         )}
                         {art.status === "failed" && (
-                          <span className="flex items-center gap-0.5 text-rose-400 font-medium">
-                            <AlertCircle className="w-3 h-3" /> Failed
+                          <span className="flex items-center gap-1 text-rose-400 font-medium">
+                            <AlertCircle className="w-3 h-3" /> Error
                           </span>
                         )}
                       </div>
                     </div>
                   </div>
 
-                  <div className="opacity-0 group-hover:opacity-100 p-1 rounded-md text-[#A0AEC0] hover:text-[#F1F5FC] transition-all">
+                  <div className="opacity-0 group-hover:opacity-100 p-1 rounded-md text-neutral-400 hover:text-white transition-all">
                     <ExternalLink className="w-3.5 h-3.5" />
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="rounded-xl border border-dashed border-[#273247] p-4 text-center text-[#A0AEC0] bg-[#151B27]/40">
-              <p className="text-xs font-medium text-[#F1F5FC]">No artifacts created yet</p>
-              <p className="text-[11px] mt-1 text-[#A0AEC0]">
-                Choose an engine above to transform sources into podcasts, slides, or quizzes.
+            <div className="rounded-xl border border-dashed border-white/[0.08] p-5 text-center text-neutral-400 bg-white/[0.01]">
+              <p className="text-xs font-medium text-neutral-300">No artifacts generated yet</p>
+              <p className="text-[11px] mt-1 text-neutral-400 leading-relaxed max-w-xs mx-auto">
+                Select an engine above to transform your source knowledge into briefs, podcasts, slides, or quizzes.
               </p>
             </div>
           )}

@@ -21,7 +21,6 @@ import {
   LogOut,
   Settings,
   BookOpen,
-  User as UserIcon,
 } from "lucide-react";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { apiClient } from "@/lib/api-client";
@@ -41,7 +40,7 @@ interface WorkspaceHeaderProps {
 
 export function WorkspaceHeader({
   title,
-  modelLabel = "Gemini 3 Flash",
+  modelLabel = "Gemini AI",
   isLeftPanelOpen,
   isRightPanelOpen,
   onToggleLeftPanel,
@@ -54,14 +53,13 @@ export function WorkspaceHeader({
   const [isEditing, setIsEditing] = useState(false);
   const [tempTitle, setTempTitle] = useState(title);
   const [copiedShare, setCopiedShare] = useState(false);
-  const [isDark, setIsDark] = useState(false);
   const [hasGeminiKey, setHasGeminiKey] = useState(false);
 
   useEffect(() => {
     setHasGeminiKey(Boolean(apiClient.getGeminiApiKey()));
     const interval = setInterval(() => {
       setHasGeminiKey(Boolean(apiClient.getGeminiApiKey()));
-    }, 1500);
+    }, 2000);
     return () => clearInterval(interval);
   }, []);
 
@@ -86,29 +84,9 @@ export function WorkspaceHeader({
   };
 
   // Sync title when prop changes
-  React.useEffect(() => {
+  useEffect(() => {
     setTempTitle(title);
   }, [title]);
-
-  // Initial theme check
-  React.useEffect(() => {
-    const isDarkMode = document.documentElement.classList.contains("dark");
-    setIsDark(isDarkMode);
-  }, []);
-
-  const toggleTheme = () => {
-    const nextDark = !isDark;
-    setIsDark(nextDark);
-    if (nextDark) {
-      document.documentElement.classList.add("dark");
-      localStorage.setItem("docora-theme", "dark");
-      localStorage.setItem("udip-theme", "dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-      localStorage.setItem("docora-theme", "light");
-      localStorage.setItem("udip-theme", "light");
-    }
-  };
 
   const handleTitleSubmit = async () => {
     setIsEditing(false);
@@ -124,26 +102,27 @@ export function WorkspaceHeader({
   };
 
   return (
-    <header className="h-14 w-full flex items-center justify-between px-4 z-20 shrink-0 bg-transparent select-none">
+    <header className="h-13 w-full flex items-center justify-between px-3 z-20 shrink-0 bg-[#08090D] border-b border-white/[0.08] select-none">
       {/* Left: Brand + Back + Notebook Title */}
-      <div className="flex items-center gap-3 min-w-0">
+      <div className="flex items-center gap-2.5 min-w-0">
         <Link
           href="/notebooks"
-          className="h-9 w-9 rounded-full flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--tile-hover)] transition-colors"
+          prefetch={false}
+          className="h-8 w-8 rounded-lg flex items-center justify-center text-neutral-400 hover:text-white hover:bg-white/[0.06] transition-colors"
           title="Back to Notebooks"
         >
           <ArrowLeft className="w-4 h-4" />
         </Link>
 
         {/* Brand Mark */}
-        <Link href="/" className="flex items-center gap-2 no-underline hover:opacity-90 transition-opacity">
-          <BrandLogo variant="compact" size="xs" textClassName="text-sm font-semibold" />
+        <Link href="/" prefetch={false} className="flex items-center gap-2 no-underline hover:opacity-90 transition-opacity">
+          <BrandLogo variant="compact" size="xs" textClassName="text-xs font-semibold tracking-tight" />
         </Link>
 
-        <div className="h-4 w-[1px] bg-[var(--border-subtle)] mx-1" />
+        <div className="h-4 w-[1px] bg-white/[0.08] mx-1" />
 
         {/* Editable Title */}
-        <div className="flex items-center gap-2 min-w-0 max-w-[320px] lg:max-w-[420px]">
+        <div className="flex items-center gap-2 min-w-0 max-w-[280px] sm:max-w-[360px] lg:max-w-[440px]">
           {isEditing ? (
             <input
               type="text"
@@ -158,53 +137,45 @@ export function WorkspaceHeader({
                 }
               }}
               autoFocus
-              className="px-2 py-0.5 rounded-lg text-sm font-medium bg-[var(--panel-raised)] border border-[var(--border-subtle)] text-[var(--text-primary)] outline-none ring-1 ring-[var(--accent-blue)] w-full"
+              className="px-2 py-0.5 rounded-lg text-xs sm:text-sm font-semibold bg-[#12151F] border border-white/[0.1] text-white outline-none ring-1 ring-indigo-500/50 w-full"
             />
           ) : (
             <button
               onClick={() => setIsEditing(true)}
-              className="group flex items-center gap-2 text-left truncate hover:bg-[var(--tile-hover)] px-2 py-1 rounded-lg transition-colors"
+              className="group flex items-center gap-1.5 text-left truncate hover:bg-white/[0.04] px-2 py-1 rounded-lg transition-colors"
               title="Click to rename"
             >
-              <span className="text-sm font-semibold truncate text-[var(--text-primary)]">
+              <span className="text-xs sm:text-sm font-semibold truncate text-neutral-100">
                 {title || "Untitled Notebook"}
               </span>
-              <Edit2 className="w-3.5 h-3.5 text-[var(--text-muted)] opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+              <Edit2 className="w-3 h-3 text-neutral-500 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
             </button>
           )}
         </div>
 
-        {/* Model Badge / Key Configuration */}
+        {/* Model Badge */}
         <button
           onClick={onOpenGeminiKey}
           type="button"
-          className={`hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-medium transition-all cursor-pointer group shadow-xs ${
-            hasGeminiKey
-              ? "bg-[var(--panel-raised)] border-emerald-500/30 text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-              : "bg-amber-500/10 border-amber-500/40 text-amber-300 hover:bg-amber-500/20"
-          }`}
-          title={hasGeminiKey ? "Gemini 3.8 Flash Connected (Click to configure)" : "Click to connect your free Google Gemini API Key"}
+          className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-white/[0.08] bg-white/[0.02] hover:bg-white/[0.06] text-[11px] font-medium text-neutral-300 transition-all cursor-pointer group"
+          title="Google Gemini AI Active (Click to manage key)"
         >
-          <Sparkles className={`w-3.5 h-3.5 ${hasGeminiKey ? "text-[var(--accent-blue)]" : "text-amber-400"} group-hover:scale-110 transition-transform`} />
-          <span>{modelLabel}</span>
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+          <span>Gemini 3.5 Flash</span>
           {hasGeminiKey ? (
-            <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-medium">
-              Connected
-            </span>
+            <span className="text-[10px] text-indigo-400 font-mono">BYOK</span>
           ) : (
-            <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-400 text-black font-semibold animate-pulse">
-              Connect Key
-            </span>
+            <span className="text-[10px] text-neutral-400 font-mono">Live</span>
           )}
         </button>
       </div>
 
       {/* Right Controls */}
-      <div className="flex items-center gap-1.5 shrink-0">
+      <div className="flex items-center gap-1 shrink-0">
         {/* Command Palette Trigger */}
         <button
           onClick={onOpenCommandPalette}
-          className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--tile-hover)] border border-[var(--border-subtle)] transition-colors"
+          className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium text-neutral-400 hover:text-white hover:bg-white/[0.06] border border-white/[0.08] transition-colors"
           title="Command Palette (Cmd/Ctrl + K)"
         >
           <Command className="w-3 h-3" />
@@ -214,13 +185,13 @@ export function WorkspaceHeader({
         {/* Share Button */}
         <button
           onClick={handleShare}
-          className="h-8 px-3 rounded-full flex items-center gap-1.5 text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--tile-hover)] transition-colors border border-[var(--border-subtle)]"
+          className="h-8 px-2.5 rounded-lg flex items-center gap-1.5 text-xs font-medium text-neutral-300 hover:text-white hover:bg-white/[0.06] transition-colors border border-white/[0.08]"
           title="Copy Link to Notebook"
         >
           {copiedShare ? (
             <>
-              <Check className="w-3.5 h-3.5 text-emerald-500" />
-              <span className="text-emerald-500">Copied</span>
+              <Check className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="text-emerald-400">Copied</span>
             </>
           ) : (
             <>
@@ -230,24 +201,15 @@ export function WorkspaceHeader({
           )}
         </button>
 
-        {/* Theme Toggle */}
-        <button
-          onClick={toggleTheme}
-          className="h-8 w-8 rounded-full flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--tile-hover)] transition-colors"
-          title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
-        >
-          {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4" />}
-        </button>
-
-        <div className="h-4 w-[1px] bg-[var(--border-subtle)] mx-1" />
+        <div className="h-4 w-[1px] bg-white/[0.08] mx-1" />
 
         {/* Left Panel Toggle */}
         <button
           onClick={onToggleLeftPanel}
           className={`h-8 w-8 rounded-lg flex items-center justify-center transition-colors ${
             isLeftPanelOpen
-              ? "text-[var(--text-primary)] bg-[var(--tile-hover)]"
-              : "text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--tile-hover)]"
+              ? "text-white bg-white/[0.08]"
+              : "text-neutral-400 hover:text-white hover:bg-white/[0.06]"
           }`}
           title={isLeftPanelOpen ? "Collapse Sources" : "Expand Sources"}
         >
@@ -259,8 +221,8 @@ export function WorkspaceHeader({
           onClick={onToggleRightPanel}
           className={`h-8 w-8 rounded-lg flex items-center justify-center transition-colors ${
             isRightPanelOpen
-              ? "text-[var(--text-primary)] bg-[var(--tile-hover)]"
-              : "text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--tile-hover)]"
+              ? "text-white bg-white/[0.08]"
+              : "text-neutral-400 hover:text-white hover:bg-white/[0.06]"
           }`}
           title={isRightPanelOpen ? "Collapse Studio" : "Expand Studio"}
         >
@@ -271,21 +233,21 @@ export function WorkspaceHeader({
         <div className="relative ml-1" ref={accountRef}>
           <button
             onClick={() => setIsAccountOpen(!isAccountOpen)}
-            className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#3156D8] to-[#8AB4F8] text-white flex items-center justify-center font-medium text-xs shadow-sm hover:ring-2 hover:ring-[#8AB4F8]/50 transition-all cursor-pointer"
+            className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-600 to-indigo-400 text-white flex items-center justify-center font-medium text-xs shadow-xs hover:ring-2 hover:ring-indigo-400/40 transition-all cursor-pointer"
             title={user?.email || "Account Menu"}
           >
             {user?.full_name?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || "U"}
           </button>
 
           {isAccountOpen && (
-            <div className="absolute right-0 mt-2 w-64 rounded-2xl bg-[#1F1F1F] border border-[#303030] shadow-2xl p-2 z-50 animate-in fade-in zoom-in-95 duration-100">
-              <div className="px-3 py-2.5 border-b border-[#2A2A2A] mb-1">
-                <p className="text-sm font-semibold text-[#F1F3F4] truncate">
+            <div className="absolute right-0 mt-2 w-64 rounded-2xl bg-[#12151F] border border-white/[0.08] shadow-2xl p-2 z-50 animate-in fade-in zoom-in-95 duration-100">
+              <div className="px-3 py-2.5 border-b border-white/[0.06] mb-1">
+                <p className="text-xs font-semibold text-white truncate">
                   {user?.full_name || "User Account"}
                 </p>
-                <p className="text-xs text-[#9299A4] truncate">{user?.email || "Authenticated"}</p>
+                <p className="text-[11px] text-neutral-400 truncate">{user?.email || "Authenticated"}</p>
                 {user?.workspaces?.[0]?.name && (
-                  <span className="inline-block mt-1.5 px-2 py-0.5 rounded-md bg-[#282828] text-[10px] text-[#8AB4F8] font-medium border border-[#3A3A3A]">
+                  <span className="inline-block mt-1.5 px-2 py-0.5 rounded-md bg-white/[0.04] text-[10px] text-indigo-300 font-medium border border-white/[0.06]">
                     {user.workspaces[0].name}
                   </span>
                 )}
@@ -294,19 +256,21 @@ export function WorkspaceHeader({
               <div className="space-y-0.5">
                 <Link
                   href="/notebooks"
+                  prefetch={false}
                   onClick={() => setIsAccountOpen(false)}
-                  className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-[#B8BDC7] hover:text-[#F1F3F4] hover:bg-[#282828] transition-colors"
+                  className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-neutral-300 hover:text-white hover:bg-white/[0.06] transition-colors"
                 >
-                  <BookOpen className="w-4 h-4 text-[#8AB4F8]" />
+                  <BookOpen className="w-4 h-4 text-indigo-400" />
                   <span>All Notebooks</span>
                 </Link>
 
                 <Link
                   href="/settings"
+                  prefetch={false}
                   onClick={() => setIsAccountOpen(false)}
-                  className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-[#B8BDC7] hover:text-[#F1F3F4] hover:bg-[#282828] transition-colors"
+                  className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-neutral-300 hover:text-white hover:bg-white/[0.06] transition-colors"
                 >
-                  <Settings className="w-4 h-4 text-[#9299A4]" />
+                  <Settings className="w-4 h-4 text-neutral-400" />
                   <span>Account Settings</span>
                 </Link>
 
@@ -316,18 +280,18 @@ export function WorkspaceHeader({
                       setIsAccountOpen(false);
                       onOpenGeminiKey();
                     }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-[#B8BDC7] hover:text-[#F1F3F4] hover:bg-[#282828] transition-colors text-left"
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-neutral-300 hover:text-white hover:bg-white/[0.06] transition-colors text-left"
                   >
-                    <Sparkles className="w-4 h-4 text-[#8AB4F8]" />
+                    <Sparkles className="w-4 h-4 text-indigo-400" />
                     <span>Gemini AI Key</span>
                   </button>
                 )}
               </div>
 
-              <div className="pt-1 mt-1 border-t border-[#2A2A2A]">
+              <div className="pt-1 mt-1 border-t border-white/[0.06]">
                 <button
                   onClick={handleSignOut}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition-colors"
                 >
                   <LogOut className="w-4 h-4" />
                   <span>Sign Out</span>

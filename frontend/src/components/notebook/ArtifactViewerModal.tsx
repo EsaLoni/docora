@@ -121,7 +121,6 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
     : null;
 
   const handleToggleAudio = () => {
-    // If native audio file exists and can play
     if (audioRef.current && audioRef.current.src && audioRef.current.src !== window.location.href) {
       if (isPlayingAudio) {
         audioRef.current.pause();
@@ -134,8 +133,6 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
       }
       return;
     }
-
-    // Speech synthesis fallback
     playSpeechFallback();
   };
 
@@ -198,68 +195,64 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
     let options: string[] = [];
     if (Array.isArray(q.options) && q.options.length > 0) {
       options = q.options.map((o: any) => String(o));
-    } else if (q.options && typeof q.options === "object") {
-      options = Object.values(q.options).map((o: any) => String(o));
     }
 
+    const typeStr = (q.type || q.question_type || "").toLowerCase();
     const isTF =
-      q.type === "true_false" ||
-      q.type === "boolean" ||
-      options.length === 2 ||
-      (options.length === 0 && (q.question?.toLowerCase().includes("true or false") || q.answer !== undefined));
+      typeStr.includes("true") ||
+      typeStr.includes("false") ||
+      typeStr === "tf" ||
+      (options.length === 2 &&
+        options.some((o) => o.toLowerCase() === "true") &&
+        options.some((o) => o.toLowerCase() === "false"));
 
-    if (isTF && (options.length === 0 || options.length !== 2)) {
+    if (isTF) {
       options = ["True", "False"];
     } else if (options.length === 0) {
       options = ["Option A", "Option B", "Option C", "Option D"];
     }
 
-    let correctIdx: number | undefined = undefined;
-    const raw =
-      q.correct_index !== undefined
-        ? q.correct_index
-        : q.correct_option !== undefined
-        ? q.correct_option
-        : q.correct_indices?.[0] !== undefined
-        ? q.correct_indices[0]
-        : q.correct_answer !== undefined
-        ? q.correct_answer
-        : q.answer;
-
-    if (typeof raw === "number") {
-      correctIdx = raw;
-    } else if (typeof raw === "boolean") {
-      correctIdx = raw ? 0 : 1;
-    } else if (typeof raw === "string") {
-      const s = raw.trim();
-      if (/^\d+$/.test(s)) {
-        correctIdx = parseInt(s, 10);
-      } else if (s.toLowerCase() === "true" || s.toLowerCase() === "t") {
-        correctIdx = 0;
-      } else if (s.toLowerCase() === "false" || s.toLowerCase() === "f") {
-        correctIdx = 1;
-      } else if (["A", "B", "C", "D"].includes(s.toUpperCase())) {
-        correctIdx = { A: 0, B: 1, C: 2, D: 3 }[s.toUpperCase() as "A" | "B" | "C" | "D"];
-      } else {
-        const found = options.findIndex((opt) => opt.toLowerCase().trim() === s.toLowerCase());
+    let correctIdx = -1;
+    if (typeof q.correct_index === "number" && q.correct_index >= 0) {
+      correctIdx = q.correct_index;
+    } else if (typeof q.correct_answer === "number" && q.correct_answer >= 0 && q.correct_answer < options.length) {
+      correctIdx = q.correct_answer;
+    } else if (typeof q.correct_answer === "boolean") {
+      correctIdx = q.correct_answer ? 0 : 1;
+    } else if (typeof q.correct_answer === "string") {
+      const ca = q.correct_answer.trim().toLowerCase();
+      if (isTF) {
+        if (ca === "true" || ca === "t" || ca === "1") correctIdx = 0;
+        else if (ca === "false" || ca === "f" || ca === "0") correctIdx = 1;
+      }
+      if (correctIdx === -1) {
+        const found = options.findIndex((o) => o.trim().toLowerCase() === ca);
         if (found !== -1) correctIdx = found;
+      }
+      if (correctIdx === -1) {
+        const letterMatch = ca.match(/^[a-d]/);
+        if (letterMatch) {
+          correctIdx = letterMatch[0].charCodeAt(0) - 97;
+        }
       }
     }
 
-    if (correctIdx === undefined || correctIdx < 0 || correctIdx >= options.length) {
+    if (correctIdx < 0 || correctIdx >= options.length) {
       correctIdx = 0;
     }
 
     return { options, correctIdx, isTF };
   };
 
-  // Quiz score calculation
+  // Score Calculator for submitted quiz
   const calculateScore = () => {
     if (!data.questions || !Array.isArray(data.questions)) return { correct: 0, total: 0, pct: 0 };
     let correct = 0;
     data.questions.forEach((q: any, idx: number) => {
       const { correctIdx } = resolveQuestionDetails(q);
-      if (quizAnswers[idx] === correctIdx) correct++;
+      if (quizAnswers[idx] === correctIdx) {
+        correct++;
+      }
     });
     const total = data.questions.length;
     const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
@@ -268,15 +261,15 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-      <div className="w-full max-w-4xl min-h-[420px] max-h-[88vh] rounded-3xl border border-[#273247] bg-[#151B27] shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95">
+      <div className="w-full max-w-4xl min-h-[420px] max-h-[88vh] rounded-2xl border border-white/[0.08] bg-[#0E1118] shadow-[0_24px_64px_-12px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(255,255,255,0.06)] flex flex-col overflow-hidden select-none animate-in fade-in zoom-in-95">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#273247] bg-[#10141D]">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.08] bg-[#0A0C12]">
           <div className="min-w-0 pr-4">
-            <h3 className="text-base font-bold text-[#F1F5FC] truncate">
+            <h3 className="text-base font-semibold text-white truncate tracking-tight">
               {artifact.title || data.title || data.deck_title || data.report_title || data.video_title || "Studio Artifact"}
             </h3>
-            <p className="text-[11px] text-[#A0AEC0] capitalize flex items-center gap-1.5 mt-0.5">
-              <span className="w-2 h-2 rounded-full bg-[#6D8FFF]" />
+            <p className="text-[11px] text-neutral-400 capitalize flex items-center gap-1.5 mt-0.5">
+              <span className="w-2 h-2 rounded-full bg-indigo-400" />
               {(rawType || artifact.artifact_type || "artifact").replace("_", " ")} • Generated with Gemini
             </p>
           </div>
@@ -286,7 +279,7 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
               <a
                 href={downloadUrl}
                 download
-                className="p-2 rounded-xl border border-[#273247] text-[#A0AEC0] hover:text-[#F1F5FC] hover:bg-[#1B2332] transition-colors"
+                className="p-2 rounded-xl border border-white/[0.08] text-neutral-400 hover:text-white hover:bg-white/[0.06] transition-colors"
                 title="Download Artifact File"
               >
                 <Download className="w-4 h-4" />
@@ -299,7 +292,7 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
                 }
                 onClose();
               }}
-              className="p-2 rounded-xl text-[#A0AEC0] hover:text-[#F1F5FC] hover:bg-[#1B2332] transition-colors"
+              className="p-2 rounded-xl text-neutral-400 hover:text-white hover:bg-white/[0.06] transition-colors"
             >
               <X className="w-4 h-4" />
             </button>
@@ -307,21 +300,21 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
         </div>
 
         {/* Content Viewer Body */}
-        <div className="flex-1 overflow-y-auto p-6 min-h-0 text-[#F1F5FC]">
+        <div className="flex-1 overflow-y-auto p-6 min-h-0 text-neutral-100">
           {/* 1. Audio Overview Viewer */}
           {isAudio && (
             <div className="space-y-6">
-              <div className="p-8 rounded-3xl bg-[#10141D] border border-[#273247] flex flex-col items-center text-center">
-                <div className="w-16 h-16 rounded-full bg-[#6D8FFF] text-[#0B0D12] flex items-center justify-center mb-4 shadow-lg shadow-[#6D8FFF]/20">
-                  <Volume2 className="w-8 h-8" />
+              <div className="p-8 rounded-2xl bg-white/[0.02] border border-white/[0.08] flex flex-col items-center text-center">
+                <div className="w-14 h-14 rounded-2xl bg-indigo-600 text-white flex items-center justify-center mb-4 shadow-lg shadow-indigo-600/20">
+                  <Volume2 className="w-7 h-7" />
                 </div>
-                <h4 className="text-lg font-bold text-[#F1F5FC]">{artifact.title || data.title}</h4>
-                <p className="text-xs text-[#A0AEC0] mt-1">
+                <h4 className="text-lg font-semibold text-white tracking-tight">{artifact.title || data.title}</h4>
+                <p className="text-xs text-neutral-400 mt-1">
                   Format: Two-host conversational podcast (Alex & Sam)
                 </p>
 
                 {data.summary && (
-                  <p className="text-xs text-[#A0AEC0] max-w-xl mt-3 leading-relaxed">
+                  <p className="text-xs text-neutral-300 max-w-xl mt-3 leading-relaxed">
                     {data.summary}
                   </p>
                 )}
@@ -338,7 +331,7 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
                 <div className="flex items-center gap-4 mt-6">
                   <button
                     onClick={handleToggleAudio}
-                    className="px-6 py-2.5 rounded-full bg-[#6D8FFF] text-[#0B0D12] font-semibold text-xs flex items-center gap-2 shadow-sm hover:bg-[#84A2FF] transition-all"
+                    className="px-6 py-2.5 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs flex items-center gap-2 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2)] active:scale-[0.98] transition-all"
                   >
                     {isPlayingAudio ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
                     <span>{isPlayingAudio ? "Pause Podcast" : "Play Podcast"}</span>
@@ -346,7 +339,7 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
 
                   <button
                     onClick={handleSpeedChange}
-                    className="px-3 py-1.5 rounded-full border border-[#273247] text-xs font-mono font-medium hover:bg-[#1B2332] transition-colors text-[#A0AEC0]"
+                    className="px-3 py-1.5 rounded-full border border-white/[0.08] text-xs font-mono font-medium hover:bg-white/[0.06] transition-colors text-neutral-400"
                   >
                     {playbackSpeed}x
                   </button>
@@ -356,10 +349,10 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
               {/* Dialogue Transcript */}
               {dialogueList.length > 0 && (
                 <div className="space-y-3">
-                  <h5 className="text-xs font-bold uppercase tracking-wider text-[#A0AEC0]">
+                  <h5 className="text-[11px] font-semibold uppercase tracking-wider text-neutral-400">
                     Dialogue Transcript ({dialogueList.length} turns)
                   </h5>
-                  <div className="p-5 rounded-2xl bg-[#10141D] border border-[#273247] text-xs leading-relaxed space-y-3.5 font-sans">
+                  <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.08] text-xs leading-relaxed space-y-3.5 font-sans">
                     {dialogueList.map((line, idx) => {
                       const speakerName = line.speaker || (idx % 2 === 0 ? "Alex" : "Sam");
                       const isAlex = speakerName.toLowerCase().includes("alex");
@@ -368,20 +361,20 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
                           <span
                             className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider shrink-0 ${
                               isAlex
-                                ? "bg-[#6D8FFF]/15 text-[#6D8FFF] border border-[#6D8FFF]/30"
+                                ? "bg-indigo-500/15 text-indigo-400 border border-indigo-500/30"
                                 : "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
                             }`}
                           >
                             {speakerName}
                           </span>
                           <div className="space-y-1">
-                            <span className="text-[#F1F5FC] leading-relaxed">{line.text || line.dialogue}</span>
+                            <span className="text-neutral-200 leading-relaxed">{line.text || line.dialogue}</span>
                             {line.source_refs && line.source_refs.length > 0 && (
                               <div className="flex gap-1 pt-1">
                                 {line.source_refs.map((ref, rIdx) => (
                                   <span
                                     key={rIdx}
-                                    className="text-[10px] text-[#34D399] font-mono px-1.5 py-0.5 rounded-sm bg-[#151B27] border border-[#273247]"
+                                    className="text-[10px] text-emerald-400 font-mono px-1.5 py-0.5 rounded-sm bg-white/[0.04] border border-white/[0.06]"
                                   >
                                     {ref}
                                   </span>
@@ -410,7 +403,7 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
                       <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between">
                         <div>
                           <p className="text-xs font-bold text-emerald-400">Quiz Completed</p>
-                          <p className="text-lg font-black text-[#F1F5FC]">
+                          <p className="text-lg font-bold text-white">
                             Score: {score.correct} / {score.total} ({score.pct}%)
                           </p>
                         </div>
@@ -426,19 +419,19 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
                     return (
                       <div
                         key={qIdx}
-                        className="p-5 rounded-2xl border border-[#273247] bg-[#10141D] space-y-3.5 shadow-xs"
+                        className="p-5 rounded-2xl border border-white/[0.08] bg-white/[0.02] space-y-3.5 shadow-xs"
                       >
                         <div className="flex items-start justify-between gap-3">
                           <div className="space-y-1">
-                            <span className="inline-block text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#151B27] text-[#6D8FFF] border border-[#273247] uppercase tracking-wider">
+                            <span className="inline-block text-[10px] font-bold px-2 py-0.5 rounded-md bg-white/[0.04] text-indigo-400 border border-white/[0.08] uppercase tracking-wider">
                               {isTF ? "True / False" : "Multiple Choice"}
                             </span>
-                            <p className="text-xs font-bold text-[#F1F5FC] leading-relaxed">
+                            <p className="text-xs font-semibold text-white leading-relaxed">
                               {qIdx + 1}. {q.question}
                             </p>
                           </div>
                           {q.citation && (
-                            <span className="shrink-0 text-[10px] px-2 py-0.5 rounded-full bg-[#151B27] text-[#34D399] border border-[#273247] font-mono">
+                            <span className="shrink-0 text-[10px] px-2 py-0.5 rounded-full bg-white/[0.04] text-emerald-400 border border-white/[0.08] font-mono">
                               {q.citation}
                             </span>
                           )}
@@ -457,12 +450,12 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
                                 onClick={() => setQuizAnswers({ ...quizAnswers, [qIdx]: optIdx })}
                                 className={`w-full text-left p-3 rounded-xl border text-xs font-medium transition-all ${
                                   isCorrect
-                                    ? "bg-emerald-500/20 border-emerald-500 text-emerald-300 font-semibold shadow-sm"
+                                    ? "bg-emerald-500/20 border-emerald-500 text-emerald-300 font-semibold shadow-xs"
                                     : isWrong
                                     ? "bg-rose-500/20 border-rose-500 text-rose-300"
                                     : isSelected
-                                    ? "bg-[#6D8FFF] text-[#0B0D12] font-semibold border-transparent shadow-sm"
-                                    : "bg-[#151B27] border-[#273247] text-[#F1F5FC] hover:bg-[#1B2332]"
+                                    ? "bg-indigo-600 text-white font-semibold border-transparent shadow-xs"
+                                    : "bg-white/[0.02] border-white/[0.06] text-neutral-200 hover:bg-white/[0.05]"
                                 }`}
                               >
                                 <div className="flex items-center justify-between">
@@ -484,8 +477,8 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
                         </div>
 
                         {isQuizSubmitted && q.explanation && (
-                          <div className="p-3.5 rounded-xl bg-[#151B27] text-[11px] text-[#A0AEC0] leading-relaxed border border-[#273247]">
-                            <span className="font-bold text-[#6D8FFF]">Rationale: </span>
+                          <div className="p-3.5 rounded-xl bg-white/[0.03] text-[11px] text-neutral-400 leading-relaxed border border-white/[0.06]">
+                            <span className="font-bold text-indigo-400">Rationale: </span>
                             {q.explanation}
                           </div>
                         )}
@@ -497,7 +490,7 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
                     {!isQuizSubmitted ? (
                       <button
                         onClick={() => setIsQuizSubmitted(true)}
-                        className="px-6 py-2.5 rounded-xl bg-[#6D8FFF] text-[#0B0D12] text-xs font-semibold hover:bg-[#84A2FF] shadow-sm transition-all"
+                        className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2)] active:scale-[0.98] transition-all"
                       >
                         Submit Answers
                       </button>
@@ -507,7 +500,7 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
                           setIsQuizSubmitted(false);
                           setQuizAnswers({});
                         }}
-                        className="px-5 py-2.5 rounded-xl border border-[#273247] text-xs font-semibold hover:bg-[#1B2332] text-[#F1F5FC] transition-colors"
+                        className="px-5 py-2.5 rounded-xl border border-white/[0.08] text-xs font-semibold hover:bg-white/[0.06] text-white transition-colors"
                       >
                         Retake Quiz
                       </button>
@@ -515,7 +508,7 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
                   </div>
                 </div>
               ) : (
-                <p className="text-xs text-[#A0AEC0]">No quiz questions generated.</p>
+                <p className="text-xs text-neutral-400">No quiz questions generated.</p>
               )}
             </div>
           )}
@@ -528,25 +521,25 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
                   {/* Active Card */}
                   <div
                     onClick={() => setIsFlipped(!isFlipped)}
-                    className="w-full max-w-lg min-h-[220px] rounded-3xl border border-[#273247] bg-[#10141D] hover:border-[#6D8FFF]/50 cursor-pointer p-8 flex flex-col items-center justify-between text-center shadow-lg transition-all"
+                    className="w-full max-w-lg min-h-[220px] rounded-2xl border border-white/[0.08] bg-white/[0.02] hover:border-indigo-500/40 cursor-pointer p-8 flex flex-col items-center justify-between text-center shadow-lg transition-all"
                   >
-                    <div className="w-full flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-[#A0AEC0]">
+                    <div className="w-full flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-neutral-400">
                       <span>{isFlipped ? "Answer / Definition" : "Prompt / Concept"}</span>
                       {data.cards[cardIndex]?.difficulty && (
-                        <span className="px-2 py-0.5 rounded-full bg-[#151B27] text-[#6D8FFF] border border-[#273247]">
+                        <span className="px-2 py-0.5 rounded-full bg-white/[0.04] text-indigo-400 border border-white/[0.08]">
                           {data.cards[cardIndex].difficulty}
                         </span>
                       )}
                     </div>
 
-                    <p className="text-base font-semibold text-[#F1F5FC] leading-relaxed my-4">
+                    <p className="text-base font-semibold text-white leading-relaxed my-4">
                       {isFlipped
                         ? data.cards[cardIndex]?.back || data.cards[cardIndex]?.answer
                         : data.cards[cardIndex]?.front || data.cards[cardIndex]?.question}
                     </p>
 
-                    <div className="w-full flex items-center justify-between text-[10px] text-[#A0AEC0]">
-                      <span className="text-[#34D399] font-mono">{data.cards[cardIndex]?.source_ref || "Grounding Ref"}</span>
+                    <div className="w-full flex items-center justify-between text-[10px] text-neutral-400">
+                      <span className="text-emerald-400 font-mono">{data.cards[cardIndex]?.source_ref || "Grounding Ref"}</span>
                       <span className="opacity-70">(Click card to flip)</span>
                     </div>
                   </div>
@@ -559,11 +552,11 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
                         setCardIndex(cardIndex - 1);
                         setIsFlipped(false);
                       }}
-                      className="p-2.5 rounded-xl border border-[#273247] hover:bg-[#1B2332] disabled:opacity-40 transition-colors text-[#F1F5FC]"
+                      className="p-2.5 rounded-xl border border-white/[0.08] hover:bg-white/[0.06] disabled:opacity-40 transition-colors text-white"
                     >
                       <ChevronLeft className="w-4 h-4" />
                     </button>
-                    <span className="text-xs font-mono font-medium text-[#A0AEC0]">
+                    <span className="text-xs font-mono font-medium text-neutral-400">
                       {cardIndex + 1} / {data.cards.length}
                     </span>
                     <button
@@ -572,14 +565,14 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
                         setCardIndex(cardIndex + 1);
                         setIsFlipped(false);
                       }}
-                      className="p-2.5 rounded-xl border border-[#273247] hover:bg-[#1B2332] disabled:opacity-40 transition-colors text-[#F1F5FC]"
+                      className="p-2.5 rounded-xl border border-white/[0.08] hover:bg-white/[0.06] disabled:opacity-40 transition-colors text-white"
                     >
                       <ChevronRight className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
               ) : (
-                <p className="text-xs text-[#A0AEC0]">No flashcards available.</p>
+                <p className="text-xs text-neutral-400">No flashcards available.</p>
               )}
             </div>
           )}
@@ -593,25 +586,25 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
                   {(() => {
                     const slide = data.slides[slideIndex] || {};
                     return (
-                      <div className="w-full max-w-2xl min-h-[320px] rounded-3xl border border-[#273247] bg-[#10141D] p-8 flex flex-col justify-between shadow-xl">
+                      <div className="w-full max-w-2xl min-h-[320px] rounded-2xl border border-white/[0.08] bg-white/[0.02] p-8 flex flex-col justify-between shadow-xl">
                         <div>
                           <div className="flex items-center justify-between mb-4">
-                            <span className="text-[10px] font-mono text-[#A0AEC0] uppercase tracking-wider">
+                            <span className="text-[10px] font-mono text-neutral-400 uppercase tracking-wider">
                               Slide {slideIndex + 1} of {data.slides.length}
                             </span>
                             {slide.layout && (
-                              <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#151B27] text-[#6D8FFF] border border-[#273247]">
+                              <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/[0.04] text-indigo-400 border border-white/[0.08]">
                                 {slide.layout}
                               </span>
                             )}
                           </div>
-                          <h4 className="text-xl font-bold text-[#F1F5FC] mb-2">{slide.title}</h4>
+                          <h4 className="text-xl font-semibold text-white tracking-tight mb-2">{slide.title}</h4>
                           {slide.subtitle && (
-                            <p className="text-xs text-[#6D8FFF] mb-4 font-medium">{slide.subtitle}</p>
+                            <p className="text-xs text-indigo-400 mb-4 font-medium">{slide.subtitle}</p>
                           )}
 
                           {slide.bullets && slide.bullets.length > 0 && (
-                            <ul className="space-y-2.5 mt-4 text-xs text-[#F1F5FC] list-disc list-inside">
+                            <ul className="space-y-2.5 mt-4 text-xs text-neutral-200 list-disc list-inside">
                               {slide.bullets.map((b: string, bIdx: number) => (
                                 <li key={bIdx} className="leading-relaxed">
                                   {b}
@@ -623,8 +616,8 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
 
                         {/* Speaker Notes */}
                         {slide.speaker_notes && (
-                          <div className="mt-6 pt-4 border-t border-[#273247] text-[11px] text-[#A0AEC0] italic">
-                            <span className="font-semibold not-italic text-[#F1F5FC]">Speaker Notes: </span>
+                          <div className="mt-6 pt-4 border-t border-white/[0.06] text-[11px] text-neutral-400 italic">
+                            <span className="font-semibold not-italic text-white">Speaker Notes: </span>
                             {slide.speaker_notes}
                           </div>
                         )}
@@ -637,24 +630,24 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
                     <button
                       disabled={slideIndex === 0}
                       onClick={() => setSlideIndex(slideIndex - 1)}
-                      className="p-2.5 rounded-xl border border-[#273247] hover:bg-[#1B2332] disabled:opacity-40 transition-colors text-[#F1F5FC]"
+                      className="p-2.5 rounded-xl border border-white/[0.08] hover:bg-white/[0.06] disabled:opacity-40 transition-colors text-white"
                     >
                       <ChevronLeft className="w-4 h-4" />
                     </button>
-                    <span className="text-xs font-mono font-medium text-[#A0AEC0]">
+                    <span className="text-xs font-mono font-medium text-neutral-400">
                       {slideIndex + 1} / {data.slides.length}
                     </span>
                     <button
                       disabled={slideIndex === data.slides.length - 1}
                       onClick={() => setSlideIndex(slideIndex + 1)}
-                      className="p-2.5 rounded-xl border border-[#273247] hover:bg-[#1B2332] disabled:opacity-40 transition-colors text-[#F1F5FC]"
+                      className="p-2.5 rounded-xl border border-white/[0.08] hover:bg-white/[0.06] disabled:opacity-40 transition-colors text-white"
                     >
                       <ChevronRight className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
               ) : (
-                <p className="text-xs text-[#A0AEC0]">No slides available.</p>
+                <p className="text-xs text-neutral-400">No slides available.</p>
               )}
             </div>
           )}
@@ -663,15 +656,15 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
           {isReport && (
             <div className="space-y-6">
               {data.table_of_contents && data.table_of_contents.length > 0 && (
-                <div className="p-4 rounded-2xl bg-[#10141D] border border-[#273247]">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#A0AEC0] mb-2">
+                <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.08]">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 mb-2">
                     Table of Contents
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {data.table_of_contents.map((item: string, idx: number) => (
                       <span
                         key={idx}
-                        className="text-xs px-2.5 py-1 rounded-lg bg-[#151B27] text-[#F1F5FC] border border-[#273247]"
+                        className="text-xs px-2.5 py-1 rounded-lg bg-white/[0.04] text-neutral-200 border border-white/[0.06]"
                       >
                         {item}
                       </span>
@@ -680,18 +673,18 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
                 </div>
               )}
 
-              <div className="p-8 rounded-2xl bg-[#10141D] border border-[#273247] text-xs text-[#F1F5FC] leading-relaxed font-sans prose prose-invert max-w-none">
+              <div className="p-8 rounded-2xl bg-white/[0.02] border border-white/[0.08] text-xs text-neutral-200 leading-relaxed font-sans prose prose-invert max-w-none">
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
                   components={{
-                    h1: ({ children }) => <h1 className="text-xl font-bold text-[#F1F5FC] mb-4 pb-2 border-b border-[#273247]">{children}</h1>,
-                    h2: ({ children }) => <h2 className="text-base font-bold text-[#6D8FFF] mt-6 mb-3">{children}</h2>,
-                    h3: ({ children }) => <h3 className="text-sm font-semibold text-[#F1F5FC] mt-4 mb-2">{children}</h3>,
-                    p: ({ children }) => <p className="text-xs text-[#A0AEC0] leading-relaxed mb-4">{children}</p>,
-                    ul: ({ children }) => <ul className="list-disc list-inside space-y-1.5 mb-4 text-[#A0AEC0]">{children}</ul>,
+                    h1: ({ children }) => <h1 className="text-xl font-semibold text-white mb-4 pb-2 border-b border-white/[0.08] tracking-tight">{children}</h1>,
+                    h2: ({ children }) => <h2 className="text-base font-semibold text-indigo-400 mt-6 mb-3">{children}</h2>,
+                    h3: ({ children }) => <h3 className="text-sm font-semibold text-white mt-4 mb-2">{children}</h3>,
+                    p: ({ children }) => <p className="text-xs text-neutral-300 leading-relaxed mb-4">{children}</p>,
+                    ul: ({ children }) => <ul className="list-disc list-inside space-y-1.5 mb-4 text-neutral-300">{children}</ul>,
                     li: ({ children }) => <li className="text-xs leading-relaxed">{children}</li>,
-                    strong: ({ children }) => <strong className="font-bold text-[#F1F5FC]">{children}</strong>,
-                    blockquote: ({ children }) => <blockquote className="border-l-2 border-[#6D8FFF] pl-4 italic text-[#A0AEC0] my-3">{children}</blockquote>,
+                    strong: ({ children }) => <strong className="font-semibold text-white">{children}</strong>,
+                    blockquote: ({ children }) => <blockquote className="border-l-2 border-indigo-500 pl-4 italic text-neutral-400 my-3">{children}</blockquote>,
                   }}
                 >
                   {data.content_markdown || data.content || (typeof data === "string" ? data : JSON.stringify(data, null, 2))}
@@ -704,14 +697,14 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
           {isDataTable && (
             <div className="space-y-4">
               {data.description && (
-                <p className="text-xs text-[#A0AEC0]">{data.description}</p>
+                <p className="text-xs text-neutral-400">{data.description}</p>
               )}
               {data.columns && data.rows ? (
-                <div className="overflow-x-auto rounded-2xl border border-[#273247]">
+                <div className="overflow-x-auto rounded-2xl border border-white/[0.08] bg-white/[0.02]">
                   <table className="w-full text-left text-xs border-collapse">
-                    <thead className="bg-[#10141D] text-[#F1F5FC] font-semibold border-b border-[#273247]">
+                    <thead className="bg-[#0A0C12] text-white font-semibold border-b border-white/[0.08]">
                       <tr>
-                        <th className="p-3 w-10 text-[#A0AEC0]">#</th>
+                        <th className="p-3 w-10 text-neutral-500">#</th>
                         {data.columns.map((col: any, cIdx: number) => (
                           <th key={cIdx} className="p-3">
                             {col.label || col.key}
@@ -719,12 +712,12 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
                         ))}
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-[#273247]">
+                    <tbody className="divide-y divide-white/[0.06]">
                       {data.rows.map((row: any, rIdx: number) => (
-                        <tr key={rIdx} className="hover:bg-[#1B2332] transition-colors">
-                          <td className="p-3 font-mono text-[10px] text-[#A0AEC0]">{rIdx + 1}</td>
+                        <tr key={rIdx} className="hover:bg-white/[0.04] transition-colors">
+                          <td className="p-3 font-mono text-[10px] text-neutral-500">{rIdx + 1}</td>
                           {data.columns.map((col: any, cIdx: number) => (
-                            <td key={cIdx} className="p-3 text-[#F1F5FC]">
+                            <td key={cIdx} className="p-3 text-neutral-200">
                               {row[col.key] !== undefined ? String(row[col.key]) : "-"}
                             </td>
                           ))}
@@ -734,7 +727,7 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
                   </table>
                 </div>
               ) : (
-                <p className="text-xs text-[#A0AEC0]">No tabular rows found.</p>
+                <p className="text-xs text-neutral-400">No tabular rows found.</p>
               )}
             </div>
           )}
@@ -743,11 +736,11 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
           {isMindMap && (
             <div className="space-y-6">
               {data.root_title && (
-                <div className="p-5 rounded-2xl bg-[#6D8FFF]/10 border border-[#6D8FFF]/30 text-center shadow-sm">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#6D8FFF]">
+                <div className="p-5 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-center shadow-xs">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-400">
                     Central Theme
                   </span>
-                  <h4 className="text-lg font-bold text-[#F1F5FC] mt-1">{data.root_title}</h4>
+                  <h4 className="text-lg font-semibold text-white mt-1 tracking-tight">{data.root_title}</h4>
                 </div>
               )}
 
@@ -756,23 +749,23 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
                   {data.nodes.map((node: any, idx: number) => (
                     <div
                       key={idx}
-                      className="p-4 rounded-2xl border border-[#273247] bg-[#10141D] space-y-2 hover:border-[#6D8FFF]/40 transition-colors shadow-xs"
+                      className="p-4 rounded-2xl border border-white/[0.08] bg-white/[0.02] space-y-2 hover:border-indigo-500/40 transition-colors shadow-xs"
                     >
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-[#F1F5FC]">{node.label}</span>
+                        <span className="text-xs font-semibold text-white">{node.label}</span>
                         {node.category && (
-                          <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-[#151B27] text-[#6D8FFF] border border-[#273247]">
+                          <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-white/[0.04] text-indigo-400 border border-white/[0.08]">
                             {node.category}
                           </span>
                         )}
                       </div>
                       {node.description && (
-                        <p className="text-[12px] text-[#A0AEC0] leading-relaxed">
+                        <p className="text-[12px] text-neutral-400 leading-relaxed">
                           {node.description}
                         </p>
                       )}
                       {node.citation && (
-                        <p className="text-[10px] text-[#34D399] flex items-center gap-1 font-mono">
+                        <p className="text-[10px] text-emerald-400 flex items-center gap-1 font-mono">
                           <span>Ref:</span> {node.citation}
                         </p>
                       )}
@@ -780,17 +773,17 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
                   ))}
                 </div>
               ) : (
-                <div className="p-6 rounded-2xl bg-[#10141D] border border-[#273247] space-y-3">
-                  <p className="text-xs text-[#A0AEC0]">Central concept structure & summary:</p>
-                  <pre className="overflow-x-auto p-4 rounded-xl bg-[#151B27] border border-[#273247] text-xs font-mono text-[#F1F5FC] whitespace-pre-wrap">
+                <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.08] space-y-3">
+                  <p className="text-xs text-neutral-400">Central concept structure & summary:</p>
+                  <pre className="overflow-x-auto p-4 rounded-xl bg-black/40 border border-white/[0.06] text-xs font-mono text-neutral-200 whitespace-pre-wrap">
                     {typeof data === "string" ? data : JSON.stringify(data, null, 2)}
                   </pre>
                 </div>
               )}
 
               {data.edges && data.edges.length > 0 && (
-                <div className="mt-4 p-4 rounded-2xl border border-[#273247] bg-[#10141D]">
-                  <h5 className="text-[11px] font-bold uppercase tracking-wider text-[#A0AEC0] mb-2.5">
+                <div className="mt-4 p-4 rounded-2xl border border-white/[0.08] bg-white/[0.02]">
+                  <h5 className="text-[11px] font-semibold uppercase tracking-wider text-neutral-400 mb-2.5">
                     Concept Relationships & Graph Edges
                   </h5>
                   <div className="flex flex-wrap gap-2">
@@ -800,11 +793,11 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
                       return (
                         <div
                           key={eIdx}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#151B27] border border-[#273247] text-[11px]"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.04] border border-white/[0.06] text-[11px]"
                         >
-                          <span className="font-semibold text-[#F1F5FC]">{sourceNode?.label || edge.source}</span>
-                          <span className="text-[#6D8FFF] font-mono text-[10px]">→ {edge.label || "relates to"} →</span>
-                          <span className="font-semibold text-[#F1F5FC]">{targetNode?.label || edge.target}</span>
+                          <span className="font-semibold text-white">{sourceNode?.label || edge.source}</span>
+                          <span className="text-indigo-400 font-mono text-[10px]">→ {edge.label || "relates to"} →</span>
+                          <span className="font-semibold text-white">{targetNode?.label || edge.target}</span>
                         </div>
                       );
                     })}
@@ -818,13 +811,13 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
           {isInfographic && (
             <div className="space-y-6">
               {data.hero_metric && (
-                <div className="p-6 rounded-3xl bg-[#6D8FFF]/10 border border-[#6D8FFF]/30 text-center">
-                  <p className="text-3xl font-black text-[#6D8FFF]">{data.hero_metric.value}</p>
-                  <p className="text-xs font-semibold text-[#F1F5FC] mt-1">
+                <div className="p-6 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-center">
+                  <p className="text-3xl font-extrabold text-indigo-400">{data.hero_metric.value}</p>
+                  <p className="text-xs font-semibold text-white mt-1">
                     {data.hero_metric.label}
                   </p>
                   {data.hero_metric.citation && (
-                    <p className="text-[10px] text-[#34D399] font-mono mt-1">
+                    <p className="text-[10px] text-emerald-400 font-mono mt-1">
                       {data.hero_metric.citation}
                     </p>
                   )}
@@ -836,22 +829,22 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
                   {data.sections.map((sec: any, idx: number) => (
                     <div
                       key={idx}
-                      className="p-5 rounded-2xl border border-[#273247] bg-[#10141D] space-y-2"
+                      className="p-5 rounded-2xl border border-white/[0.08] bg-white/[0.02] space-y-2"
                     >
                       <div className="flex items-center justify-between">
-                        <h5 className="text-xs font-bold text-[#F1F5FC]">{sec.title}</h5>
+                        <h5 className="text-xs font-semibold text-white">{sec.title}</h5>
                         {sec.badge && (
-                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#151B27] text-[#6D8FFF] border border-[#273247]">
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/[0.04] text-indigo-400 border border-white/[0.08]">
                             {sec.badge}
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-[#A0AEC0] leading-relaxed">{sec.content}</p>
+                      <p className="text-xs text-neutral-400 leading-relaxed">{sec.content}</p>
                       {sec.metric && (
-                        <p className="text-sm font-bold text-[#6D8FFF]">{sec.metric}</p>
+                        <p className="text-sm font-bold text-indigo-400">{sec.metric}</p>
                       )}
                       {sec.citation && (
-                        <p className="text-[10px] text-[#34D399] font-mono">{sec.citation}</p>
+                        <p className="text-[10px] text-emerald-400 font-mono">{sec.citation}</p>
                       )}
                     </div>
                   ))}
@@ -863,20 +856,20 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
           {/* 9. Video Storyboard Viewer */}
           {isVideo && (
             <div className="space-y-6">
-              <div className="p-4 rounded-2xl bg-[#10141D] border border-[#273247] flex items-center justify-between">
+              <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.08] flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-[#6D8FFF]/15 text-[#6D8FFF] flex items-center justify-center border border-[#6D8FFF]/30">
+                  <div className="w-9 h-9 rounded-xl bg-indigo-500/15 text-indigo-400 flex items-center justify-center border border-indigo-500/30">
                     <Clapperboard className="w-5 h-5" />
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-[#F1F5FC]">{data.title || data.video_title || artifact.title}</p>
-                    <p className="text-[11px] text-[#A0AEC0] mt-0.5">
+                    <p className="text-xs font-semibold text-white">{data.title || data.video_title || artifact.title}</p>
+                    <p className="text-[11px] text-neutral-400 mt-0.5">
                       Scene-by-scene production storyboard and voiceover script
                     </p>
                   </div>
                 </div>
                 {data.target_duration_seconds && (
-                  <span className="text-xs px-3 py-1 rounded-full bg-[#151B27] text-[#6D8FFF] font-mono font-semibold border border-[#273247]">
+                  <span className="text-xs px-3 py-1 rounded-full bg-white/[0.04] text-indigo-400 font-mono font-semibold border border-white/[0.08]">
                     {data.target_duration_seconds}s Total Runtime
                   </span>
                 )}
@@ -887,20 +880,20 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
                   {data.scenes.map((scene: any, idx: number) => (
                     <div
                       key={idx}
-                      className="p-5 rounded-2xl border border-[#273247] bg-[#10141D] space-y-3 shadow-xs"
+                      className="p-5 rounded-2xl border border-white/[0.08] bg-white/[0.02] space-y-3 shadow-xs"
                     >
-                      <div className="flex items-center justify-between border-b border-[#273247] pb-2.5">
-                        <span className="text-xs font-bold text-[#F1F5FC]">
+                      <div className="flex items-center justify-between border-b border-white/[0.06] pb-2.5">
+                        <span className="text-xs font-semibold text-white">
                           Scene {scene.scene_number || idx + 1}: {scene.title}
                         </span>
                         <div className="flex items-center gap-2">
                           {scene.citation && (
-                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#151B27] text-[#34D399] border border-[#273247] font-mono">
+                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/[0.04] text-emerald-400 border border-white/[0.08] font-mono">
                               {scene.citation}
                             </span>
                           )}
                           {scene.duration_seconds && (
-                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#151B27] text-[#A0AEC0] border border-[#273247] font-mono">
+                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/[0.04] text-neutral-400 border border-white/[0.08] font-mono">
                               {scene.duration_seconds}s
                             </span>
                           )}
@@ -908,22 +901,22 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
                       </div>
 
                       {scene.visual_description && (
-                        <div className="text-[12px] text-[#A0AEC0] leading-relaxed">
-                          <span className="font-semibold text-[#F1F5FC]">Visual Direction: </span>
+                        <div className="text-[12px] text-neutral-400 leading-relaxed">
+                          <span className="font-semibold text-white">Visual Direction: </span>
                           {scene.visual_description}
                         </div>
                       )}
 
                       {scene.on_screen_text && (
-                        <div className="text-[11px] text-[#6D8FFF] px-3 py-1.5 rounded-xl bg-[#151B27] border border-[#273247] inline-block font-mono">
-                          <span className="text-[#A0AEC0] font-sans">On-Screen Text: </span>
+                        <div className="text-[11px] text-indigo-400 px-3 py-1.5 rounded-xl bg-white/[0.04] border border-white/[0.06] inline-block font-mono">
+                          <span className="text-neutral-400 font-sans">On-Screen Text: </span>
                           "{scene.on_screen_text}"
                         </div>
                       )}
 
                       {scene.narration_script && (
-                        <div className="p-3.5 rounded-xl bg-[#151B27] text-xs text-[#F1F5FC] leading-relaxed border border-[#273247]">
-                          <span className="font-bold text-[#6D8FFF]">Voiceover Script: </span>
+                        <div className="p-3.5 rounded-xl bg-white/[0.03] text-xs text-neutral-200 leading-relaxed border border-white/[0.06]">
+                          <span className="font-bold text-indigo-400">Voiceover Script: </span>
                           "{scene.narration_script}"
                         </div>
                       )}
@@ -931,19 +924,19 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
                   ))}
                 </div>
               ) : (
-                <p className="text-xs text-[#A0AEC0]">No storyboard scenes generated.</p>
+                <p className="text-xs text-neutral-400">No storyboard scenes generated.</p>
               )}
             </div>
           )}
 
           {/* 10. Fallback Viewer for Unknown Artifact Types */}
           {!isAudio && !isQuiz && !isFlashcards && !isSlides && !isReport && !isDataTable && !isMindMap && !isInfographic && !isVideo && (
-            <div className="p-6 rounded-2xl bg-[#10141D] border border-[#273247] space-y-3">
+            <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.08] space-y-3">
               <div className="flex items-center gap-2 text-amber-400">
                 <Sparkles className="w-4 h-4" />
-                <span className="text-xs font-bold uppercase tracking-wider">Studio Artifact Output</span>
+                <span className="text-xs font-semibold uppercase tracking-wider">Studio Artifact Output</span>
               </div>
-              <pre className="overflow-x-auto p-4 rounded-xl bg-[#151B27] border border-[#273247] text-xs font-mono text-[#F1F5FC] whitespace-pre-wrap">
+              <pre className="overflow-x-auto p-4 rounded-xl bg-black/40 border border-white/[0.06] text-xs font-mono text-neutral-200 whitespace-pre-wrap">
                 {typeof data === "string" ? data : JSON.stringify(data, null, 2)}
               </pre>
             </div>

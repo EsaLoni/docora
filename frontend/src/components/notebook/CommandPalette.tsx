@@ -9,12 +9,10 @@ import {
   HelpCircle,
   GitFork,
   Layers,
-  Moon,
-  Sun,
   PanelLeftClose,
   PanelRightClose,
   MessageSquare,
-  Sparkles,
+  ArrowRight,
 } from "lucide-react";
 
 interface CommandPaletteProps {
@@ -44,15 +42,17 @@ export function CommandPalette({
   const commands = [
     {
       id: "add_source",
-      title: "Add Source...",
+      title: "Add Knowledge Source...",
       desc: "Link PDF, URL, or raw text to notebook",
+      category: "Sources",
       icon: Plus,
       action: () => onOpenAddSource(),
     },
     {
       id: "create_note",
       title: "Create Note",
-      desc: "Write a new notebook note",
+      desc: "Write a new notebook note or synthesis",
+      category: "Sources",
       icon: StickyNote,
       action: () => onOpenCreateNote(),
     },
@@ -60,41 +60,47 @@ export function CommandPalette({
       id: "focus_chat",
       title: "Focus Chat Composer",
       desc: "Jump straight to the inquiry prompt",
+      category: "Workspace",
       icon: MessageSquare,
       action: () => onFocusChat(),
-    },
-    {
-      id: "tool_audio",
-      title: "Studio: Audio Overview",
-      desc: "Generate two-host deep dive conversation",
-      icon: Headphones,
-      action: () => onOpenTool("audio"),
     },
     {
       id: "tool_quiz",
       title: "Studio: Interactive Quiz",
       desc: "Generate knowledge check questions",
+      category: "Studio",
       icon: HelpCircle,
       action: () => onOpenTool("quiz"),
     },
     {
-      id: "tool_mindmap",
-      title: "Studio: Mind Map",
-      desc: "Generate hierarchical visual concepts",
-      icon: GitFork,
-      action: () => onOpenTool("mindmap"),
-    },
-    {
       id: "tool_flashcards",
       title: "Studio: Flashcards",
-      desc: "Generate study cards for memorization",
+      desc: "Generate revision cards for memorization",
+      category: "Studio",
       icon: Layers,
       action: () => onOpenTool("flashcards"),
+    },
+    {
+      id: "tool_audio",
+      title: "Studio: Audio Overview",
+      desc: "Generate two-host AI podcast dialogue",
+      category: "Studio",
+      icon: Headphones,
+      action: () => onOpenTool("audio"),
+    },
+    {
+      id: "tool_mindmap",
+      title: "Studio: Mind Map",
+      desc: "Generate visual concept ontology graph",
+      category: "Studio",
+      icon: GitFork,
+      action: () => onOpenTool("mindmap"),
     },
     {
       id: "toggle_sources",
       title: "Toggle Sources Panel",
       desc: "Collapse or expand left panel rail",
+      category: "Panels",
       icon: PanelLeftClose,
       action: () => onToggleLeftPanel(),
     },
@@ -102,6 +108,7 @@ export function CommandPalette({
       id: "toggle_studio",
       title: "Toggle Studio Panel",
       desc: "Collapse or expand right panel rail",
+      category: "Panels",
       icon: PanelRightClose,
       action: () => onToggleRightPanel(),
     },
@@ -109,7 +116,8 @@ export function CommandPalette({
 
   const filtered = commands.filter((c) =>
     c.title.toLowerCase().includes(search.toLowerCase()) ||
-    c.desc.toLowerCase().includes(search.toLowerCase())
+    c.desc.toLowerCase().includes(search.toLowerCase()) ||
+    c.category.toLowerCase().includes(search.toLowerCase())
   );
 
   useEffect(() => {
@@ -123,7 +131,6 @@ export function CommandPalette({
         if (isOpen) onClose();
         else {
           setSearch("");
-          // Open handled by parent
         }
       }
       if (!isOpen) return;
@@ -151,26 +158,26 @@ export function CommandPalette({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-start justify-center pt-24 p-4">
-      <div className="w-full max-w-lg rounded-3xl border border-[var(--border-subtle)] bg-[var(--panel)] shadow-2xl overflow-hidden flex flex-col">
+    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-start justify-center pt-20 p-4 select-none">
+      <div className="w-full max-w-lg rounded-2xl border border-white/[0.08] bg-[#0E1118] shadow-[0_24px_64px_-12px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(255,255,255,0.06)] overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-100">
         {/* Search Bar */}
-        <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--border-subtle)] bg-[var(--panel-raised)]">
-          <Search className="w-4 h-4 text-[var(--text-muted)]" />
+        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-white/[0.08] bg-[#0A0C12]">
+          <Search className="w-4 h-4 text-neutral-400 shrink-0" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Type a command or search actions..."
             autoFocus
-            className="w-full bg-transparent border-0 text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] outline-none"
+            className="w-full bg-transparent border-0 text-xs text-white placeholder-neutral-500 outline-none"
           />
-          <kbd className="px-2 py-0.5 rounded-md border border-[var(--border-subtle)] bg-[var(--panel)] text-[10px] text-[var(--text-muted)] font-mono">
+          <kbd className="px-1.5 py-0.5 rounded-md border border-white/[0.1] bg-white/[0.04] text-[10px] text-neutral-400 font-mono">
             ESC
           </kbd>
         </div>
 
         {/* Command List */}
-        <div className="max-h-80 overflow-y-auto p-2 space-y-1">
+        <div className="max-h-84 overflow-y-auto p-2 space-y-1">
           {filtered.length > 0 ? (
             filtered.map((cmd, idx) => {
               const Icon = cmd.icon;
@@ -183,41 +190,53 @@ export function CommandPalette({
                     onClose();
                   }}
                   onMouseEnter={() => setSelectedIndex(idx)}
-                  className={`w-full flex items-center justify-between p-2.5 rounded-2xl text-left transition-colors ${
+                  className={`w-full flex items-center justify-between p-2.5 rounded-xl text-left transition-all ${
                     isSelected
-                      ? "bg-[var(--accent-blue)] text-white"
-                      : "text-[var(--text-primary)] hover:bg-[var(--tile-hover)]"
+                      ? "bg-indigo-600 text-white shadow-xs"
+                      : "text-neutral-200 hover:bg-white/[0.04]"
                   }`}
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <div
-                      className={`p-1.5 rounded-xl border ${
+                      className={`p-1.5 rounded-lg border shrink-0 ${
                         isSelected
                           ? "bg-white/20 border-white/30 text-white"
-                          : "bg-[var(--panel)] border-[var(--border-subtle)] text-[var(--text-secondary)]"
+                          : "bg-white/[0.03] border-white/[0.06] text-neutral-400"
                       }`}
                     >
                       <Icon className="w-4 h-4" />
                     </div>
                     <div className="min-w-0">
-                      <p className="text-xs font-semibold truncate">{cmd.title}</p>
+                      <p className="text-xs font-semibold truncate tracking-tight">{cmd.title}</p>
                       <p
-                        className={`text-[10px] truncate ${
-                          isSelected ? "text-blue-100" : "text-[var(--text-muted)]"
+                        className={`text-[11px] truncate ${
+                          isSelected ? "text-indigo-200" : "text-neutral-500"
                         }`}
                       >
                         {cmd.desc}
                       </p>
                     </div>
                   </div>
+
+                  {isSelected && (
+                    <div className="flex items-center gap-1 text-[10px] text-indigo-200 pr-1 shrink-0">
+                      <span>↵</span>
+                    </div>
+                  )}
                 </button>
               );
             })
           ) : (
-            <div className="p-6 text-center text-xs text-[var(--text-muted)]">
+            <div className="p-8 text-center text-xs text-neutral-500">
               No matching commands found.
             </div>
           )}
+        </div>
+
+        {/* Keyboard hints footer */}
+        <div className="px-4 py-2 bg-[#0A0C12] border-t border-white/[0.06] flex items-center justify-between text-[10px] text-neutral-500">
+          <span>Navigate with <kbd className="font-mono text-neutral-400">↑</kbd> <kbd className="font-mono text-neutral-400">↓</kbd></span>
+          <span>Select with <kbd className="font-mono text-neutral-400">↵ Enter</kbd></span>
         </div>
       </div>
     </div>

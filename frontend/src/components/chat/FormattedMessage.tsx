@@ -73,8 +73,8 @@ export function FormattedMessage({
           }}
           className={cn(
             "inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[11px] font-semibold tracking-tight",
-            "bg-[#34D399]/15 text-[#34D399] border border-[#34D399]/30",
-            "hover:bg-[#34D399] hover:text-[#0B0D12] hover:border-transparent",
+            "bg-emerald-500/10 text-emerald-400 border border-emerald-500/25",
+            "hover:bg-emerald-500 hover:text-black hover:border-transparent",
             "transition-all duration-150 cursor-pointer mx-0.5 align-baseline select-none active:scale-95 shadow-2xs"
           )}
           title={
@@ -101,7 +101,7 @@ export function FormattedMessage({
   return (
     <div
       className={cn(
-        "prose prose-sm max-w-none text-[#F1F5FC] text-[15px] leading-[1.6]",
+        "prose prose-sm max-w-none text-white text-[15px] leading-[1.6]",
         className
       )}
     >
@@ -109,27 +109,27 @@ export function FormattedMessage({
         remarkPlugins={[remarkGfm]}
         components={{
           h1: ({ children }) => (
-            <h1 className="text-[20px] font-semibold tracking-tight text-[#F1F5FC] mt-4 mb-2 pb-1 border-b border-[#273247] flex items-center gap-1.5">
+            <h1 className="text-[20px] font-semibold tracking-tight text-white mt-4 mb-2 pb-1 border-b border-white/[0.08] flex items-center gap-1.5">
               {children}
             </h1>
           ),
           h2: ({ children }) => (
-            <h2 className="text-[17px] font-semibold tracking-tight text-[#F1F5FC] mt-3.5 mb-1.5">
+            <h2 className="text-[17px] font-semibold tracking-tight text-white mt-3.5 mb-1.5">
               {children}
             </h2>
           ),
           h3: ({ children }) => (
-            <h3 className="text-[15px] font-semibold text-[#F1F5FC] mt-3 mb-1">
+            <h3 className="text-[15px] font-semibold text-white mt-3 mb-1">
               {children}
             </h3>
           ),
           h4: ({ children }) => (
-            <h4 className="text-[12px] font-semibold uppercase tracking-wider text-[#A0AEC0] mt-2.5 mb-1">
+            <h4 className="text-[12px] font-semibold uppercase tracking-wider text-neutral-400 mt-2.5 mb-1">
               {children}
             </h4>
           ),
           p: ({ children }) => (
-            <p className="my-2 text-[15px] text-[#F1F5FC] leading-[1.6] font-normal">
+            <p className="my-2 text-[15px] text-neutral-200 leading-[1.6] font-normal">
               {React.Children.map(children, (child) =>
                 typeof child === "string"
                   ? renderTextWithCitations(child)
@@ -141,13 +141,13 @@ export function FormattedMessage({
             <ul className="my-2 space-y-1 pl-1 list-none">{children}</ul>
           ),
           ol: ({ children }) => (
-            <ol className="my-2 space-y-1 pl-4 list-decimal marker:text-[#6D8FFF] marker:font-semibold marker:text-[12px]">
+            <ol className="my-2 space-y-1 pl-4 list-decimal marker:text-indigo-400 marker:font-semibold marker:text-[12px]">
               {children}
             </ol>
           ),
           li: ({ children }) => (
-            <li className="text-[15px] leading-[1.6] text-[#F1F5FC] flex items-start gap-2">
-              <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#6D8FFF] mt-2 shrink-0" />
+            <li className="text-[15px] leading-[1.6] text-neutral-200 flex items-start gap-2">
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-indigo-400 mt-2 shrink-0" />
               <div className="flex-1">
                 {React.Children.map(children, (child) =>
                   typeof child === "string"
@@ -158,18 +158,18 @@ export function FormattedMessage({
             </li>
           ),
           strong: ({ children }) => (
-            <strong className="font-semibold text-[#F1F5FC]">
+            <strong className="font-semibold text-white">
               {children}
             </strong>
           ),
           em: ({ children }) => (
-            <em className="italic text-[#F1F5FC]/90">{children}</em>
+            <em className="italic text-neutral-300">{children}</em>
           ),
           hr: () => (
-            <hr className="border-0 h-px bg-[#273247] my-3.5" />
+            <hr className="border-0 h-px bg-white/[0.08] my-4" />
           ),
           blockquote: ({ children }) => (
-            <blockquote className="border-l-2 border-[#6D8FFF] pl-3 py-1.5 my-2 bg-[#151B27] rounded-r-lg text-[13px] text-[#A0AEC0]">
+            <blockquote className="border-l-2 border-indigo-500 pl-3.5 py-1.5 my-2.5 bg-white/[0.02] rounded-r-xl text-[13px] text-neutral-300 italic border-y-0 border-r-0">
               {children}
             </blockquote>
           ),
@@ -177,7 +177,7 @@ export function FormattedMessage({
             if (inline) {
               return (
                 <code
-                  className="px-1.5 py-0.5 rounded bg-[#1B2332] font-mono text-[13px] text-[#6D8FFF] border border-[#273247]"
+                  className="px-1.5 py-0.5 rounded-md bg-white/[0.04] font-mono text-[13px] text-indigo-300 border border-white/[0.08]"
                   {...props}
                 >
                   {children}
@@ -185,33 +185,33 @@ export function FormattedMessage({
               );
             }
             return (
-              <pre className="rounded-xl bg-[#10141D] text-[#F1F5FC] p-3.5 text-[13px] font-mono overflow-x-auto my-2.5 border border-[#273247]">
+              <pre className="rounded-2xl bg-black/50 text-neutral-200 p-4 text-[13px] font-mono overflow-x-auto my-3 border border-white/[0.08] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.03)]">
                 <code {...props}>{children}</code>
               </pre>
             );
           },
           table: ({ children }) => (
-            <div className="overflow-x-auto my-3 rounded-xl border border-[#273247]">
+            <div className="overflow-x-auto my-3 rounded-2xl border border-white/[0.08] bg-white/[0.01]">
               <table className="w-full text-xs text-left border-collapse">
                 {children}
               </table>
             </div>
           ),
           thead: ({ children }) => (
-            <thead className="bg-[#1B2332] text-[#F1F5FC] font-semibold border-b border-[#273247]">
+            <thead className="bg-[#0A0C12] text-white font-semibold border-b border-white/[0.08]">
               {children}
             </thead>
           ),
           tbody: ({ children }) => (
-            <tbody className="divide-y divide-[#273247]">{children}</tbody>
+            <tbody className="divide-y divide-white/[0.06]">{children}</tbody>
           ),
           th: ({ children }) => (
-            <th className="px-3.5 py-2 text-[#F1F5FC] font-semibold text-[12px]">
+            <th className="px-3.5 py-2 text-white font-semibold text-[12px]">
               {children}
             </th>
           ),
           td: ({ children }) => (
-            <td className="px-3.5 py-2 text-[#F1F5FC] text-[13px]">
+            <td className="px-3.5 py-2 text-neutral-200 text-[13px]">
               {React.Children.map(children, (child) =>
                 typeof child === "string"
                   ? renderTextWithCitations(child)

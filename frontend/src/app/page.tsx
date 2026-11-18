@@ -15,11 +15,10 @@ import {
   CheckCircle2,
   Send,
   Loader2,
-  Layers,
   ChevronRight,
-  ExternalLink,
   ShieldCheck,
   Search,
+  X,
 } from "lucide-react";
 import { useUpload } from "@/context/UploadContext";
 import { useAuth } from "@/context/AuthContext";
@@ -59,11 +58,9 @@ export default function HomePage() {
   const loadData = async () => {
     try {
       setLoading(true);
-      // Fetch documents
       const docsData = await apiClient.getDocuments(6).catch(() => ({ items: [], total: 0 }));
       setDocuments((docsData.items as any) || []);
 
-      // Fetch notebooks
       const nbData = await apiClient.listNotebooks().catch(() => []);
       setNotebooks(nbData || []);
     } catch {
@@ -106,7 +103,6 @@ export default function HomePage() {
     }
   };
 
-  // Quick AI Universal Document Question
   const handleQuickQuestion = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!quickQuery.trim() || isAsking) return;
@@ -116,7 +112,6 @@ export default function HomePage() {
     setCitations([]);
 
     try {
-      // Send universal completion request
       const res = await apiClient.fetch("/api/v1/chat/completions/stream", {
         method: "POST",
         body: JSON.stringify({
@@ -172,7 +167,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 pb-12">
+    <div className="max-w-6xl mx-auto space-y-8 pb-16 select-none">
       {/* Hidden File Input */}
       <input
         ref={fileInputRef}
@@ -184,30 +179,35 @@ export default function HomePage() {
       />
 
       {/* Main Header & Primary Actions */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pt-1">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pt-1 border-b border-white/[0.08] pb-6">
         <div>
-          <h1 className="text-[30px] font-semibold text-[#F1F5FC] tracking-tight leading-tight">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-indigo-400">
+              Intelligence Atelier
+            </span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-semibold text-white tracking-tight">
             Research Workspace
           </h1>
-          <p className="text-[13px] text-[#A0AEC0] mt-1">
-            Docora &bull; Your documents. Your intelligence.
+          <p className="text-xs sm:text-sm text-neutral-400 mt-1">
+            Grounded multi-source synthesis, instant RAG queries, and verified citation evidence.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#151B27] border border-[#273247] hover:border-[#6D8FFF]/60 hover:bg-[#1B2332] text-[#F1F5FC] text-sm font-medium transition cursor-pointer shadow-xs"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.04] border border-white/[0.08] hover:border-white/[0.16] hover:bg-white/[0.07] text-white text-xs font-semibold transition active:scale-[0.98] cursor-pointer shadow-xs"
           >
-            <UploadCloud className="h-4 w-4 text-[#6D8FFF]" />
+            <UploadCloud className="h-4 w-4 text-indigo-400" />
             <span>Upload Document</span>
           </button>
 
           <button
             type="button"
             onClick={() => setIsCreateModalOpen(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#6D8FFF] text-[#0B0D12] text-sm font-semibold hover:bg-[#84A2FF] transition cursor-pointer shadow-sm"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition active:scale-[0.98] cursor-pointer shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2)]"
           >
             <Plus className="h-4 w-4 stroke-[2.5]" />
             <span>New Notebook</span>
@@ -216,15 +216,16 @@ export default function HomePage() {
       </div>
 
       {/* Quick AI Universal Question Entry Card */}
-      <div className="p-6 rounded-2xl bg-[#151B27] border border-[#273247] shadow-sm space-y-4">
+      <div className="p-6 rounded-2xl bg-[#0E1118] border border-white/[0.08] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] space-y-4">
         <div className="flex items-center gap-2.5">
-          <div className="h-7 w-7 rounded-lg bg-[#1B2332] text-[#6D8FFF] flex items-center justify-center border border-[#273247]">
+          <div className="h-7 w-7 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center border border-indigo-500/20">
             <Sparkles className="h-4 w-4" />
           </div>
-          <h2 className="text-[16px] font-semibold text-[#F1F5FC]">
+          <h2 className="text-sm font-semibold text-white tracking-tight">
             Ask across all documents
           </h2>
-          <span className="text-[12px] font-medium text-[#34D399] px-2 py-0.5 rounded-full bg-[#34D399]/10 border border-[#34D399]/20 ml-auto">
+          <span className="text-[11px] font-medium text-emerald-400 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 ml-auto flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
             Universal RAG Active
           </span>
         </div>
@@ -235,21 +236,21 @@ export default function HomePage() {
             value={quickQuery}
             onChange={(e) => setQuickQuery(e.target.value)}
             placeholder="Ask a question across all your uploaded documents and notebooks..."
-            className="w-full bg-[#10141D] border border-[#273247] rounded-xl pl-4 pr-12 py-3.5 text-[15px] text-[#F1F5FC] placeholder-[#A0AEC0]/60 focus:outline-hidden focus:border-[#6D8FFF] transition"
+            className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl pl-4 pr-12 py-3 text-xs sm:text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-indigo-500/70 focus:ring-1 focus:ring-indigo-500/30 transition-all"
           />
           <button
             type="submit"
             disabled={!quickQuery.trim() || isAsking}
-            className="absolute right-2.5 top-1/2 -translate-y-1/2 p-2 rounded-lg bg-[#6D8FFF] text-[#0B0D12] hover:bg-[#84A2FF] disabled:opacity-40 disabled:cursor-not-allowed transition"
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-500 disabled:opacity-30 disabled:cursor-not-allowed transition"
           >
-            {isAsking ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+            {isAsking ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
           </button>
         </form>
 
         {/* Example Prompt Chips */}
         {!aiAnswer && (
           <div className="flex flex-wrap items-center gap-2 pt-1">
-            <span className="text-[12px] font-medium text-[#A0AEC0]">Try asking:</span>
+            <span className="text-[11px] font-medium text-neutral-500">Try asking:</span>
             {[
               "What are the main risks identified in recent files?",
               "Summarize the key deliverables and deadlines",
@@ -259,9 +260,9 @@ export default function HomePage() {
                 key={chip}
                 type="button"
                 onClick={() => setQuickQuery(chip)}
-                className="text-[12px] px-2.5 py-1 rounded-lg bg-[#1B2332] border border-[#273247] text-[#A0AEC0] hover:text-[#F1F5FC] hover:border-[#6D8FFF]/40 transition"
+                className="text-[11px] px-2.5 py-1 rounded-lg bg-white/[0.02] border border-white/[0.06] text-neutral-400 hover:text-white hover:border-indigo-500/30 transition"
               >
-                {chip}
+                "{chip}"
               </button>
             ))}
           </div>
@@ -269,10 +270,10 @@ export default function HomePage() {
 
         {/* AI Response Box */}
         {aiAnswer && (
-          <div className="p-4 rounded-xl bg-[#10141D] border border-[#273247] space-y-3 pt-3">
-            <div className="flex items-center justify-between text-xs text-[#A0AEC0] border-b border-[#273247] pb-2">
-              <span className="font-semibold text-[#F1F5FC] flex items-center gap-1.5">
-                <Sparkles className="h-3.5 w-3.5 text-[#6D8FFF]" />
+          <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.08] space-y-3 pt-3">
+            <div className="flex items-center justify-between text-xs text-neutral-400 border-b border-white/[0.06] pb-2">
+              <span className="font-semibold text-white flex items-center gap-1.5">
+                <Sparkles className="h-3.5 w-3.5 text-indigo-400" />
                 Universal Grounded Answer
               </span>
               <button
@@ -281,23 +282,23 @@ export default function HomePage() {
                   setAiAnswer(null);
                   setQuickQuery("");
                 }}
-                className="text-[11px] text-[#A0AEC0] hover:text-[#F1F5FC] underline"
+                className="text-[11px] text-neutral-400 hover:text-white underline cursor-pointer"
               >
                 Clear
               </button>
             </div>
-            <div className="text-[15px] leading-[1.6] text-[#F1F5FC] whitespace-pre-wrap">
+            <div className="text-xs sm:text-sm leading-relaxed text-neutral-200 whitespace-pre-wrap">
               {aiAnswer}
             </div>
 
             {/* Citation Badges */}
             {citations.length > 0 && (
-              <div className="pt-2 border-t border-[#273247] flex flex-wrap items-center gap-2">
-                <span className="text-[12px] font-medium text-[#A0AEC0]">Verified Sources:</span>
+              <div className="pt-2 border-t border-white/[0.06] flex flex-wrap items-center gap-2">
+                <span className="text-[11px] font-medium text-neutral-400">Verified Sources:</span>
                 {citations.map((c, idx) => (
                   <span
                     key={idx}
-                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#34D399]/10 border border-[#34D399]/30 text-[#34D399] text-[11px] font-medium"
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-[11px] font-medium"
                   >
                     [{idx + 1}] {c.document_filename || "Document"} (p. {c.page_number || 1})
                   </span>
@@ -313,12 +314,13 @@ export default function HomePage() {
         {/* Recent Notebooks Section */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-[22px] font-semibold text-[#F1F5FC] tracking-tight">
+            <h2 className="text-lg font-semibold text-white tracking-tight">
               Recent Notebooks
             </h2>
             <Link
               href="/notebooks"
-              className="text-[13px] font-medium text-[#6D8FFF] hover:underline flex items-center gap-1"
+              prefetch={false}
+              className="text-xs font-medium text-indigo-400 hover:text-indigo-300 flex items-center gap-1"
             >
               <span>View all</span>
               <ChevronRight className="h-3.5 w-3.5" />
@@ -327,16 +329,16 @@ export default function HomePage() {
 
           <div className="space-y-3">
             {notebooks.length === 0 ? (
-              <div className="p-8 rounded-2xl bg-[#151B27] border border-[#273247] text-center space-y-3">
-                <BookMarked className="h-8 w-8 text-[#A0AEC0]/60 mx-auto" />
-                <p className="text-[15px] font-medium text-[#F1F5FC]">No notebooks yet</p>
-                <p className="text-[13px] text-[#A0AEC0] max-w-xs mx-auto">
+              <div className="p-8 rounded-2xl bg-[#0E1118] border border-white/[0.08] text-center space-y-3">
+                <BookMarked className="h-8 w-8 text-neutral-500 mx-auto" />
+                <p className="text-sm font-semibold text-white">No notebooks yet</p>
+                <p className="text-xs text-neutral-400 max-w-xs mx-auto">
                   Create a dedicated research notebook to organize sources, notes, and AI studio artifacts.
                 </p>
                 <button
                   type="button"
                   onClick={() => setIsCreateModalOpen(true)}
-                  className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-[#6D8FFF] text-[#0B0D12] text-xs font-semibold hover:bg-[#84A2FF] transition"
+                  className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-500 transition shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2)]"
                 >
                   <Plus className="h-3.5 w-3.5" />
                   <span>Create Notebook</span>
@@ -347,23 +349,24 @@ export default function HomePage() {
                 <Link
                   key={nb.id}
                   href={`/notebooks/workspace?id=${nb.id}`}
-                  className="block p-4 rounded-xl bg-[#151B27] border border-[#273247] hover:border-[#3A4A68] hover:bg-[#1B2332] transition group"
+                  prefetch={false}
+                  className="block p-4 rounded-xl bg-[#0E1118] border border-white/[0.08] hover:border-indigo-500/40 hover:bg-[#131622] transition group shadow-[inset_0_1px_0_0_rgba(255,255,255,0.02)]"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="h-10 w-10 rounded-xl bg-[#1B2332] text-[#6D8FFF] border border-[#273247] flex items-center justify-center shrink-0">
+                      <div className="h-10 w-10 rounded-xl bg-white/[0.04] text-indigo-400 border border-white/[0.08] flex items-center justify-center shrink-0">
                         <BookMarked className="h-5 w-5" />
                       </div>
                       <div className="min-w-0">
-                        <h3 className="text-[16px] font-semibold text-[#F1F5FC] truncate group-hover:text-[#6D8FFF] transition-colors">
+                        <h3 className="text-sm font-semibold text-white truncate group-hover:text-indigo-400 transition-colors">
                           {nb.title}
                         </h3>
-                        <p className="text-[12px] text-[#A0AEC0] mt-0.5">
+                        <p className="text-[11px] text-neutral-400 mt-0.5">
                           Updated {new Date(nb.updated_at || nb.created_at).toLocaleDateString()}
                         </p>
                       </div>
                     </div>
-                    <ArrowRight className="h-4 w-4 text-[#A0AEC0] group-hover:text-[#6D8FFF] group-hover:translate-x-0.5 transition" />
+                    <ArrowRight className="h-4 w-4 text-neutral-500 group-hover:text-indigo-400 group-hover:translate-x-0.5 transition" />
                   </div>
                 </Link>
               ))
@@ -374,32 +377,33 @@ export default function HomePage() {
         {/* Recently Uploaded Documents Section */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-[22px] font-semibold text-[#F1F5FC] tracking-tight">
+            <h2 className="text-lg font-semibold text-white tracking-tight">
               Recent Documents
             </h2>
             <Link
               href="/documents"
-              className="text-[13px] font-medium text-[#6D8FFF] hover:underline flex items-center gap-1"
+              prefetch={false}
+              className="text-xs font-medium text-indigo-400 hover:text-indigo-300 flex items-center gap-1"
             >
               <span>View library</span>
               <ChevronRight className="h-3.5 w-3.5" />
             </Link>
           </div>
 
-          <div className="p-2 rounded-2xl bg-[#151B27] border border-[#273247] divide-y divide-[#273247]">
+          <div className="p-2 rounded-2xl bg-[#0E1118] border border-white/[0.08] divide-y divide-white/[0.06]">
             {documents.length === 0 ? (
               <div className="p-8 text-center space-y-3">
-                <FileText className="h-8 w-8 text-[#A0AEC0]/60 mx-auto" />
-                <p className="text-[15px] font-medium text-[#F1F5FC]">No documents uploaded</p>
-                <p className="text-[13px] text-[#A0AEC0] max-w-xs mx-auto">
+                <FileText className="h-8 w-8 text-neutral-500 mx-auto" />
+                <p className="text-sm font-semibold text-white">No documents uploaded</p>
+                <p className="text-xs text-neutral-400 max-w-xs mx-auto">
                   Upload PDFs, DOCX, XLSX, or TXT files to extract facts, tables, and citations.
                 </p>
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-[#1B2332] border border-[#273247] text-[#F1F5FC] text-xs font-semibold hover:border-[#6D8FFF] transition"
+                  className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white text-xs font-semibold hover:border-indigo-500/40 transition"
                 >
-                  <UploadCloud className="h-3.5 w-3.5 text-[#6D8FFF]" />
+                  <UploadCloud className="h-3.5 w-3.5 text-indigo-400" />
                   <span>Upload Now</span>
                 </button>
               </div>
@@ -409,18 +413,18 @@ export default function HomePage() {
                 return (
                   <div
                     key={doc.id}
-                    className="p-3.5 flex items-center justify-between gap-3 hover:bg-[#1B2332]/60 rounded-xl transition group"
+                    className="p-3.5 flex items-center justify-between gap-3 hover:bg-white/[0.03] rounded-xl transition group"
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="h-9 w-9 rounded-xl bg-[#1B2332] text-[#6D8FFF] border border-[#273247] flex items-center justify-center shrink-0">
+                      <div className="h-9 w-9 rounded-xl bg-white/[0.04] text-indigo-400 border border-white/[0.08] flex items-center justify-center shrink-0">
                         <FileText className="h-4 w-4" />
                       </div>
                       <div className="min-w-0">
-                        <p className="text-[14px] font-semibold text-[#F1F5FC] truncate">
+                        <p className="text-xs font-semibold text-white truncate">
                           {doc.title || doc.filename}
                         </p>
-                        <p className="text-[12px] text-[#A0AEC0]">
-                          {formatFileSize(doc.file_size_bytes)} &bull; {doc.page_count || 1} {doc.page_count === 1 ? "page" : "pages"} &bull; {new Date(doc.created_at).toLocaleDateString()}
+                        <p className="text-[11px] text-neutral-400">
+                          {formatFileSize(doc.file_size_bytes)} • {doc.page_count || 1} {doc.page_count === 1 ? "page" : "pages"} • {new Date(doc.created_at).toLocaleDateString()}
                         </p>
                       </div>
                     </div>
@@ -430,8 +434,8 @@ export default function HomePage() {
                         className={cn(
                           "px-2 py-0.5 rounded-md text-[11px] font-semibold",
                           isReady
-                            ? "bg-[#34D399]/15 text-[#34D399] border border-[#34D399]/30"
-                            : "bg-[#6D8FFF]/15 text-[#6D8FFF] border border-[#6D8FFF]/30 animate-pulse"
+                            ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/25"
+                            : "bg-indigo-500/10 text-indigo-400 border border-indigo-500/25 animate-pulse"
                         )}
                       >
                         {doc.status.toLowerCase()}
@@ -446,31 +450,33 @@ export default function HomePage() {
       </div>
 
       {/* System Ingestion & Security Activity Banner */}
-      <div className="p-4 rounded-xl bg-[#151B27] border border-[#273247] flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs">
+      <div className="p-4 rounded-xl bg-[#0E1118] border border-white/[0.08] flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs">
         <div className="flex items-center gap-3">
-          <div className="h-8 w-8 rounded-lg bg-[#1B2332] text-[#34D399] border border-[#273247] flex items-center justify-center shrink-0">
+          <div className="h-8 w-8 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center shrink-0">
             <ShieldCheck className="h-4 w-4" />
           </div>
           <div>
-            <p className="text-[13px] font-semibold text-[#F1F5FC]">
+            <p className="text-xs font-semibold text-white">
               Grounded Citation Intelligence Active
             </p>
-            <p className="text-[12px] text-[#A0AEC0]">
+            <p className="text-[11px] text-neutral-400">
               MiniLM-L6 dense embeddings + Trigram lexical index enforce strict cryptographic source grounding.
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           <Link
             href="/insights"
-            className="px-3 py-1.5 rounded-lg bg-[#1B2332] border border-[#273247] hover:border-[#6D8FFF] text-[#F1F5FC] text-xs font-medium transition"
+            prefetch={false}
+            className="px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.08] hover:border-indigo-500/40 text-neutral-200 text-xs font-medium transition"
           >
             Open AI Insights →
           </Link>
           <Link
             href="/tasks"
-            className="px-3 py-1.5 rounded-lg bg-[#1B2332] border border-[#273247] hover:border-[#6D8FFF] text-[#F1F5FC] text-xs font-medium transition"
+            prefetch={false}
+            className="px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.08] hover:border-indigo-500/40 text-neutral-200 text-xs font-medium transition"
           >
             Review Tasks →
           </Link>
@@ -479,15 +485,27 @@ export default function HomePage() {
 
       {/* Create Notebook Modal */}
       {isCreateModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-4">
-          <div className="w-full max-w-md bg-[#151B27] border border-[#273247] rounded-2xl p-6 shadow-2xl space-y-4">
-            <h3 className="text-[18px] font-semibold text-[#F1F5FC]">Create Research Notebook</h3>
-            <p className="text-[13px] text-[#A0AEC0]">
-              Notebooks provide an immersive 3-panel workspace for dedicated research, document citations, and Studio generation.
-            </p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
+          <div className="w-full max-w-md bg-[#0E1118] border border-white/[0.08] rounded-2xl p-6 shadow-[0_24px_64px_-12px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(255,255,255,0.06)] space-y-4 animate-in fade-in zoom-in-95">
+            <div className="flex items-start justify-between">
+              <div>
+                <h3 className="text-base font-semibold text-white tracking-tight">Create Research Notebook</h3>
+                <p className="text-xs text-neutral-400 mt-0.5">
+                  Notebooks provide an immersive 3-panel workspace for dedicated research.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsCreateModalOpen(false)}
+                className="p-1 rounded-lg text-neutral-400 hover:text-white hover:bg-white/[0.06] transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
             <form onSubmit={handleCreateNotebook} className="space-y-4">
               <div>
-                <label className="text-[12px] font-medium text-[#A0AEC0] block mb-1.5">
+                <label className="text-[11px] font-semibold uppercase tracking-wider text-neutral-400 block mb-1.5">
                   Notebook Title
                 </label>
                 <input
@@ -496,23 +514,23 @@ export default function HomePage() {
                   autoFocus
                   value={newNotebookTitle}
                   onChange={(e) => setNewNotebookTitle(e.target.value)}
-                  placeholder="e.g. Q3 Financial Due Diligence"
-                  className="w-full bg-[#10141D] border border-[#273247] rounded-xl px-3.5 py-2.5 text-[15px] text-[#F1F5FC] focus:outline-hidden focus:border-[#6D8FFF]"
+                  placeholder="e.g. Q4 Financial Due Diligence"
+                  className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-indigo-500/70 focus:ring-1 focus:ring-indigo-500/30 transition-all"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-2.5 pt-2">
+              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-white/[0.08]">
                 <button
                   type="button"
                   onClick={() => setIsCreateModalOpen(false)}
-                  className="px-4 py-2 rounded-xl border border-[#273247] text-xs font-medium text-[#A0AEC0] hover:text-[#F1F5FC] hover:bg-[#1B2332] transition"
+                  className="px-4 py-2 rounded-xl border border-white/[0.08] text-xs font-medium text-neutral-400 hover:text-white hover:bg-white/[0.06] transition"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isCreatingNotebook || !newNotebookTitle.trim()}
-                  className="px-4 py-2 rounded-xl bg-[#6D8FFF] text-[#0B0D12] text-xs font-semibold hover:bg-[#84A2FF] disabled:opacity-40 transition"
+                  className="px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-500 disabled:opacity-40 transition shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2)] active:scale-[0.98]"
                 >
                   {isCreatingNotebook ? "Creating..." : "Create Notebook"}
                 </button>

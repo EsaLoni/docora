@@ -60,31 +60,31 @@ export function GeminiKeyModal({ isOpen, onClose }: GeminiKeyModalProps) {
   const isSuspiciousKey = apiKey.trim().length > 0 && !isAIzaKey;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md rounded-2xl border border-[#273247] bg-[#151B27] shadow-2xl overflow-hidden flex flex-col relative z-50 animate-in fade-in zoom-in-95">
+    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+      <div className="w-full max-w-md rounded-2xl border border-white/[0.08] bg-[#0E1118] shadow-[0_24px_64px_-12px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(255,255,255,0.06)] overflow-hidden flex flex-col relative z-50 select-none animate-in fade-in zoom-in-95">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-[#273247] bg-[#10141D]">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-[#6D8FFF]/10 border border-[#6D8FFF]/30 flex items-center justify-center text-[#6D8FFF]">
+        <div className="flex items-center justify-between p-4 border-b border-white/[0.08] bg-[#0A0C12]">
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
               <Sparkles className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-[#F1F5FC]">Connect Google Gemini AI</h3>
-              <p className="text-[11px] text-[#A0AEC0]">Required for document chat & Studio generation</p>
+              <h3 className="text-sm font-semibold text-white tracking-tight">Connect Google Gemini AI</h3>
+              <p className="text-[11px] text-neutral-400">Custom BYOK key or live platform default</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg text-[#A0AEC0] hover:text-[#F1F5FC] hover:bg-[#1B2332]"
+            className="p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-white/[0.06] transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Content & Form */}
-        <form onSubmit={handleSave} className="p-5 space-y-4">
-          <div className="p-3.5 rounded-xl bg-[#1B2332] border border-[#273247] text-xs space-y-2">
-            <p className="text-[#F1F5FC] font-medium leading-relaxed">
+        <form onSubmit={handleSave} className="p-5 space-y-4 bg-[#0E1118]">
+          <div className="p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.06] text-xs space-y-2">
+            <p className="text-neutral-200 font-medium leading-relaxed">
               Docora runs grounded RAG and Studio tools (Quizzes, Flashcards, Podcasts) directly via Google Gemini AI.
             </p>
             <div className="flex items-center justify-between pt-1">
@@ -92,7 +92,7 @@ export function GeminiKeyModal({ isOpen, onClose }: GeminiKeyModalProps) {
                 href="https://aistudio.google.com/app/apikey"
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-1.5 text-[#6D8FFF] hover:underline font-semibold"
+                className="inline-flex items-center gap-1.5 text-indigo-400 hover:text-indigo-300 font-semibold"
               >
                 <span>Get a free key from Google AI Studio</span>
                 <ExternalLink className="w-3.5 h-3.5" />
@@ -105,20 +105,20 @@ export function GeminiKeyModal({ isOpen, onClose }: GeminiKeyModalProps) {
 
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <label className="block text-xs font-medium text-[#A0AEC0]">
+              <label className="block text-[11px] font-semibold uppercase tracking-wider text-neutral-400">
                 Google Gemini API Key
               </label>
               <button
                 type="button"
                 onClick={handlePaste}
-                className="inline-flex items-center gap-1 text-[11px] text-[#6D8FFF] hover:underline cursor-pointer"
+                className="inline-flex items-center gap-1 text-[11px] text-indigo-400 hover:underline cursor-pointer"
               >
                 <Clipboard className="w-3 h-3" />
                 <span>{copiedNotification ? "Pasted!" : "Paste from Clipboard"}</span>
               </button>
             </div>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#A0AEC0]">
+              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-500">
                 <Key className="w-4 h-4" />
               </div>
               <input
@@ -127,59 +127,59 @@ export function GeminiKeyModal({ isOpen, onClose }: GeminiKeyModalProps) {
                 onChange={(e) => setApiKey(e.target.value)}
                 placeholder="AIzaSy..."
                 autoFocus
-                className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-[#273247] bg-[#10141D] text-[#F1F5FC] text-xs placeholder:text-[#A0AEC0]/40 focus:border-[#6D8FFF] outline-hidden font-mono"
+                className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-white/[0.08] bg-white/[0.03] text-white text-xs placeholder:text-neutral-500 focus:outline-none focus:border-indigo-500/70 focus:ring-1 focus:ring-indigo-500/30 transition-all font-mono"
               />
             </div>
 
             {isAIzaKey && (
               <p className="text-[11px] text-emerald-400 flex items-center gap-1">
-                <ShieldCheck className="w-3.5 h-3.5" />
+                <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
                 <span>Valid Google Gemini API Key format detected.</span>
               </p>
             )}
 
             {isSuspiciousKey && (
               <p className="text-[11px] text-amber-400 flex items-center gap-1">
-                <AlertCircle className="w-3.5 h-3.5" />
+                <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                 <span>Note: Google AI Studio API keys typically start with "AIzaSy...".</span>
               </p>
             )}
 
-            <p className="text-[11px] text-[#A0AEC0]">
-              Your key is saved locally in your browser and sent securely only for your queries.
+            <p className="text-[11px] text-neutral-500">
+              Your key is saved locally in your browser and used securely for inference.
             </p>
           </div>
 
           {isSaved && (
-            <div className="p-2.5 rounded-xl bg-[#34D399]/10 border border-[#34D399]/30 text-[#34D399] text-xs flex items-center gap-2">
-              <Check className="w-4 h-4" />
+            <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs flex items-center gap-2">
+              <Check className="w-4 h-4 text-emerald-400 shrink-0" />
               <span>Key saved successfully! Ready to generate.</span>
             </div>
           )}
 
-          <div className="flex items-center justify-between pt-2">
+          <div className="flex items-center justify-between pt-3 border-t border-white/[0.08]">
             {apiClient.getGeminiApiKey() ? (
               <button
                 type="button"
                 onClick={handleClear}
-                className="px-3 py-1.5 rounded-xl text-xs text-red-400 hover:bg-red-400/10 transition-colors"
+                className="px-3 py-1.5 rounded-xl text-xs text-rose-400 hover:bg-rose-500/10 transition-colors"
               >
                 Clear key
               </button>
             ) : <div />}
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2.5">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-3.5 py-2 rounded-xl text-xs font-medium text-[#A0AEC0] hover:text-[#F1F5FC] hover:bg-[#1B2332]"
+                className="px-4 py-2 rounded-xl border border-white/[0.08] text-xs font-medium text-neutral-400 hover:text-white hover:bg-white/[0.06] transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={!apiKey.trim()}
-                className="px-4 py-2 rounded-xl text-xs font-semibold bg-[#6D8FFF] text-[#0B0D12] hover:bg-[#84A2FF] disabled:opacity-50 transition-colors flex items-center gap-1.5"
+                className="px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-500 active:scale-[0.98] disabled:opacity-50 transition-all shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2)] flex items-center gap-1.5"
               >
                 <Check className="w-3.5 h-3.5" />
                 <span>Save & Connect</span>

@@ -84,7 +84,7 @@ function NotebookWorkspaceContent() {
   // Conditional renders strictly below all hook declarations
   if (!notebookId) {
     return (
-      <div className="h-screen w-screen flex flex-col items-center justify-center bg-[#08090D] text-white p-6 space-y-4 font-sans select-none">
+      <div className="h-screen w-screen flex flex-col items-center justify-center bg-[#090A10] text-white p-6 space-y-4 font-sans select-none">
         <div className="h-14 w-14 rounded-2xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-indigo-400 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]">
           <BookMarked className="h-7 w-7" />
         </div>
@@ -109,7 +109,7 @@ function NotebookWorkspaceContent() {
 
   if (loading) {
     return (
-      <div className="h-screen w-screen flex flex-col items-center justify-center bg-[#08090D] text-neutral-400 gap-3 font-sans select-none">
+      <div className="h-screen w-screen flex flex-col items-center justify-center bg-[#090A10] text-neutral-400 gap-3 font-sans select-none">
         <div className="w-8 h-8 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin" />
         <span className="text-xs font-medium tracking-wide text-neutral-300">Loading workspace...</span>
       </div>

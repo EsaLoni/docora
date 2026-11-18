@@ -128,14 +128,14 @@ export function WorkspaceShell({
           {isLeftPanelOpen ? (
             <section
               style={{ width: `${leftWidth}px` }}
-              className="h-full shrink-0 rounded-2xl border border-white/[0.08] bg-[#0E1118] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] overflow-hidden flex flex-col transition-all duration-200"
+              className="h-full shrink-0 rounded-2xl border border-white/[0.08] bg-[#0D0F18] shadow-[0_4px_24px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.03)] overflow-hidden flex flex-col transition-all duration-200"
             >
               {sourcesPanel}
             </section>
           ) : (
             <aside
               onClick={() => setIsLeftPanelOpen(true)}
-              className="h-full w-12 shrink-0 rounded-2xl border border-white/[0.08] bg-[#0E1118] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] hover:bg-white/[0.04] cursor-pointer flex flex-col items-center py-4 transition-colors group"
+              className="h-full w-12 shrink-0 rounded-2xl border border-white/[0.08] bg-[#0D0F18] shadow-[0_4px_24px_rgba(0,0,0,0.5)] hover:bg-white/[0.04] cursor-pointer flex flex-col items-center py-4 transition-colors group"
               title="Expand Sources"
             >
               <div className="p-2 rounded-xl text-neutral-400 group-hover:text-indigo-400">
@@ -163,7 +163,7 @@ export function WorkspaceShell({
           )}
 
           {/* CENTER: CHAT PANEL */}
-          <section className="flex-1 h-full min-w-[320px] rounded-2xl border border-white/[0.08] bg-[#0E1118] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] overflow-hidden flex flex-col">
+          <section className="flex-1 h-full min-w-[320px] rounded-2xl border border-white/[0.12] bg-[#101320] shadow-[0_8px_32px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.06)] overflow-hidden flex flex-col relative">
             {chatPanel}
           </section>
 
@@ -183,7 +183,7 @@ export function WorkspaceShell({
           {isRightPanelOpen ? (
             <section
               style={{ width: `${rightWidth}px` }}
-              className="h-full shrink-0 rounded-2xl border border-white/[0.08] bg-[#0E1118] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] overflow-hidden flex flex-col transition-all duration-200"
+              className="h-full shrink-0 rounded-2xl border border-white/[0.08] bg-[#0D0F18] shadow-[0_4px_24px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.03)] overflow-hidden flex flex-col transition-all duration-200"
             >
               {studioPanel}
             </section>

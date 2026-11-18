@@ -102,7 +102,7 @@ export function WorkspaceHeader({
   };
 
   return (
-    <header className="h-13 w-full flex items-center justify-between px-3 z-20 shrink-0 bg-[#08090D] border-b border-white/[0.08] select-none">
+    <header className="h-12 w-full flex items-center justify-between px-3 z-20 shrink-0 bg-[#090B12] border-b border-white/[0.08] select-none">
       {/* Left: Brand + Back + Notebook Title */}
       <div className="flex items-center gap-2.5 min-w-0">
         <Link
@@ -137,7 +137,7 @@ export function WorkspaceHeader({
                 }
               }}
               autoFocus
-              className="px-2.5 py-1 rounded-lg text-xs sm:text-sm font-semibold bg-[#12151F] border border-white/[0.15] text-white outline-none ring-1 ring-indigo-500/50 w-full shadow-inner"
+              className="px-2.5 py-1 rounded-lg text-xs sm:text-sm font-semibold bg-[#131726] border border-white/[0.15] text-white outline-none ring-1 ring-indigo-500/50 w-full shadow-inner"
             />
           ) : (
             <button
@@ -148,7 +148,7 @@ export function WorkspaceHeader({
               <div className="w-5 h-5 rounded-md bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shrink-0 text-indigo-400">
                 <BookOpen className="w-3 h-3" />
               </div>
-              <span className="text-xs sm:text-sm font-semibold truncate text-neutral-100">
+              <span className="text-xs sm:text-sm font-semibold truncate text-white">
                 {title || "Untitled Notebook"}
               </span>
               <Edit2 className="w-3 h-3 text-neutral-500 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
@@ -160,7 +160,7 @@ export function WorkspaceHeader({
         <button
           onClick={onOpenGeminiKey}
           type="button"
-          className="hidden md:flex items-center gap-1.5 px-3 py-1 rounded-full border border-white/[0.1] bg-[#12151F]/90 hover:bg-[#171B28] hover:border-indigo-500/30 text-[11px] font-medium text-neutral-200 transition-all cursor-pointer group shadow-xs"
+          className="hidden md:flex items-center gap-1.5 px-3 py-1 rounded-full border border-white/[0.1] bg-[#131726] hover:bg-[#181D30] hover:border-indigo-500/30 text-[11px] font-medium text-neutral-200 transition-all cursor-pointer group shadow-xs"
           title="Google Gemini AI Active (Click to manage key)"
         >
           <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] shrink-0" />

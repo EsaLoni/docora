@@ -150,9 +150,9 @@ export function StudioPanel({
       : STUDIO_CATEGORIES.filter((c) => c.id === activeCategory);
 
   return (
-    <div className="h-full flex flex-col bg-[#0E1118] text-[#F3F4F6] select-none">
+    <div className="h-full flex flex-col bg-[#0D0F18] text-[#F3F4F6] select-none">
       {/* Studio Header */}
-      <div className="h-13 px-4 border-b border-white/[0.08] flex items-center justify-between shrink-0 bg-[#0A0C12]">
+      <div className="h-11 px-4 border-b border-white/[0.08] flex items-center justify-between shrink-0 bg-[#090B12]">
         <div className="flex items-center gap-2">
           <Sparkles className="w-4 h-4 text-indigo-400" />
           <h3 className="text-xs font-semibold uppercase tracking-wider text-white">
@@ -165,7 +165,7 @@ export function StudioPanel({
       </div>
 
       {/* Category Filter Pills */}
-      <div className="px-3 py-2 bg-[#0E1118] border-b border-white/[0.06] flex items-center gap-1.5 overflow-x-auto shrink-0">
+      <div className="px-3 py-2 bg-[#0D0F18] border-b border-white/[0.06] flex items-center gap-1.5 overflow-x-auto shrink-0">
         <button
           type="button"
           onClick={() => setActiveCategory("all")}
@@ -221,7 +221,7 @@ export function StudioPanel({
                         key={tool.id}
                         type="button"
                         onClick={() => onOpenTool(tool.id)}
-                        className="flex items-center gap-3 p-3 rounded-xl border border-white/[0.08] bg-[#12151F]/80 hover:bg-[#171B28] hover:border-indigo-500/40 hover:shadow-[0_4px_16px_rgba(99,102,241,0.12)] transition-all text-left group cursor-pointer active:scale-[0.99]"
+                        className="flex items-center gap-3 p-3 rounded-xl border border-white/[0.08] bg-[#131726] hover:bg-[#181D30] hover:border-indigo-500/40 hover:shadow-[0_4px_16px_rgba(99,102,241,0.12)] transition-all text-left group cursor-pointer active:scale-[0.99]"
                       >
                         <div className="p-2 rounded-xl bg-white/[0.04] text-neutral-300 group-hover:text-indigo-400 group-hover:bg-indigo-500/10 border border-white/[0.06] shrink-0 transition-colors shadow-xs">
                           <ToolIcon className="w-4 h-4" />
@@ -258,7 +258,7 @@ export function StudioPanel({
                 <div
                   key={art.id}
                   onClick={() => onViewArtifact(art)}
-                  className="group flex items-center justify-between p-3 rounded-xl border border-white/[0.08] bg-[#12151F]/90 hover:bg-[#171B28] hover:border-indigo-500/40 cursor-pointer transition-all shadow-[0_4px_16px_rgba(0,0,0,0.3)] active:scale-[0.99]"
+                  className="group flex items-center justify-between p-3 rounded-xl border border-white/[0.08] bg-[#131726] hover:bg-[#181D30] hover:border-indigo-500/40 cursor-pointer transition-all shadow-[0_4px_16px_rgba(0,0,0,0.3)] active:scale-[0.99]"
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="p-2 rounded-xl bg-white/[0.04] border border-white/[0.06] shrink-0 group-hover:bg-indigo-500/10 group-hover:border-indigo-500/30 transition-colors">

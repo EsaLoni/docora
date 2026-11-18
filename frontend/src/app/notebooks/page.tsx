@@ -157,7 +157,7 @@ export default function NotebooksPage() {
           {[1, 2, 3].map((i) => (
             <div
               key={i}
-              className="h-44 rounded-2xl border border-white/[0.06] bg-[#0E1118] animate-pulse p-5 space-y-3 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.03)]"
+              className="h-44 rounded-2xl border border-white/[0.06] bg-[#0D0F18] animate-pulse p-5 space-y-3 shadow-[0_4px_20px_rgba(0,0,0,0.3)]"
             >
               <div className="h-4 bg-white/[0.06] rounded w-2/3" />
               <div className="h-3 bg-white/[0.03] rounded w-full" />
@@ -193,7 +193,7 @@ export default function NotebooksPage() {
                 key={nb.id}
                 href={`/notebooks/workspace?id=${nb.id}`}
                 prefetch={false}
-                className="group relative flex flex-col justify-between rounded-2xl border border-white/[0.08] bg-[#0E1118] p-5 hover:border-indigo-500/40 hover:bg-[#131622] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] hover:shadow-lg transition-all duration-200 cursor-pointer overflow-hidden"
+                className="group relative flex flex-col justify-between rounded-2xl border border-white/[0.08] bg-[#0D0F18] p-5 hover:border-indigo-500/40 hover:bg-[#131726] shadow-[0_4px_20px_rgba(0,0,0,0.3)] hover:shadow-xl transition-all duration-200 cursor-pointer overflow-hidden"
               >
                 {/* Top Accent Dot & Delete Action */}
                 <div className="space-y-3">

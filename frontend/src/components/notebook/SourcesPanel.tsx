@@ -60,12 +60,12 @@ export function SourcesPanel({
   const activeSourcesCount = sources.filter((s) => s.is_active_for_queries).length;
 
   return (
-    <div className="h-full flex flex-col min-h-0 bg-[#0E1118] text-[#F3F4F6] select-none">
+    <div className="h-full flex flex-col min-h-0 bg-[#0D0F18] text-[#F3F4F6] select-none">
       {/* Top subtle highlight rim */}
       <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-white/[0.12] to-transparent shrink-0" />
 
       {/* Header Tabs */}
-      <div className="p-3 border-b border-white/[0.08] flex items-center justify-between gap-2 shrink-0 bg-[#0A0C12]">
+      <div className="p-3 border-b border-white/[0.08] flex items-center justify-between gap-2 shrink-0 bg-[#090B12]">
         <div className="flex items-center gap-1 bg-white/[0.04] p-1 rounded-xl border border-white/[0.06]">
           <button
             onClick={() => setActiveTab("sources")}
@@ -141,7 +141,7 @@ export function SourcesPanel({
               {filteredSources.map((source) => (
                 <div
                   key={source.id}
-                  className="group relative flex items-start gap-2.5 p-3 rounded-xl border border-white/[0.08] bg-[#12151F] hover:bg-[#181C2B] hover:border-indigo-500/40 transition-all shadow-[0_4px_16px_rgba(0,0,0,0.4),inset_0_1px_0_0_rgba(255,255,255,0.04)]"
+                  className="group relative flex items-start gap-2.5 p-3 rounded-xl border border-white/[0.08] bg-[#131726] hover:bg-[#181D30] hover:border-indigo-500/40 transition-all shadow-[0_4px_16px_rgba(0,0,0,0.3)]"
                 >
                   {/* Active Toggle Checkbox */}
                   <input

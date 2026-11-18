@@ -260,16 +260,16 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-      <div className="w-full max-w-4xl min-h-[420px] max-h-[88vh] rounded-2xl border border-white/[0.08] bg-[#0E1118] shadow-[0_24px_64px_-12px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(255,255,255,0.06)] flex flex-col overflow-hidden select-none animate-in fade-in zoom-in-95">
+    <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
+      <div className="w-full max-w-4xl min-h-[420px] max-h-[88vh] rounded-2xl border border-black/[0.08] bg-white shadow-2xl flex flex-col overflow-hidden select-none animate-in fade-in zoom-in-95">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.08] bg-[#0A0C12]">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-black/[0.08] bg-[#F4F5F7]">
           <div className="min-w-0 pr-4">
-            <h3 className="text-base font-semibold text-white truncate tracking-tight">
+            <h3 className="text-base font-semibold text-neutral-900 truncate tracking-tight">
               {artifact.title || data.title || data.deck_title || data.report_title || data.video_title || "Studio Artifact"}
             </h3>
-            <p className="text-[11px] text-neutral-400 capitalize flex items-center gap-1.5 mt-0.5">
-              <span className="w-2 h-2 rounded-full bg-indigo-400" />
+            <p className="text-[11px] text-neutral-500 capitalize flex items-center gap-1.5 mt-0.5">
+              <span className="w-2 h-2 rounded-full bg-amber-600" />
               {(rawType || artifact.artifact_type || "artifact").replace("_", " ")} • Generated with Gemini
             </p>
           </div>
@@ -700,24 +700,24 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
                 <p className="text-xs text-neutral-400">{data.description}</p>
               )}
               {data.columns && data.rows ? (
-                <div className="overflow-x-auto rounded-2xl border border-white/[0.08] bg-white/[0.02]">
+                <div className="overflow-x-auto rounded-2xl border border-black/[0.08] bg-white shadow-xs">
                   <table className="w-full text-left text-xs border-collapse">
-                    <thead className="bg-[#0A0C12] text-white font-semibold border-b border-white/[0.08]">
+                    <thead className="bg-[#F4F5F7] text-neutral-900 font-semibold border-b border-black/[0.08]">
                       <tr>
                         <th className="p-3 w-10 text-neutral-500">#</th>
                         {data.columns.map((col: any, cIdx: number) => (
-                          <th key={cIdx} className="p-3">
+                          <th key={cIdx} className="p-3 text-neutral-900">
                             {col.label || col.key}
                           </th>
                         ))}
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-white/[0.06]">
+                    <tbody className="divide-y divide-black/[0.06]">
                       {data.rows.map((row: any, rIdx: number) => (
-                        <tr key={rIdx} className="hover:bg-white/[0.04] transition-colors">
+                        <tr key={rIdx} className="hover:bg-neutral-50 transition-colors">
                           <td className="p-3 font-mono text-[10px] text-neutral-500">{rIdx + 1}</td>
                           {data.columns.map((col: any, cIdx: number) => (
-                            <td key={cIdx} className="p-3 text-neutral-200">
+                            <td key={cIdx} className="p-3 text-neutral-800">
                               {row[col.key] !== undefined ? String(row[col.key]) : "-"}
                             </td>
                           ))}

@@ -450,16 +450,16 @@ export default function HomePage() {
       </div>
 
       {/* System Ingestion & Security Activity Banner */}
-      <div className="p-4 rounded-xl bg-[#0E1118] border border-white/[0.08] flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs">
+      <div className="p-4 rounded-xl bg-white border border-black/[0.08] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs">
         <div className="flex items-center gap-3">
-          <div className="h-8 w-8 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center shrink-0">
+          <div className="h-8 w-8 rounded-lg bg-emerald-500/10 text-emerald-700 border border-emerald-500/20 flex items-center justify-center shrink-0">
             <ShieldCheck className="h-4 w-4" />
           </div>
           <div>
-            <p className="text-xs font-semibold text-white">
+            <p className="text-xs font-semibold text-neutral-900">
               Grounded Citation Intelligence Active
             </p>
-            <p className="text-[11px] text-neutral-400">
+            <p className="text-[11px] text-neutral-500">
               MiniLM-L6 dense embeddings + Trigram lexical index enforce strict cryptographic source grounding.
             </p>
           </div>
@@ -469,14 +469,14 @@ export default function HomePage() {
           <Link
             href="/insights"
             prefetch={false}
-            className="px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.08] hover:border-indigo-500/40 text-neutral-200 text-xs font-medium transition"
+            className="px-3 py-1.5 rounded-lg bg-neutral-50 border border-black/[0.08] hover:border-amber-500/40 text-neutral-700 text-xs font-medium transition"
           >
             Open AI Insights →
           </Link>
           <Link
             href="/tasks"
             prefetch={false}
-            className="px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.08] hover:border-indigo-500/40 text-neutral-200 text-xs font-medium transition"
+            className="px-3 py-1.5 rounded-lg bg-neutral-50 border border-black/[0.08] hover:border-amber-500/40 text-neutral-700 text-xs font-medium transition"
           >
             Review Tasks →
           </Link>
@@ -485,19 +485,19 @@ export default function HomePage() {
 
       {/* Create Notebook Modal */}
       {isCreateModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
-          <div className="w-full max-w-md bg-[#0E1118] border border-white/[0.08] rounded-2xl p-6 shadow-[0_24px_64px_-12px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(255,255,255,0.06)] space-y-4 animate-in fade-in zoom-in-95">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
+          <div className="w-full max-w-md bg-white border border-black/[0.08] rounded-2xl p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95">
             <div className="flex items-start justify-between">
               <div>
-                <h3 className="text-base font-semibold text-white tracking-tight">Create Research Notebook</h3>
-                <p className="text-xs text-neutral-400 mt-0.5">
+                <h3 className="text-base font-semibold text-neutral-900 tracking-tight">Create Research Notebook</h3>
+                <p className="text-xs text-neutral-500 mt-0.5">
                   Notebooks provide an immersive 3-panel workspace for dedicated research.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setIsCreateModalOpen(false)}
-                className="p-1 rounded-lg text-neutral-400 hover:text-white hover:bg-white/[0.06] transition-colors"
+                className="p-1 rounded-lg text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 transition-colors"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -505,7 +505,7 @@ export default function HomePage() {
 
             <form onSubmit={handleCreateNotebook} className="space-y-4">
               <div>
-                <label className="text-[11px] font-semibold uppercase tracking-wider text-neutral-400 block mb-1.5">
+                <label className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500 block mb-1.5">
                   Notebook Title
                 </label>
                 <input
@@ -515,22 +515,22 @@ export default function HomePage() {
                   value={newNotebookTitle}
                   onChange={(e) => setNewNotebookTitle(e.target.value)}
                   placeholder="e.g. Q4 Financial Due Diligence"
-                  className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-indigo-500/70 focus:ring-1 focus:ring-indigo-500/30 transition-all"
+                  className="w-full bg-neutral-50 border border-black/[0.08] rounded-xl px-3.5 py-2.5 text-xs text-neutral-900 placeholder-neutral-400 focus:outline-none focus:border-amber-500/70 focus:ring-1 focus:ring-amber-500/30 transition-all shadow-xs"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-white/[0.08]">
+              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-black/[0.08]">
                 <button
                   type="button"
                   onClick={() => setIsCreateModalOpen(false)}
-                  className="px-4 py-2 rounded-xl border border-white/[0.08] text-xs font-medium text-neutral-400 hover:text-white hover:bg-white/[0.06] transition"
+                  className="px-4 py-2 rounded-xl border border-black/[0.08] text-xs font-medium text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 transition"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isCreatingNotebook || !newNotebookTitle.trim()}
-                  className="px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-500 disabled:opacity-40 transition shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2)] active:scale-[0.98]"
+                  className="px-4 py-2 rounded-xl bg-[#E5A93B] hover:bg-[#D97706] text-neutral-950 text-xs font-semibold disabled:opacity-40 transition shadow-xs active:scale-[0.98]"
                 >
                   {isCreatingNotebook ? "Creating..." : "Create Notebook"}
                 </button>

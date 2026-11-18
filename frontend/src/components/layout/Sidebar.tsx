@@ -172,15 +172,15 @@ export function Sidebar({ isMobileOpen = false, onCloseMobile }: SidebarProps) {
 
           {/* Account Popover Menu */}
           {showAccountMenu && (
-            <div className="absolute bottom-full left-0 right-0 mb-2 p-2 bg-[#12151F] border border-white/[0.08] rounded-xl shadow-2xl z-30 space-y-1 animate-in fade-in duration-100">
-              <div className="px-2.5 py-1.5 text-[11px] text-neutral-400 border-b border-white/[0.06] flex items-center justify-between">
+            <div className="absolute bottom-full left-0 right-0 mb-2 p-2 bg-white border border-black/[0.08] rounded-xl shadow-xl z-30 space-y-1 animate-in fade-in duration-100">
+              <div className="px-2.5 py-1.5 text-[11px] text-neutral-500 border-b border-black/[0.06] flex items-center justify-between">
                 <span>Account Status</span>
-                <span className="text-emerald-400 font-medium">Verified Active</span>
+                <span className="text-emerald-600 font-semibold">Verified Active</span>
               </div>
               <button
                 type="button"
                 onClick={handleSignOut}
-                className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-xs font-medium text-rose-400 hover:bg-rose-500/10 transition text-left"
+                className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-xs font-semibold text-rose-600 hover:bg-rose-50 transition text-left"
               >
                 <LogOut className="h-3.5 w-3.5 shrink-0" />
                 <span>Sign Out</span>

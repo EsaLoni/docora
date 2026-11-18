@@ -113,24 +113,24 @@ export function AddSourceModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-      <div className="w-full max-w-lg rounded-2xl border border-white/[0.08] bg-[#0E1118] shadow-[0_24px_64px_-12px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(255,255,255,0.06)] overflow-hidden flex flex-col relative z-50 animate-in fade-in zoom-in-95 select-none">
+    <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
+      <div className="w-full max-w-lg rounded-2xl border border-black/[0.08] bg-white shadow-2xl overflow-hidden flex flex-col relative z-50 animate-in fade-in zoom-in-95 select-none">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-white/[0.08] bg-[#0A0C12]">
+        <div className="flex items-center justify-between p-4 border-b border-black/[0.08] bg-[#F4F5F7]">
           <div>
-            <h3 className="text-sm font-semibold text-white tracking-tight">Add Knowledge Source</h3>
-            <p className="text-[11px] text-neutral-400">Ground queries and studio artifacts in these materials</p>
+            <h3 className="text-sm font-semibold text-neutral-900 tracking-tight">Add Knowledge Source</h3>
+            <p className="text-[11px] text-neutral-500">Ground queries and studio artifacts in these materials</p>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-white/[0.06] transition-colors"
+            className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-700 hover:bg-neutral-200 transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Source Type Selector */}
-        <div className="p-2.5 grid grid-cols-4 gap-1.5 bg-[#0A0C12] border-b border-white/[0.08]">
+        <div className="p-2.5 grid grid-cols-4 gap-1.5 bg-[#F4F5F7] border-b border-black/[0.08]">
           {[
             { id: "document", label: "Files", icon: FileText },
             { id: "url", label: "Web Link", icon: Globe },
@@ -149,11 +149,11 @@ export function AddSourceModal({
                 }}
                 className={`flex flex-col items-center gap-1.5 py-2 px-1 rounded-xl text-xs font-semibold transition-all ${
                   isSelected
-                    ? "bg-white/[0.08] text-white border border-white/[0.1] shadow-xs"
-                    : "text-neutral-400 hover:text-white hover:bg-white/[0.04]"
+                    ? "bg-white text-neutral-900 border border-black/[0.08] shadow-xs"
+                    : "text-neutral-500 hover:text-neutral-900 hover:bg-white/60"
                 }`}
               >
-                <Icon className={`w-4 h-4 ${isSelected ? "text-indigo-400" : "text-neutral-500"}`} />
+                <Icon className={`w-4 h-4 ${isSelected ? "text-amber-600" : "text-neutral-400"}`} />
                 <span>{type.label}</span>
               </button>
             );
@@ -161,7 +161,7 @@ export function AddSourceModal({
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-5 space-y-4 bg-[#0E1118]">
+        <form onSubmit={handleSubmit} className="p-5 space-y-4 bg-white">
           {uploadError && (
             <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center gap-2 text-xs text-rose-300">
               <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
@@ -230,13 +230,13 @@ export function AddSourceModal({
                       setSelectedDocId(e.target.value);
                       if (e.target.value) setUploadFile(null);
                     }}
-                    className="w-full px-3 py-2.5 rounded-xl border border-white/[0.08] bg-white/[0.03] text-xs text-white focus:outline-none focus:border-indigo-500/70 focus:ring-1 focus:ring-indigo-500/30 transition-all mt-1"
+                    className="w-full px-3 py-2.5 rounded-xl border border-black/[0.08] bg-[#F4F5F7] text-xs text-neutral-900 focus:outline-none focus:border-amber-500 focus:bg-white transition-all mt-1"
                   >
-                    <option value="" className="bg-[#0E1118] text-neutral-300">
+                    <option value="" className="text-neutral-500">
                       -- Choose from {workspaceDocuments.length} workspace documents --
                     </option>
                     {workspaceDocuments.map((doc) => (
-                      <option key={doc.id} value={doc.id} className="bg-[#0E1118] text-white">
+                      <option key={doc.id} value={doc.id} className="text-neutral-900">
                         {doc.title || doc.filename}
                       </option>
                     ))}
@@ -252,7 +252,7 @@ export function AddSourceModal({
 
           {(sourceType === "url" || sourceType === "youtube") && (
             <div>
-              <label className="text-[11px] font-semibold uppercase tracking-wider text-neutral-400 mb-1.5 block">
+              <label className="text-[11px] font-semibold uppercase tracking-wider text-neutral-600 mb-1.5 block">
                 {sourceType === "youtube" ? "YouTube Video URL" : "Web Page URL"}
               </label>
               <input
@@ -261,14 +261,14 @@ export function AddSourceModal({
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 placeholder={sourceType === "youtube" ? "https://www.youtube.com/watch?v=..." : "https://..."}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-white/[0.08] bg-white/[0.03] text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-indigo-500/70 focus:ring-1 focus:ring-indigo-500/30 transition-all"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-black/[0.08] bg-[#F4F5F7] text-xs text-neutral-900 placeholder-neutral-400 focus:outline-none focus:border-amber-500 focus:bg-white transition-all"
               />
             </div>
           )}
 
           {sourceType === "text" && (
             <div>
-              <label className="text-[11px] font-semibold uppercase tracking-wider text-neutral-400 mb-1.5 block">
+              <label className="text-[11px] font-semibold uppercase tracking-wider text-neutral-600 mb-1.5 block">
                 Pasted Notes or Text
               </label>
               <textarea
@@ -277,13 +277,13 @@ export function AddSourceModal({
                 value={rawText}
                 onChange={(e) => setRawText(e.target.value)}
                 placeholder="Paste research excerpts, meeting transcripts, or markdown..."
-                className="w-full px-3.5 py-2.5 rounded-xl border border-white/[0.08] bg-white/[0.03] text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-indigo-500/70 focus:ring-1 focus:ring-indigo-500/30 transition-all resize-none"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-black/[0.08] bg-[#F4F5F7] text-xs text-neutral-900 placeholder-neutral-400 focus:outline-none focus:border-amber-500 focus:bg-white transition-all resize-none"
               />
             </div>
           )}
 
           <div>
-            <label className="text-[11px] font-semibold uppercase tracking-wider text-neutral-400 mb-1.5 block">
+            <label className="text-[11px] font-semibold uppercase tracking-wider text-neutral-600 mb-1.5 block">
               Source Title (Optional)
             </label>
             <input
@@ -291,26 +291,26 @@ export function AddSourceModal({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Custom source display name..."
-              className="w-full px-3.5 py-2.5 rounded-xl border border-white/[0.08] bg-white/[0.03] text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-indigo-500/70 focus:ring-1 focus:ring-indigo-500/30 transition-all"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-black/[0.08] bg-[#F4F5F7] text-xs text-neutral-900 placeholder-neutral-400 focus:outline-none focus:border-amber-500 focus:bg-white transition-all"
             />
           </div>
 
-          <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-white/[0.08]">
+          <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-black/[0.08]">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl border border-white/[0.08] text-xs font-medium text-neutral-400 hover:text-white hover:bg-white/[0.06] transition-colors"
+              className="px-4 py-2 rounded-xl border border-black/[0.08] text-xs font-medium text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-500 disabled:opacity-50 transition-all shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2)] active:scale-[0.98] flex items-center gap-1.5"
+              className="px-4 py-2 rounded-xl bg-[#E5A93B] text-neutral-950 text-xs font-bold hover:bg-[#D97706] disabled:opacity-50 transition-all shadow-xs active:scale-[0.98] flex items-center gap-1.5"
             >
               {isSubmitting ? (
                 <>
-                  <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <div className="w-3.5 h-3.5 border-2 border-neutral-950 border-t-transparent rounded-full animate-spin" />
                   <span>{uploadStatus === "uploading" ? "Uploading file..." : "Adding source..."}</span>
                 </>
               ) : (

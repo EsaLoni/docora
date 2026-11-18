@@ -118,13 +118,13 @@ function NotebookWorkspaceContent() {
 
   if (!notebook) {
     return (
-      <div className="h-screen w-screen flex flex-col items-center justify-center bg-[#08090D] text-white p-6 space-y-4 font-sans select-none">
-        <div className="h-14 w-14 rounded-2xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-indigo-400 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]">
+      <div className="h-screen w-screen flex flex-col items-center justify-center bg-[#F8F9FA] text-neutral-900 p-6 space-y-4 font-sans select-none">
+        <div className="h-14 w-14 rounded-2xl bg-white border border-black/[0.08] flex items-center justify-center text-amber-600 shadow-sm">
           <BookMarked className="h-7 w-7" />
         </div>
         <div className="text-center space-y-1.5 max-w-sm">
-          <h2 className="text-lg font-semibold text-white tracking-tight">Notebook Not Found</h2>
-          <p className="text-xs text-neutral-400 leading-relaxed">
+          <h2 className="text-lg font-semibold text-neutral-900 tracking-tight">Notebook Not Found</h2>
+          <p className="text-xs text-neutral-500 leading-relaxed">
             This notebook does not exist or belongs to another workspace. Access is restricted under workspace isolation.
           </p>
         </div>
@@ -132,7 +132,7 @@ function NotebookWorkspaceContent() {
           <Link
             href="/notebooks"
             prefetch={false}
-            className="px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-500 active:scale-[0.98] transition-all shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2)]"
+            className="px-4 py-2 rounded-xl bg-[#E5A93B] text-neutral-950 text-xs font-bold hover:bg-[#D97706] active:scale-[0.98] transition-all shadow-xs"
           >
             Return to My Notebooks
           </Link>
@@ -273,9 +273,9 @@ export default function NotebookWorkspacePage() {
   return (
     <Suspense
       fallback={
-        <div className="h-screen w-screen flex flex-col items-center justify-center bg-[#08090D] text-neutral-400 gap-3 font-sans select-none">
-          <div className="w-8 h-8 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin" />
-          <span className="text-xs font-medium tracking-wide text-neutral-300">Loading workspace...</span>
+        <div className="h-screen w-screen flex flex-col items-center justify-center bg-[#F8F9FA] text-neutral-500 gap-3 font-sans select-none">
+          <div className="w-8 h-8 rounded-full border-2 border-amber-600 border-t-transparent animate-spin" />
+          <span className="text-xs font-medium tracking-wide text-neutral-700">Loading workspace...</span>
         </div>
       }
     >

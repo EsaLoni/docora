@@ -357,7 +357,7 @@ export default function DocumentLibraryPage() {
           <h1 className="text-[30px] font-semibold text-[white] tracking-tight leading-tight">
             Document Library
           </h1>
-          <p className="text-[13px] text-[neutral-400] mt-1">
+          <p className="text-[13px] text-neutral-500 mt-1">
             Central repository for ingested research sources, contracts, reports, and datasets.
           </p>
         </div>
@@ -366,25 +366,25 @@ export default function DocumentLibraryPage() {
           <button
             type="button"
             onClick={() => handleOpenAskDrawer()}
-            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#0E1118] border border-[white/[0.08]] hover:border-[#6366F1]/60 hover:bg-[white/[0.04]] text-[white] text-xs font-medium transition"
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-black/[0.08] hover:border-amber-500/60 hover:bg-neutral-50 text-neutral-900 text-xs font-semibold shadow-xs transition"
           >
-            <Sparkles className="h-4 w-4 text-[#6366F1]" />
+            <Sparkles className="h-4 w-4 text-amber-600" />
             <span>Ask Documents</span>
           </button>
 
           <button
             type="button"
             onClick={() => setIsFolderModalOpen(true)}
-            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#0E1118] border border-[white/[0.08]] hover:border-[#6366F1]/60 hover:bg-[white/[0.04]] text-[white] text-xs font-medium transition"
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-black/[0.08] hover:border-amber-500/60 hover:bg-neutral-50 text-neutral-900 text-xs font-semibold shadow-xs transition"
           >
-            <FolderPlus className="h-4 w-4 text-[neutral-400]" />
+            <FolderPlus className="h-4 w-4 text-neutral-500" />
             <span>New Folder</span>
           </button>
 
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#6366F1] text-[white] text-xs font-semibold hover:bg-[#818CF8] transition"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#E5A93B] text-neutral-950 text-xs font-bold hover:bg-[#D97706] shadow-xs active:scale-[0.98] transition"
           >
             <UploadCloud className="h-4 w-4 stroke-[2.5]" />
             <span>Upload Document</span>
@@ -399,27 +399,27 @@ export default function DocumentLibraryPage() {
         onDrop={handleDrop}
         onClick={() => fileInputRef.current?.click()}
         className={cn(
-          "border border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all duration-150 flex items-center justify-center gap-4 bg-[#0E1118]",
+          "border border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all duration-150 flex items-center justify-center gap-4 bg-white shadow-xs",
           isDragging
-            ? "border-[#6366F1] bg-[white/[0.04]] ring-2 ring-[#6366F1]/20"
-            : "border-[white/[0.08]] hover:border-[white/[0.16]] hover:bg-[white/[0.04]]/60"
+            ? "border-amber-500 bg-amber-50/50 ring-2 ring-amber-500/20"
+            : "border-black/[0.12] hover:border-black/[0.24] hover:bg-neutral-50/60"
         )}
       >
-        <div className="h-10 w-10 rounded-xl bg-[white/[0.04]] text-[#6366F1] border border-[white/[0.08]] flex items-center justify-center shrink-0">
+        <div className="h-10 w-10 rounded-xl bg-[#F4F5F7] text-amber-600 border border-black/[0.08] flex items-center justify-center shrink-0">
           <UploadCloud className="h-5 w-5" />
         </div>
         <div className="text-left">
-          <p className="text-[15px] font-semibold text-[white]">
+          <p className="text-[15px] font-semibold text-neutral-900">
             Drop files here or click to browse
           </p>
-          <p className="text-[12px] text-[neutral-400] mt-0.5">
+          <p className="text-[12px] text-neutral-500 mt-0.5">
             Non-blocking ingestion for PDF, DOCX, XLSX, CSV, PPTX, and TXT (up to 25 MB).
           </p>
         </div>
       </div>
 
       {/* Filter and Folder Navigation Bar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-b border-[white/[0.08]] pb-3">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-b border-black/[0.08] pb-3">
         {/* Folder Navigation Pills */}
         <div className="flex items-center gap-1.5 overflow-x-auto py-0.5">
           <button
@@ -427,8 +427,8 @@ export default function DocumentLibraryPage() {
             className={cn(
               "px-3 py-1.5 rounded-lg text-xs font-medium transition-colors shrink-0",
               selectedFolder === "all"
-                ? "bg-[white/[0.04]] text-[#6366F1] border border-[white/[0.08]] font-semibold"
-                : "text-[neutral-400] hover:text-[white] hover:bg-[#0E1118]"
+                ? "bg-neutral-900 text-white font-semibold"
+                : "text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100"
             )}
           >
             All Documents ({documents.length})
@@ -443,8 +443,8 @@ export default function DocumentLibraryPage() {
                 className={cn(
                   "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors shrink-0",
                   isSelected
-                    ? "bg-[white/[0.04]] text-[#6366F1] border border-[white/[0.08]] font-semibold"
-                    : "text-[neutral-400] hover:text-[white] hover:bg-[#0E1118]"
+                    ? "bg-neutral-900 text-white font-semibold shadow-xs"
+                    : "text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100"
                 )}
               >
                 <span
@@ -461,20 +461,20 @@ export default function DocumentLibraryPage() {
         {/* Search & Status Filters */}
         <div className="flex items-center gap-2">
           <div className="relative">
-            <Search className="h-3.5 w-3.5 absolute left-3 top-2.5 text-[neutral-400]" />
+            <Search className="h-3.5 w-3.5 absolute left-3 top-2.5 text-neutral-400" />
             <input
               type="text"
               placeholder="Filter library..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-8 pr-3 py-1.5 text-xs bg-[#0A0C12] border border-[white/[0.08]] rounded-xl text-[white] placeholder-[neutral-400]/60 focus:outline-hidden focus:border-[#6366F1] w-48 sm:w-56"
+              className="pl-8 pr-3 py-1.5 text-xs bg-white border border-black/[0.08] rounded-xl text-neutral-900 placeholder-neutral-400 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20 w-48 sm:w-56"
             />
           </div>
 
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="text-xs bg-[#0A0C12] border border-[white/[0.08]] rounded-xl px-3 py-1.5 text-[neutral-400] focus:outline-hidden focus:border-[#6366F1]"
+            className="text-xs bg-white border border-black/[0.08] rounded-xl px-3 py-1.5 text-neutral-700 focus:outline-none focus:border-amber-500"
           >
             <option value="ALL">All Status</option>
             <option value="READY">Ready</option>
@@ -487,45 +487,45 @@ export default function DocumentLibraryPage() {
 
       {/* Document Table */}
       {filteredDocuments.length === 0 ? (
-        <div className="border border-dashed border-[white/[0.08]] rounded-2xl p-12 text-center bg-[#0E1118] flex flex-col items-center justify-center space-y-3">
-          <div className="h-12 w-12 rounded-xl bg-[white/[0.04]] flex items-center justify-center text-[neutral-400] border border-[white/[0.08]]">
+        <div className="border border-dashed border-black/[0.12] rounded-2xl p-12 text-center bg-white flex flex-col items-center justify-center space-y-3 shadow-xs">
+          <div className="h-12 w-12 rounded-xl bg-[#F4F5F7] flex items-center justify-center text-neutral-400 border border-black/[0.08]">
             <FolderOpen className="h-6 w-6" />
           </div>
-          <h3 className="text-[16px] font-semibold text-[white]">No documents found</h3>
-          <p className="text-[13px] text-[neutral-400] max-w-sm">
+          <h3 className="text-[16px] font-semibold text-neutral-900">No documents found</h3>
+          <p className="text-[13px] text-neutral-500 max-w-sm">
             {searchQuery || statusFilter !== "ALL"
               ? "No documents match your active search or status filter."
               : "Upload documents to begin extracting structured facts and asking questions."}
           </p>
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="mt-2 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#6366F1] text-[white] text-xs font-semibold hover:bg-[#818CF8] transition"
+            className="mt-2 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#E5A93B] text-neutral-950 text-xs font-bold hover:bg-[#D97706] shadow-xs active:scale-[0.98] transition"
           >
             <UploadCloud className="h-4 w-4" />
             <span>Upload Document</span>
           </button>
         </div>
       ) : (
-        <div className="border border-[white/[0.08]] rounded-2xl bg-[#0E1118] overflow-hidden shadow-sm">
+        <div className="border border-black/[0.08] rounded-2xl bg-white overflow-hidden shadow-xs">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="border-b border-[white/[0.08]] bg-[#0A0C12] text-[neutral-400] font-medium">
-                  <th className="py-3 px-4 font-medium">Document Name</th>
-                  <th className="py-3 px-4 font-medium w-24">Type</th>
-                  <th className="py-3 px-4 font-medium w-28">Status</th>
-                  <th className="py-3 px-4 font-medium w-24">Size</th>
-                  <th className="py-3 px-4 font-medium w-32">Uploaded</th>
-                  <th className="py-3 px-4 font-medium text-right w-44">Actions</th>
+                <tr className="border-b border-black/[0.08] bg-[#F4F5F7] text-neutral-600 font-medium">
+                  <th className="py-3 px-4 font-semibold">Document Name</th>
+                  <th className="py-3 px-4 font-semibold w-24">Type</th>
+                  <th className="py-3 px-4 font-semibold w-28">Status</th>
+                  <th className="py-3 px-4 font-semibold w-24">Size</th>
+                  <th className="py-3 px-4 font-semibold w-32">Uploaded</th>
+                  <th className="py-3 px-4 font-semibold text-right w-44">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[white/[0.08]]">
+              <tbody className="divide-y divide-black/[0.06]">
                 {filteredDocuments.map((doc) => {
                   const folder = folders.find((f) => f.id === doc.folder_id);
                   return (
                     <tr
                       key={doc.id}
-                      className="hover:bg-[white/[0.04]]/50 transition-colors group"
+                      className="hover:bg-neutral-50/80 transition-colors group"
                     >
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-3 min-w-0">
@@ -533,15 +533,15 @@ export default function DocumentLibraryPage() {
                           <div className="min-w-0">
                             <span
                               onClick={() => setInspectedDoc(doc)}
-                              className="text-[14px] font-semibold text-[white] block truncate hover:text-[#6366F1] transition-colors cursor-pointer"
+                              className="text-[14px] font-semibold text-neutral-900 block truncate hover:text-amber-700 transition-colors cursor-pointer"
                               title={doc.title}
                             >
                               {doc.title}
                             </span>
-                            <div className="flex items-center gap-2 text-[11px] text-[neutral-400]">
+                            <div className="flex items-center gap-2 text-[11px] text-neutral-500">
                               <span className="font-mono truncate">{doc.filename}</span>
                               {folder && (
-                                <span className="inline-flex items-center gap-1 text-[10px] text-[neutral-400]/80">
+                                <span className="inline-flex items-center gap-1 text-[10px] text-neutral-500/80">
                                   <span>•</span>
                                   <span
                                     className="h-1.5 w-1.5 rounded-full shrink-0"
@@ -635,42 +635,42 @@ export default function DocumentLibraryPage() {
 
       {/* In-Library Slide-over Document Q&A Drawer */}
       {isAskDrawerOpen && (
-        <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-xs">
-          <div className="w-full max-w-md bg-[#0E1118] border-l border-[white/[0.08]] h-full flex flex-col shadow-2xl animate-in slide-in-from-right duration-200">
+        <div className="fixed inset-0 z-50 flex justify-end bg-black/40 backdrop-blur-xs">
+          <div className="w-full max-w-md bg-white border-l border-black/[0.08] h-full flex flex-col shadow-2xl animate-in slide-in-from-right duration-200">
             {/* Drawer Header */}
-            <div className="p-4 border-b border-[white/[0.08]] flex items-center justify-between bg-[#0A0C12]">
+            <div className="p-4 border-b border-black/[0.08] flex items-center justify-between bg-[#F4F5F7]">
               <div className="flex items-center gap-2 min-w-0">
-                <Sparkles className="h-4 w-4 text-[#6366F1] shrink-0" />
+                <Sparkles className="h-4 w-4 text-amber-600 shrink-0" />
                 <div className="min-w-0">
-                  <h3 className="text-sm font-semibold text-[white] truncate">
+                  <h3 className="text-sm font-semibold text-neutral-900 truncate">
                     {askTargetDoc ? `Ask: ${askTargetDoc.title}` : "Ask Document Library"}
                   </h3>
-                  <span className="text-[11px] text-[#10B981]">Grounded Citations Active</span>
+                  <span className="text-[11px] text-emerald-600 font-semibold">Grounded Citations Active</span>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setIsAskDrawerOpen(false)}
-                className="p-1.5 rounded-lg text-[neutral-400] hover:text-[white] hover:bg-[white/[0.04]]"
+                className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-700 hover:bg-neutral-200"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
             {/* Drawer Content */}
-            <div className="flex-1 p-4 overflow-y-auto space-y-4 text-xs">
+            <div className="flex-1 p-4 overflow-y-auto space-y-4 text-xs bg-white">
               {drawerAnswer ? (
                 <div className="space-y-3">
-                  <div className="p-4 rounded-xl bg-[#0A0C12] border border-[white/[0.08]] space-y-2.5">
-                    <div className="text-[15px] leading-[1.6] text-[white] whitespace-pre-wrap">
+                  <div className="p-4 rounded-xl bg-[#F4F5F7] border border-black/[0.08] space-y-2.5">
+                    <div className="text-[15px] leading-[1.6] text-neutral-900 whitespace-pre-wrap">
                       {drawerAnswer}
                     </div>
                     {drawerCitations.length > 0 && (
-                      <div className="pt-2 border-t border-[white/[0.08]] flex flex-wrap gap-1.5">
+                      <div className="pt-2 border-t border-black/[0.08] flex flex-wrap gap-1.5">
                         {drawerCitations.map((c, i) => (
                           <span
                             key={i}
-                            className="px-2 py-0.5 rounded-md bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30 text-[11px]"
+                            className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-medium"
                           >
                             [{i + 1}] {c.document_filename || "Source"} (p. {c.page_number || 1})
                           </span>
@@ -680,10 +680,10 @@ export default function DocumentLibraryPage() {
                   </div>
                 </div>
               ) : (
-                <div className="p-6 text-center space-y-2 text-[neutral-400]">
-                  <Sparkles className="h-8 w-8 text-[#6366F1]/60 mx-auto" />
-                  <p className="text-[14px] font-medium text-[white]">Ask any question</p>
-                  <p className="text-[12px]">
+                <div className="p-6 text-center space-y-2 text-neutral-500">
+                  <Sparkles className="h-8 w-8 text-amber-600 mx-auto" />
+                  <p className="text-[14px] font-semibold text-neutral-900">Ask any question</p>
+                  <p className="text-[12px] text-neutral-500">
                     Responses are generated using Google Gemini with strict verification against indexed document chunks.
                   </p>
                 </div>
@@ -691,21 +691,21 @@ export default function DocumentLibraryPage() {
             </div>
 
             {/* Drawer Composer */}
-            <form onSubmit={handleDrawerQuestion} className="p-4 border-t border-[white/[0.08]] bg-[#0A0C12] space-y-2">
+            <form onSubmit={handleDrawerQuestion} className="p-4 border-t border-black/[0.08] bg-[#F4F5F7] space-y-2">
               <div className="relative">
                 <input
                   type="text"
                   value={drawerQuery}
                   onChange={(e) => setDrawerQuery(e.target.value)}
                   placeholder={askTargetDoc ? `Ask about ${askTargetDoc.filename}...` : "Ask across library..."}
-                  className="w-full bg-[#0E1118] border border-[white/[0.08]] rounded-xl pl-3.5 pr-10 py-2.5 text-xs text-[white] placeholder-[neutral-400]/60 focus:outline-hidden focus:border-[#6366F1]"
+                  className="w-full bg-white border border-black/[0.08] rounded-xl pl-3.5 pr-10 py-2.5 text-xs text-neutral-900 placeholder-neutral-400 focus:outline-none focus:border-amber-500"
                 />
                 <button
                   type="submit"
                   disabled={!drawerQuery.trim() || isAsking}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg bg-[#6366F1] text-[white] hover:bg-[#818CF8] disabled:opacity-40 transition"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg bg-[#E5A93B] text-neutral-950 hover:bg-[#D97706] disabled:opacity-40 transition"
                 >
-                  {isAsking ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
+                  {isAsking ? <Loader2 className="h-3.5 w-3.5 animate-spin text-neutral-950" /> : <Send className="h-3.5 w-3.5" />}
                 </button>
               </div>
             </form>
@@ -715,15 +715,15 @@ export default function DocumentLibraryPage() {
 
       {/* Modal: Create Folder */}
       {isFolderModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
-          <div className="bg-[#0E1118] border border-[white/[0.08]] rounded-2xl shadow-2xl w-full max-w-sm p-5 space-y-4">
-            <div className="flex items-center justify-between border-b border-[white/[0.08]] pb-3">
-              <h3 className="font-semibold text-sm text-[white] flex items-center gap-2">
-                <FolderPlus className="h-4 w-4 text-[#6366F1]" /> Create New Folder
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
+          <div className="bg-white border border-black/[0.08] rounded-2xl shadow-2xl w-full max-w-sm p-5 space-y-4">
+            <div className="flex items-center justify-between border-b border-black/[0.08] pb-3">
+              <h3 className="font-semibold text-sm text-neutral-900 flex items-center gap-2">
+                <FolderPlus className="h-4 w-4 text-amber-600" /> Create New Folder
               </h3>
               <button
                 onClick={() => setIsFolderModalOpen(false)}
-                className="text-[neutral-400] hover:text-[white]"
+                className="text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 p-1 rounded-lg"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -731,7 +731,7 @@ export default function DocumentLibraryPage() {
 
             <form onSubmit={handleCreateFolder} className="space-y-3">
               <div>
-                <label className="text-xs font-medium text-[neutral-400] block mb-1">
+                <label className="text-xs font-semibold text-neutral-700 block mb-1">
                   Folder Name
                 </label>
                 <input
@@ -740,16 +740,16 @@ export default function DocumentLibraryPage() {
                   placeholder="e.g. Invoices, Contracts"
                   value={newFolderName}
                   onChange={(e) => setNewFolderName(e.target.value)}
-                  className="w-full text-xs px-3 py-2 bg-[#0A0C12] border border-[white/[0.08]] rounded-xl text-[white] focus:outline-hidden focus:border-[#6366F1]"
+                  className="w-full text-xs px-3 py-2 bg-[#F4F5F7] border border-black/[0.08] rounded-xl text-neutral-900 focus:outline-none focus:border-amber-500 focus:bg-white"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-medium text-[neutral-400] block mb-1.5">
+                <label className="text-xs font-semibold text-neutral-700 block mb-1.5">
                   Color Tag
                 </label>
                 <div className="flex items-center gap-2">
-                  {["#6366F1", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", "#06B6D4"].map(
+                  {["#E5A93B", "#10B981", "#3B82F6", "#EF4444", "#8B5CF6", "#06B6D4"].map(
                     (color) => (
                       <button
                         type="button"
@@ -757,7 +757,7 @@ export default function DocumentLibraryPage() {
                         onClick={() => setNewFolderColor(color)}
                         className={cn(
                           "h-5 w-5 rounded-full transition-transform",
-                          newFolderColor === color && "ring-2 ring-[#6366F1] ring-offset-2 ring-offset-[#0E1118] scale-110"
+                          newFolderColor === color && "ring-2 ring-neutral-900 ring-offset-2 ring-offset-white scale-110"
                         )}
                         style={{ backgroundColor: color }}
                       />
@@ -770,13 +770,13 @@ export default function DocumentLibraryPage() {
                 <button
                   type="button"
                   onClick={() => setIsFolderModalOpen(false)}
-                  className="px-3.5 py-1.5 border border-[white/[0.08]] rounded-xl text-xs font-medium text-[neutral-400] hover:text-[white] hover:bg-[white/[0.04]]"
+                  className="px-3.5 py-1.5 border border-black/[0.08] rounded-xl text-xs font-medium text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-3.5 py-1.5 bg-[#6366F1] text-[white] rounded-xl text-xs font-semibold hover:bg-[#818CF8]"
+                  className="px-3.5 py-1.5 bg-[#E5A93B] text-neutral-950 rounded-xl text-xs font-bold hover:bg-[#D97706] shadow-xs active:scale-[0.98]"
                 >
                   Create Folder
                 </button>
@@ -788,21 +788,21 @@ export default function DocumentLibraryPage() {
 
       {/* Modal: Move Document to Folder */}
       {movingDocId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
-          <div className="bg-[#0E1118] border border-[white/[0.08]] rounded-2xl shadow-2xl w-full max-w-sm p-5 space-y-4">
-            <div className="flex items-center justify-between border-b border-[white/[0.08]] pb-3">
-              <h3 className="font-semibold text-sm text-[white] flex items-center gap-2">
-                <MoveRight className="h-4 w-4 text-[#6366F1]" /> Move Document to Folder
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
+          <div className="bg-white border border-black/[0.08] rounded-2xl shadow-2xl w-full max-w-sm p-5 space-y-4">
+            <div className="flex items-center justify-between border-b border-black/[0.08] pb-3">
+              <h3 className="font-semibold text-sm text-neutral-900 flex items-center gap-2">
+                <MoveRight className="h-4 w-4 text-amber-600" /> Move Document to Folder
               </h3>
               <button
                 onClick={() => setMovingDocId(null)}
-                className="text-[neutral-400] hover:text-[white]"
+                className="text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 p-1 rounded-lg"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
-            <p className="text-xs text-[neutral-400]">
+            <p className="text-xs text-neutral-500">
               Select destination folder:
             </p>
 
@@ -810,16 +810,16 @@ export default function DocumentLibraryPage() {
               <button
                 type="button"
                 onClick={() => handleMoveFolder(movingDocId, null)}
-                className="w-full flex items-center gap-2 px-3 py-2 text-xs rounded-xl border border-[white/[0.08]] hover:bg-[white/[0.04]] text-left font-medium text-[white]"
+                className="w-full flex items-center gap-2 px-3 py-2 text-xs rounded-xl border border-black/[0.08] hover:bg-neutral-50 text-left font-medium text-neutral-900"
               >
-                <FolderOpen className="h-4 w-4 text-[neutral-400]" /> Unfiled (Root)
+                <FolderOpen className="h-4 w-4 text-neutral-400" /> Unfiled (Root)
               </button>
               {folders.map((folder) => (
                 <button
                   type="button"
                   key={folder.id}
                   onClick={() => handleMoveFolder(movingDocId, folder.id)}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-xs rounded-xl border border-[white/[0.08]] hover:bg-[white/[0.04]] text-left font-medium text-[white]"
+                  className="w-full flex items-center gap-2 px-3 py-2 text-xs rounded-xl border border-black/[0.08] hover:bg-neutral-50 text-left font-medium text-neutral-900"
                 >
                   <span
                     className="h-2 w-2 rounded-full shrink-0"
@@ -834,7 +834,7 @@ export default function DocumentLibraryPage() {
               <button
                 type="button"
                 onClick={() => setMovingDocId(null)}
-                className="px-3.5 py-1.5 border border-[white/[0.08]] rounded-xl text-xs font-medium text-[neutral-400] hover:text-[white] hover:bg-[white/[0.04]]"
+                className="px-3.5 py-1.5 border border-black/[0.08] rounded-xl text-xs font-medium text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100"
               >
                 Cancel
               </button>

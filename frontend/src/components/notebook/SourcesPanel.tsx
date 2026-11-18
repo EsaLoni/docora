@@ -220,35 +220,35 @@ export function SourcesPanel({
           notes.map((note) => (
             <div
               key={note.id}
-              className="group relative p-3 rounded-xl border border-white/[0.08] bg-[#12151F] hover:bg-[#181C2B] hover:border-indigo-500/40 transition-all space-y-1.5 shadow-[0_4px_16px_rgba(0,0,0,0.4),inset_0_1px_0_0_rgba(255,255,255,0.04)]"
+              className="group relative p-3 rounded-xl border border-black/[0.08] bg-white hover:bg-neutral-50 hover:border-amber-500/40 transition-all space-y-1.5 shadow-xs"
             >
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-white truncate pr-4">
+                <span className="text-xs font-semibold text-neutral-900 truncate pr-4">
                   {note.title}
                 </span>
                 <button
                   onClick={() => onDeleteNote(note.id)}
-                  className="opacity-0 group-hover:opacity-100 p-1 rounded-lg text-neutral-400 hover:text-rose-400 hover:bg-white/[0.06] transition-all"
+                  className="opacity-0 group-hover:opacity-100 p-1 rounded-lg text-neutral-400 hover:text-rose-600 hover:bg-neutral-100 transition-all"
                   title="Delete note"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
               </div>
-              <p className="text-xs text-neutral-300 line-clamp-3 leading-relaxed whitespace-pre-wrap">
+              <p className="text-xs text-neutral-600 line-clamp-3 leading-relaxed whitespace-pre-wrap">
                 {note.content}
               </p>
               {note.source_citations && note.source_citations.length > 0 && (
-                <div className="pt-1 flex items-center gap-1 text-[10px] text-emerald-400 font-medium">
+                <div className="pt-1 flex items-center gap-1 text-[10px] text-emerald-600 font-medium">
                   <span>Cites {note.source_citations.length} sources</span>
                 </div>
               )}
             </div>
           ))
         ) : (
-          <div className="h-full flex flex-col items-center justify-center text-center p-6 text-neutral-400">
-            <StickyNote className="w-8 h-8 stroke-1 mb-2 text-neutral-600" />
-            <p className="text-xs font-medium text-neutral-300">No saved notes</p>
-            <p className="text-[11px] mt-1 max-w-[200px] leading-relaxed">
+          <div className="h-full flex flex-col items-center justify-center text-center p-6 text-neutral-500">
+            <StickyNote className="w-8 h-8 stroke-1 mb-2 text-neutral-400" />
+            <p className="text-xs font-semibold text-neutral-900">No saved notes</p>
+            <p className="text-[11px] mt-1 max-w-[200px] leading-relaxed text-neutral-500">
               Capture quick notes or save key synthesis insights directly into this notebook.
             </p>
             <button

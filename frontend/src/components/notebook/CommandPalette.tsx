@@ -158,10 +158,10 @@ export function CommandPalette({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-start justify-center pt-20 p-4 select-none">
-      <div className="w-full max-w-lg rounded-2xl border border-white/[0.08] bg-[#0E1118] shadow-[0_24px_64px_-12px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(255,255,255,0.06)] overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-100">
+    <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-start justify-center pt-20 p-4 select-none">
+      <div className="w-full max-w-lg rounded-2xl border border-black/[0.08] bg-white shadow-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-100">
         {/* Search Bar */}
-        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-white/[0.08] bg-[#0A0C12]">
+        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-black/[0.08] bg-[#F4F5F7]">
           <Search className="w-4 h-4 text-neutral-400 shrink-0" />
           <input
             type="text"
@@ -169,15 +169,15 @@ export function CommandPalette({
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Type a command or search actions..."
             autoFocus
-            className="w-full bg-transparent border-0 text-xs text-white placeholder-neutral-500 outline-none"
+            className="w-full bg-transparent border-0 text-xs text-neutral-900 placeholder-neutral-400 outline-none"
           />
-          <kbd className="px-1.5 py-0.5 rounded-md border border-white/[0.1] bg-white/[0.04] text-[10px] text-neutral-400 font-mono">
+          <kbd className="px-1.5 py-0.5 rounded-md border border-black/[0.1] bg-white text-[10px] text-neutral-500 font-mono shadow-xs">
             ESC
           </kbd>
         </div>
 
         {/* Command List */}
-        <div className="max-h-84 overflow-y-auto p-2 space-y-1">
+        <div className="max-h-84 overflow-y-auto p-2 space-y-1 bg-white">
           {filtered.length > 0 ? (
             filtered.map((cmd, idx) => {
               const Icon = cmd.icon;
@@ -192,16 +192,16 @@ export function CommandPalette({
                   onMouseEnter={() => setSelectedIndex(idx)}
                   className={`w-full flex items-center justify-between p-2.5 rounded-xl text-left transition-all ${
                     isSelected
-                      ? "bg-indigo-600 text-white shadow-xs"
-                      : "text-neutral-200 hover:bg-white/[0.04]"
+                      ? "bg-[#E5A93B] text-neutral-950 shadow-xs"
+                      : "text-neutral-800 hover:bg-neutral-100"
                   }`}
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <div
                       className={`p-1.5 rounded-lg border shrink-0 ${
                         isSelected
-                          ? "bg-white/20 border-white/30 text-white"
-                          : "bg-white/[0.03] border-white/[0.06] text-neutral-400"
+                          ? "bg-white/40 border-neutral-900/10 text-neutral-950"
+                          : "bg-[#F4F5F7] border-black/[0.08] text-neutral-600"
                       }`}
                     >
                       <Icon className="w-4 h-4" />
@@ -210,7 +210,7 @@ export function CommandPalette({
                       <p className="text-xs font-semibold truncate tracking-tight">{cmd.title}</p>
                       <p
                         className={`text-[11px] truncate ${
-                          isSelected ? "text-indigo-200" : "text-neutral-500"
+                          isSelected ? "text-neutral-900 font-medium" : "text-neutral-500"
                         }`}
                       >
                         {cmd.desc}
@@ -219,7 +219,7 @@ export function CommandPalette({
                   </div>
 
                   {isSelected && (
-                    <div className="flex items-center gap-1 text-[10px] text-indigo-200 pr-1 shrink-0">
+                    <div className="flex items-center gap-1 text-[10px] text-neutral-950 pr-1 shrink-0 font-bold">
                       <span>↵</span>
                     </div>
                   )}
@@ -234,9 +234,9 @@ export function CommandPalette({
         </div>
 
         {/* Keyboard hints footer */}
-        <div className="px-4 py-2 bg-[#0A0C12] border-t border-white/[0.06] flex items-center justify-between text-[10px] text-neutral-500">
-          <span>Navigate with <kbd className="font-mono text-neutral-400">↑</kbd> <kbd className="font-mono text-neutral-400">↓</kbd></span>
-          <span>Select with <kbd className="font-mono text-neutral-400">↵ Enter</kbd></span>
+        <div className="px-4 py-2 bg-[#F4F5F7] border-t border-black/[0.08] flex items-center justify-between text-[10px] text-neutral-500">
+          <span>Navigate with <kbd className="font-mono text-neutral-600">↑</kbd> <kbd className="font-mono text-neutral-600">↓</kbd></span>
+          <span>Select with <kbd className="font-mono text-neutral-600">↵ Enter</kbd></span>
         </div>
       </div>
     </div>

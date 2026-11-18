@@ -191,27 +191,27 @@ export function FormattedMessage({
             );
           },
           table: ({ children }) => (
-            <div className="overflow-x-auto my-3 rounded-2xl border border-white/[0.08] bg-white/[0.01]">
+            <div className="overflow-x-auto my-3 rounded-2xl border border-black/[0.08] bg-white shadow-xs">
               <table className="w-full text-xs text-left border-collapse">
                 {children}
               </table>
             </div>
           ),
           thead: ({ children }) => (
-            <thead className="bg-[#0A0C12] text-white font-semibold border-b border-white/[0.08]">
+            <thead className="bg-[#F4F5F7] text-neutral-900 font-semibold border-b border-black/[0.08]">
               {children}
             </thead>
           ),
           tbody: ({ children }) => (
-            <tbody className="divide-y divide-white/[0.06]">{children}</tbody>
+            <tbody className="divide-y divide-black/[0.06]">{children}</tbody>
           ),
           th: ({ children }) => (
-            <th className="px-3.5 py-2 text-white font-semibold text-[12px]">
+            <th className="px-3.5 py-2 text-neutral-900 font-semibold text-[12px]">
               {children}
             </th>
           ),
           td: ({ children }) => (
-            <td className="px-3.5 py-2 text-neutral-200 text-[13px]">
+            <td className="px-3.5 py-2 text-neutral-800 text-[13px]">
               {React.Children.map(children, (child) =>
                 typeof child === "string"
                   ? renderTextWithCitations(child)

@@ -158,12 +158,12 @@ export default function TasksPage() {
   return (
     <div className="max-w-6xl mx-auto space-y-6 pb-12">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[#273247]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-black/[0.08]">
         <div>
-          <h1 className="text-[30px] font-semibold text-[#F1F5FC] tracking-tight leading-tight">
+          <h1 className="text-[28px] font-bold text-neutral-900 tracking-tight leading-tight">
             Tasks & Obligations
           </h1>
-          <p className="text-[13px] text-[#A0AEC0] mt-1">
+          <p className="text-[13px] text-neutral-500 mt-1">
             Track extracted deliverables, contractual deadlines, and AI-discovered commitments.
           </p>
         </div>
@@ -171,7 +171,7 @@ export default function TasksPage() {
         <button
           type="button"
           onClick={() => setIsCreateOpen(true)}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#6D8FFF] text-[#0B0D12] text-xs font-semibold hover:bg-[#84A2FF] transition shadow-sm self-start sm:self-auto"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#E5A93B] text-neutral-950 text-xs font-semibold hover:bg-[#D97706] transition shadow-xs self-start sm:self-auto cursor-pointer"
         >
           <Plus className="h-4 w-4 stroke-[2.5]" />
           <span>New Task</span>
@@ -179,15 +179,15 @@ export default function TasksPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-1.5 border-b border-[#273247] pb-px">
+      <div className="flex items-center gap-1.5 border-b border-black/[0.08] pb-px">
         <button
           type="button"
           onClick={() => setActiveTab("actions")}
           className={cn(
-            "flex items-center gap-2 px-4 py-2.5 text-xs font-medium border-b-2 transition -mb-px rounded-t-lg",
+            "flex items-center gap-2 px-4 py-2.5 text-xs font-medium border-b-2 transition -mb-px rounded-t-lg cursor-pointer",
             activeTab === "actions"
-              ? "border-[#6D8FFF] text-[#6D8FFF] font-semibold bg-[#151B27]"
-              : "border-transparent text-[#A0AEC0] hover:text-[#F1F5FC] hover:bg-[#151B27]/50"
+              ? "border-[#E5A93B] text-neutral-900 font-semibold bg-neutral-100/70"
+              : "border-transparent text-neutral-500 hover:text-neutral-900 hover:bg-neutral-50"
           )}
         >
           <CheckSquare className="h-3.5 w-3.5" />
@@ -198,16 +198,16 @@ export default function TasksPage() {
           type="button"
           onClick={() => setActiveTab("suggestions")}
           className={cn(
-            "flex items-center gap-2 px-4 py-2.5 text-xs font-medium border-b-2 transition -mb-px rounded-t-lg",
+            "flex items-center gap-2 px-4 py-2.5 text-xs font-medium border-b-2 transition -mb-px rounded-t-lg cursor-pointer",
             activeTab === "suggestions"
-              ? "border-[#6D8FFF] text-[#6D8FFF] font-semibold bg-[#151B27]"
-              : "border-transparent text-[#A0AEC0] hover:text-[#F1F5FC] hover:bg-[#151B27]/50"
+              ? "border-[#E5A93B] text-neutral-900 font-semibold bg-neutral-100/70"
+              : "border-transparent text-neutral-500 hover:text-neutral-900 hover:bg-neutral-50"
           )}
         >
-          <Sparkles className="h-3.5 w-3.5" />
+          <Sparkles className="h-3.5 w-3.5 text-amber-600" />
           <span>Candidate Suggestions</span>
           {pendingSuggestions.length > 0 && (
-            <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-[#6D8FFF]/15 text-[#6D8FFF] border border-[#6D8FFF]/30">
+            <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-800 border border-amber-500/30">
               {pendingSuggestions.length}
             </span>
           )}
@@ -217,10 +217,10 @@ export default function TasksPage() {
           type="button"
           onClick={() => setActiveTab("reminders")}
           className={cn(
-            "flex items-center gap-2 px-4 py-2.5 text-xs font-medium border-b-2 transition -mb-px rounded-t-lg",
+            "flex items-center gap-2 px-4 py-2.5 text-xs font-medium border-b-2 transition -mb-px rounded-t-lg cursor-pointer",
             activeTab === "reminders"
-              ? "border-[#6D8FFF] text-[#6D8FFF] font-semibold bg-[#151B27]"
-              : "border-transparent text-[#A0AEC0] hover:text-[#F1F5FC] hover:bg-[#151B27]/50"
+              ? "border-[#E5A93B] text-neutral-900 font-semibold bg-neutral-100/70"
+              : "border-transparent text-neutral-500 hover:text-neutral-900 hover:bg-neutral-50"
           )}
         >
           <Clock className="h-3.5 w-3.5" />
@@ -232,21 +232,21 @@ export default function TasksPage() {
       {activeTab === "actions" && (
         <div className="space-y-3">
           {actions.length === 0 ? (
-            <div className="p-12 text-center border border-dashed border-[#273247] rounded-2xl bg-[#151B27] space-y-3">
-              <CheckSquare className="h-8 w-8 text-[#A0AEC0]/60 mx-auto" />
-              <p className="text-[16px] font-semibold text-[#F1F5FC]">No action items yet</p>
-              <p className="text-[13px] text-[#A0AEC0] max-w-sm mx-auto">
+            <div className="p-12 text-center border border-dashed border-black/[0.12] rounded-2xl bg-white space-y-3 shadow-xs">
+              <CheckSquare className="h-8 w-8 text-neutral-400 mx-auto" />
+              <p className="text-[16px] font-semibold text-neutral-900">No action items yet</p>
+              <p className="text-[13px] text-neutral-500 max-w-sm mx-auto">
                 Create tasks manually or approve AI-extracted obligations from your uploaded documents.
               </p>
             </div>
           ) : (
-            <div className="bg-[#151B27] border border-[#273247] rounded-2xl divide-y divide-[#273247] overflow-hidden shadow-sm">
+            <div className="bg-white border border-black/[0.08] rounded-2xl divide-y divide-black/[0.06] overflow-hidden shadow-xs">
               {actions.map((item) => {
                 const isDone = item.status === "completed";
                 return (
                   <div
                     key={item.id}
-                    className="p-4 flex items-start justify-between gap-3 hover:bg-[#1B2332]/50 transition group"
+                    className="p-4 flex items-start justify-between gap-3 hover:bg-neutral-50/80 transition group"
                   >
                     <div className="flex items-start gap-3.5 min-w-0">
                       <button
@@ -255,8 +255,8 @@ export default function TasksPage() {
                         className={cn(
                           "mt-0.5 h-4 w-4 rounded-md border flex items-center justify-center shrink-0 transition cursor-pointer",
                           isDone
-                            ? "bg-[#34D399] border-[#34D399] text-[#0B0D12]"
-                            : "border-[#273247] hover:border-[#6D8FFF] bg-[#10141D]"
+                            ? "bg-emerald-600 border-emerald-600 text-white"
+                            : "border-neutral-300 hover:border-amber-600 bg-white"
                         )}
                       >
                         {isDone && <Check className="h-3 w-3 stroke-[3]" />}
@@ -265,34 +265,34 @@ export default function TasksPage() {
                       <div className="min-w-0 space-y-1">
                         <p
                           className={cn(
-                            "text-[15px] font-semibold text-[#F1F5FC]",
-                            isDone && "line-through text-[#A0AEC0] opacity-60"
+                            "text-[15px] font-semibold text-neutral-900",
+                            isDone && "line-through text-neutral-400 opacity-60"
                           )}
                         >
                           {item.title}
                         </p>
                         {item.description && (
-                          <p className="text-[13px] text-[#A0AEC0] leading-relaxed">{item.description}</p>
+                          <p className="text-[13px] text-neutral-600 leading-relaxed">{item.description}</p>
                         )}
                         {item.source_evidence_quote && (
-                          <p className="text-[12px] text-[#A0AEC0] italic border-l-2 border-[#6D8FFF]/60 pl-2 mt-1">
+                          <p className="text-[12px] text-neutral-600 italic border-l-2 border-amber-500/70 pl-2 mt-1">
                             "{item.source_evidence_quote}" {item.page_number && `(p. ${item.page_number})`}
                           </p>
                         )}
-                        <div className="flex items-center gap-3 text-[12px] text-[#A0AEC0] pt-1">
+                        <div className="flex items-center gap-3 text-[12px] text-neutral-500 pt-1">
                           {item.due_date && (
                             <span className="flex items-center gap-1">
-                              <Calendar className="h-3 w-3 text-[#6D8FFF]" />
+                              <Calendar className="h-3 w-3 text-amber-600" />
                               {new Date(item.due_date).toLocaleDateString()}
                             </span>
                           )}
                           <span
                             className={cn(
                               "font-medium capitalize px-2 py-0.5 rounded-md text-[11px]",
-                              item.priority === "critical" && "bg-rose-950/40 text-rose-300 border border-rose-800/40",
-                              item.priority === "high" && "bg-amber-950/40 text-amber-300 border border-amber-800/40",
-                              item.priority === "medium" && "bg-[#6D8FFF]/10 text-[#6D8FFF] border border-[#6D8FFF]/30",
-                              item.priority === "low" && "bg-[#1B2332] text-[#A0AEC0]"
+                              item.priority === "critical" && "bg-rose-50 text-rose-700 border border-rose-200",
+                              item.priority === "high" && "bg-amber-50 text-amber-800 border border-amber-200",
+                              item.priority === "medium" && "bg-neutral-100 text-neutral-700 border border-black/[0.08]",
+                              item.priority === "low" && "bg-neutral-50 text-neutral-600"
                             )}
                           >
                             {item.priority} priority
@@ -304,7 +304,7 @@ export default function TasksPage() {
                     <button
                       type="button"
                       onClick={() => handleDeleteAction(item.id)}
-                      className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg hover:bg-[#151B27] text-[#A0AEC0] hover:text-rose-400 transition"
+                      className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg hover:bg-rose-50 text-neutral-400 hover:text-rose-600 transition"
                       title="Delete action item"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -320,50 +320,50 @@ export default function TasksPage() {
       {/* Tab 2: Candidate Suggestions */}
       {activeTab === "suggestions" && (
         <div className="space-y-4">
-          <div className="p-4 bg-[#151B27] border border-[#273247] rounded-2xl flex items-start gap-3">
-            <Sparkles className="h-5 w-5 text-[#6D8FFF] shrink-0 mt-0.5" />
+          <div className="p-4 bg-white border border-black/[0.08] rounded-2xl flex items-start gap-3 shadow-xs">
+            <Sparkles className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
             <div className="space-y-1">
-              <span className="text-[14px] font-semibold text-[#F1F5FC]">Human-in-the-Loop Extraction</span>
-              <p className="text-[12px] text-[#A0AEC0] leading-relaxed">
+              <span className="text-[14px] font-semibold text-neutral-900">Human-in-the-Loop Extraction</span>
+              <p className="text-[12px] text-neutral-600 leading-relaxed">
                 Docora scans contracts, invoices, and reports to detect commitments and renewal deadlines. Review candidate suggestions below and approve them into actionable items.
               </p>
             </div>
           </div>
 
           {pendingSuggestions.length === 0 ? (
-            <div className="p-12 text-center border border-dashed border-[#273247] rounded-2xl bg-[#151B27] space-y-2">
-              <CheckCircle2 className="h-8 w-8 text-[#34D399] mx-auto" />
-              <p className="text-[16px] font-semibold text-[#F1F5FC]">No pending suggestions</p>
-              <p className="text-[13px] text-[#A0AEC0]">All discovered obligations have been reviewed.</p>
+            <div className="p-12 text-center border border-dashed border-black/[0.12] rounded-2xl bg-white space-y-2 shadow-xs">
+              <CheckCircle2 className="h-8 w-8 text-emerald-600 mx-auto" />
+              <p className="text-[16px] font-semibold text-neutral-900">No pending suggestions</p>
+              <p className="text-[13px] text-neutral-500">All discovered obligations have been reviewed.</p>
             </div>
           ) : (
             <div className="space-y-3">
               {pendingSuggestions.map((sug) => (
-                <div key={sug.id} className="p-5 bg-[#151B27] border border-[#273247] rounded-2xl space-y-3">
+                <div key={sug.id} className="p-5 bg-white border border-black/[0.08] rounded-2xl space-y-3 shadow-xs">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <h3 className="text-[15px] font-semibold text-[#F1F5FC]">{sug.title}</h3>
+                      <h3 className="text-[15px] font-semibold text-neutral-900">{sug.title}</h3>
                       {sug.description && (
-                        <p className="text-[13px] text-[#A0AEC0] mt-0.5">{sug.description}</p>
+                        <p className="text-[13px] text-neutral-600 mt-0.5">{sug.description}</p>
                       )}
                     </div>
-                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#6D8FFF]/10 text-[#6D8FFF] border border-[#6D8FFF]/30 capitalize shrink-0">
+                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-amber-500/10 text-amber-800 border border-amber-500/25 capitalize shrink-0">
                       {sug.category.replace("_", " ")}
                     </span>
                   </div>
 
-                  <div className="p-3 bg-[#10141D] rounded-xl border border-[#273247] text-[12px] space-y-1">
-                    <span className="text-[#A0AEC0] font-medium text-[11px] uppercase tracking-wider">
+                  <div className="p-3 bg-neutral-50 rounded-xl border border-black/[0.06] text-[12px] space-y-1">
+                    <span className="text-neutral-500 font-medium text-[11px] uppercase tracking-wider">
                       Source Evidence (Page {sug.page_number}):
                     </span>
-                    <p className="text-[#F1F5FC] italic">"{sug.evidence_text}"</p>
+                    <p className="text-neutral-800 italic">"{sug.evidence_text}"</p>
                   </div>
 
                   <div className="flex items-center justify-between pt-1">
-                    <div className="flex items-center gap-3 text-[#A0AEC0] text-[12px]">
+                    <div className="flex items-center gap-3 text-neutral-500 text-[12px]">
                       {sug.proposed_due_date && (
-                        <span className="flex items-center gap-1 font-medium text-[#F1F5FC]">
-                          <Calendar className="h-3.5 w-3.5 text-[#6D8FFF]" />
+                        <span className="flex items-center gap-1 font-medium text-neutral-800">
+                          <Calendar className="h-3.5 w-3.5 text-amber-600" />
                           Target: {new Date(sug.proposed_due_date).toLocaleDateString()}
                         </span>
                       )}
@@ -374,14 +374,14 @@ export default function TasksPage() {
                       <button
                         type="button"
                         onClick={() => handleDismissSuggestion(sug.id)}
-                        className="px-3 py-1.5 rounded-xl text-xs font-medium text-[#A0AEC0] hover:text-[#F1F5FC] hover:bg-[#1B2332] transition"
+                        className="px-3 py-1.5 rounded-xl text-xs font-medium text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 transition"
                       >
                         Dismiss
                       </button>
                       <button
                         type="button"
                         onClick={() => handleApproveSuggestion(sug.id)}
-                        className="px-4 py-1.5 rounded-xl text-xs font-semibold bg-[#6D8FFF] text-[#0B0D12] hover:bg-[#84A2FF] transition shadow-xs"
+                        className="px-4 py-1.5 rounded-xl text-xs font-semibold bg-[#E5A93B] text-neutral-950 hover:bg-[#D97706] transition shadow-xs cursor-pointer"
                       >
                         Approve Item
                       </button>
@@ -398,26 +398,26 @@ export default function TasksPage() {
       {activeTab === "reminders" && (
         <div className="space-y-3">
           {reminders.length === 0 ? (
-            <div className="p-12 text-center border border-dashed border-[#273247] rounded-2xl bg-[#151B27] space-y-2">
-              <Clock className="h-8 w-8 text-[#A0AEC0]/60 mx-auto" />
-              <p className="text-[16px] font-semibold text-[#F1F5FC]">No active reminders</p>
-              <p className="text-[13px] text-[#A0AEC0]">Reminders dispatch notifications on scheduled deadline dates.</p>
+            <div className="p-12 text-center border border-dashed border-black/[0.12] rounded-2xl bg-white space-y-2 shadow-xs">
+              <Clock className="h-8 w-8 text-neutral-400 mx-auto" />
+              <p className="text-[16px] font-semibold text-neutral-900">No active reminders</p>
+              <p className="text-[13px] text-neutral-500">Reminders dispatch notifications on scheduled deadline dates.</p>
             </div>
           ) : (
-            <div className="bg-[#151B27] border border-[#273247] rounded-2xl divide-y divide-[#273247] overflow-hidden">
+            <div className="bg-white border border-black/[0.08] rounded-2xl divide-y divide-black/[0.06] overflow-hidden shadow-xs">
               {reminders.map((rem) => (
                 <div key={rem.id} className="p-4 flex items-center justify-between gap-3">
                   <div className="space-y-1">
-                    <p className="text-[15px] font-semibold text-[#F1F5FC]">{rem.title}</p>
-                    <div className="flex items-center gap-3 text-[#A0AEC0] text-[12px]">
+                    <p className="text-[15px] font-semibold text-neutral-900">{rem.title}</p>
+                    <div className="flex items-center gap-3 text-neutral-500 text-[12px]">
                       <span className="flex items-center gap-1">
-                        <Calendar className="h-3.5 w-3.5 text-[#6D8FFF]" />
+                        <Calendar className="h-3.5 w-3.5 text-amber-600" />
                         {new Date(rem.due_date).toLocaleString()}
                       </span>
-                      <span className="capitalize font-medium text-[#34D399]">{rem.status}</span>
+                      <span className="capitalize font-medium text-emerald-700">{rem.status}</span>
                     </div>
                   </div>
-                  <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#34D399]/10 text-[#34D399] border border-[#34D399]/30">
+                  <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
                     Scheduled
                   </span>
                 </div>
@@ -429,38 +429,38 @@ export default function TasksPage() {
 
       {/* Create Task Modal */}
       {isCreateOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="w-full max-w-md bg-[#151B27] border border-[#273247] rounded-2xl shadow-2xl p-6 space-y-4">
-            <h2 className="text-[18px] font-semibold text-[#F1F5FC]">Create New Task</h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
+          <div className="w-full max-w-md bg-white border border-black/[0.08] rounded-2xl shadow-2xl p-6 space-y-4">
+            <h2 className="text-[18px] font-semibold text-neutral-900">Create New Task</h2>
             <form onSubmit={handleCreateAction} className="space-y-3.5">
               <div className="space-y-1">
-                <label className="text-xs font-medium text-[#A0AEC0]">Title</label>
+                <label className="text-xs font-medium text-neutral-700">Title</label>
                 <input
                   type="text"
                   required
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
                   placeholder="e.g. Follow up on Q4 renewal clause"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#273247] bg-[#10141D] text-[#F1F5FC] text-xs focus:border-[#6D8FFF] outline-hidden"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-black/[0.08] bg-neutral-50 text-neutral-900 text-xs focus:border-amber-500/70 focus:bg-white outline-hidden transition shadow-xs"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-xs font-medium text-[#A0AEC0]">Due Date</label>
+                  <label className="text-xs font-medium text-neutral-700">Due Date</label>
                   <input
                     type="date"
                     value={newDueDate}
                     onChange={(e) => setNewDueDate(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#273247] bg-[#10141D] text-[#F1F5FC] text-xs focus:border-[#6D8FFF] outline-hidden"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-black/[0.08] bg-neutral-50 text-neutral-900 text-xs focus:border-amber-500/70 focus:bg-white outline-hidden transition shadow-xs"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-medium text-[#A0AEC0]">Priority</label>
+                  <label className="text-xs font-medium text-neutral-700">Priority</label>
                   <select
                     value={newPriority}
                     onChange={(e) => setNewPriority(e.target.value as any)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#273247] bg-[#10141D] text-[#F1F5FC] text-xs focus:border-[#6D8FFF] outline-hidden capitalize"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-black/[0.08] bg-neutral-50 text-neutral-900 text-xs focus:border-amber-500/70 focus:bg-white outline-hidden capitalize transition shadow-xs"
                   >
                     <option value="low">Low</option>
                     <option value="medium">Medium</option>
@@ -470,17 +470,17 @@ export default function TasksPage() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-[#273247]">
+              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-black/[0.08]">
                 <button
                   type="button"
                   onClick={() => setIsCreateOpen(false)}
-                  className="px-4 py-2 rounded-xl border border-[#273247] text-xs font-medium text-[#A0AEC0] hover:text-[#F1F5FC] hover:bg-[#1B2332]"
+                  className="px-4 py-2 rounded-xl border border-black/[0.08] text-xs font-medium text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 transition"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-[#6D8FFF] text-[#0B0D12] text-xs font-semibold hover:bg-[#84A2FF] shadow-xs"
+                  className="px-4 py-2 rounded-xl bg-[#E5A93B] text-neutral-950 text-xs font-semibold hover:bg-[#D97706] shadow-xs transition cursor-pointer"
                 >
                   Save Task
                 </button>

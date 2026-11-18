@@ -168,23 +168,23 @@ export function Header({ onToggleMobileMenu }: HeaderProps) {
                 setIsNotifOpen(!isNotifOpen);
                 if (!isNotifOpen) fetchNotifications();
               }}
-              className="relative h-8 w-8 rounded-lg border border-white/[0.08] bg-white/[0.02] hover:bg-white/[0.06] flex items-center justify-center text-neutral-400 hover:text-white transition-colors"
+              className="relative h-8 w-8 rounded-lg border border-black/[0.08] bg-white hover:bg-neutral-100 flex items-center justify-center text-neutral-600 hover:text-neutral-900 transition-colors"
               title="Notifications"
             >
               <Bell className="h-3.5 w-3.5" />
               {unreadCount > 0 && (
-                <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-rose-500 ring-2 ring-[#08090D]" />
+                <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-rose-500 ring-2 ring-white" />
               )}
             </button>
 
             {/* Dropdown Notification Tray */}
             {isNotifOpen && (
-              <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-[#12151F] border border-white/[0.08] rounded-2xl shadow-2xl z-50 overflow-hidden text-left animate-in fade-in duration-100">
-                <div className="p-3 border-b border-white/[0.06] flex items-center justify-between bg-[#0E1118]">
+              <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white border border-black/[0.08] rounded-2xl shadow-2xl z-50 overflow-hidden text-left animate-in fade-in duration-100">
+                <div className="p-3 border-b border-black/[0.08] flex items-center justify-between bg-[#F4F5F7]">
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-semibold text-white">Notifications</span>
+                    <span className="text-xs font-semibold text-neutral-900">Notifications</span>
                     {unreadCount > 0 && (
-                      <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                      <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
                         {unreadCount} unread
                       </span>
                     )}
@@ -192,7 +192,7 @@ export function Header({ onToggleMobileMenu }: HeaderProps) {
                   {unreadCount > 0 && (
                     <button
                       onClick={markAllAsRead}
-                      className="text-[11px] font-medium text-indigo-400 hover:underline flex items-center gap-1"
+                      className="text-[11px] font-semibold text-amber-700 hover:underline flex items-center gap-1"
                     >
                       <CheckCheck className="h-3 w-3" />
                       Mark all read
@@ -200,9 +200,9 @@ export function Header({ onToggleMobileMenu }: HeaderProps) {
                   )}
                 </div>
 
-                <div className="max-h-80 overflow-y-auto divide-y divide-white/[0.04]">
+                <div className="max-h-80 overflow-y-auto divide-y divide-black/[0.06]">
                   {notifications.length === 0 ? (
-                    <div className="p-6 text-center text-xs text-neutral-400">
+                    <div className="p-6 text-center text-xs text-neutral-500">
                       No notifications at this time.
                     </div>
                   ) : (
@@ -210,15 +210,15 @@ export function Header({ onToggleMobileMenu }: HeaderProps) {
                       <div
                         key={n.id}
                         className={`p-3 text-xs transition flex items-start justify-between gap-3 ${
-                          n.is_read ? "opacity-60 bg-transparent" : "bg-white/[0.03]"
+                          n.is_read ? "opacity-60 bg-transparent" : "bg-neutral-50"
                         }`}
                       >
                         <div className="space-y-1">
-                          <p className="font-semibold text-white">{n.title}</p>
-                          <p className="text-[11px] text-neutral-400 line-clamp-2 leading-relaxed">
+                          <p className="font-semibold text-neutral-900">{n.title}</p>
+                          <p className="text-[11px] text-neutral-600 line-clamp-2 leading-relaxed">
                             {n.message}
                           </p>
-                          <span className="text-[10px] text-neutral-500 block">
+                          <span className="text-[10px] text-neutral-400 block">
                             {new Date(n.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                           </span>
                         </div>
@@ -226,7 +226,7 @@ export function Header({ onToggleMobileMenu }: HeaderProps) {
                         {!n.is_read && (
                           <button
                             onClick={(e) => markAsRead(n.id, e)}
-                            className="p-1 rounded hover:bg-white/[0.08] text-neutral-400 hover:text-white shrink-0"
+                            className="p-1 rounded hover:bg-neutral-200 text-neutral-500 hover:text-neutral-900 shrink-0"
                             title="Mark as read"
                           >
                             <Check className="h-3.5 w-3.5" />
@@ -237,12 +237,12 @@ export function Header({ onToggleMobileMenu }: HeaderProps) {
                   )}
                 </div>
 
-                <div className="p-2 border-t border-white/[0.06] bg-[#0E1118] text-center">
+                <div className="p-2 border-t border-black/[0.08] bg-[#F4F5F7] text-center">
                   <Link
                     href="/tasks"
                     prefetch={false}
                     onClick={() => setIsNotifOpen(false)}
-                    className="text-[11px] font-medium text-indigo-400 hover:underline"
+                    className="text-[11px] font-semibold text-amber-700 hover:underline"
                   >
                     View All Tasks & Deadlines →
                   </Link>

@@ -21,18 +21,18 @@ export function ToastContainer({ toasts, onRemoveToast }: ToastContainerProps) {
         return (
           <div
             key={toast.id}
-            className="pointer-events-auto rounded-2xl border border-white/[0.08] bg-[#0E1118]/95 backdrop-blur-md shadow-[0_20px_50px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(255,255,255,0.06)] p-3.5 text-white transition-all animate-in slide-in-from-top-2"
+            className="pointer-events-auto rounded-2xl border border-black/[0.08] bg-white/95 backdrop-blur-md shadow-xl p-3.5 text-neutral-900 transition-all animate-in slide-in-from-top-2"
           >
             <div className="flex items-start gap-2.5">
               <div className="mt-0.5 shrink-0">
-                {toast.type === "success" && <CheckCircle2 className="w-4 h-4 text-emerald-400" />}
-                {toast.type === "error" && <AlertCircle className="w-4 h-4 text-rose-400" />}
-                {toast.type === "info" && <Info className="w-4 h-4 text-indigo-400" />}
+                {toast.type === "success" && <CheckCircle2 className="w-4 h-4 text-emerald-600" />}
+                {toast.type === "error" && <AlertCircle className="w-4 h-4 text-rose-600" />}
+                {toast.type === "info" && <Info className="w-4 h-4 text-amber-600" />}
               </div>
 
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold text-white tracking-tight">{toast.title}</p>
-                <p className="text-[11px] text-neutral-400 mt-0.5 leading-relaxed">
+                <p className="text-xs font-semibold text-neutral-900 tracking-tight">{toast.title}</p>
+                <p className="text-[11px] text-neutral-500 mt-0.5 leading-relaxed">
                   {toast.message}
                 </p>
 
@@ -40,13 +40,13 @@ export function ToastContainer({ toasts, onRemoveToast }: ToastContainerProps) {
                   <div className="mt-1.5">
                     <button
                       onClick={() => setExpandedId(isExpanded ? null : toast.id)}
-                      className="text-[10px] font-mono text-neutral-500 hover:text-neutral-300 flex items-center gap-1"
+                      className="text-[10px] font-mono text-neutral-400 hover:text-neutral-700 flex items-center gap-1"
                     >
                       <span>Diagnostic info</span>
                       {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
                     </button>
                     {isExpanded && (
-                      <pre className="mt-1 p-2 rounded-xl bg-black/40 border border-white/[0.06] text-[9px] font-mono text-neutral-400 overflow-x-auto whitespace-pre-wrap">
+                      <pre className="mt-1 p-2 rounded-xl bg-[#F4F5F7] border border-black/[0.08] text-[9px] font-mono text-neutral-600 overflow-x-auto whitespace-pre-wrap">
                         {JSON.stringify(toast.diagnostic, null, 2)}
                       </pre>
                     )}
@@ -56,7 +56,7 @@ export function ToastContainer({ toasts, onRemoveToast }: ToastContainerProps) {
 
               <button
                 onClick={() => onRemoveToast(toast.id)}
-                className="p-1 rounded-lg text-neutral-500 hover:text-white hover:bg-white/[0.06] transition-colors"
+                className="p-1 rounded-lg text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 transition-colors"
               >
                 <X className="w-3.5 h-3.5" />
               </button>

@@ -69,8 +69,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark">
-      <body className="min-h-screen bg-background font-sans antialiased flex">
+    <html lang="en">
+      <body className="min-h-screen bg-[#F8F9FA] text-[#18181B] font-sans antialiased flex">
         <AuthProvider>
           <UploadProvider>
             <AppShell>{children}</AppShell>

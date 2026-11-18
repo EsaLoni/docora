@@ -50,6 +50,13 @@ async def lifespan(app: FastAPI):
     engine = get_async_engine(settings)
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        from sqlalchemy import text
+        try:
+            await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMP WITH TIME ZONE;"))
+            await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS login_count INTEGER NOT NULL DEFAULT 0;"))
+            logger.info("Verified/applied user login tracking column migrations")
+        except Exception as mig_err:
+            logger.warning("Auto-migration notice: %s", mig_err)
     logger.info("Verified/initialized database schema tables successfully")
 
     worker_task = None

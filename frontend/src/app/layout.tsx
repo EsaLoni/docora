@@ -1,8 +1,28 @@
 import type { Metadata } from "next";
+import { Inter, Newsreader, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import { UploadProvider } from "@/context/UploadContext";
 import { AppShell } from "@/components/layout/AppShell";
+
+const sans = Inter({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  display: "swap",
+});
+
+const serif = Newsreader({
+  subsets: ["latin"],
+  variable: "--font-serif",
+  display: "swap",
+  style: ["normal", "italic"],
+});
+
+const mono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Docora — Your documents. Your intelligence.",
@@ -69,8 +89,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className="min-h-screen bg-[#F8F9FA] text-[#18181B] font-sans antialiased flex">
+    <html lang="en" className={`${sans.variable} ${serif.variable} ${mono.variable}`}>
+      <body className="min-h-screen bg-canvas text-ink font-sans antialiased flex">
         <AuthProvider>
           <UploadProvider>
             <AppShell>{children}</AppShell>

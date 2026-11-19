@@ -1,95 +1,60 @@
----
-name: "Docora Atelier"
-description: "High-end document intelligence research studio with restrained, precision dark aesthetic"
-colors:
-  canvas: "#08090D"
-  panel: "#0E1118"
-  panel-raised: "#151823"
-  surface-hover: "#1C202E"
-  composer: "#12151F"
-  border-hairline: "rgba(255, 255, 255, 0.08)"
-  border-highlight: "rgba(255, 255, 255, 0.16)"
-  primary: "#6366F1"
-  primary-hover: "#818CF8"
-  primary-glow: "rgba(99, 102, 241, 0.15)"
-  verified: "#10B981"
-  verified-glow: "rgba(16, 185, 129, 0.12)"
-  text-primary: "#F3F4F6"
-  text-secondary: "#9CA3AF"
-  text-muted: "#6B7280"
-typography:
-  display:
-    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
-    fontSize: "2rem"
-    fontWeight: 600
-    lineHeight: 1.2
-    letterSpacing: "-0.03em"
-  title:
-    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
-    fontSize: "1.25rem"
-    fontWeight: 600
-    lineHeight: 1.3
-    letterSpacing: "-0.02em"
-  body:
-    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
-    fontSize: "0.9375rem"
-    fontWeight: 400
-    lineHeight: 1.6
-  mono:
-    fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
-    fontSize: "0.8125rem"
-    fontWeight: 500
-rounded:
-  sm: "6px"
-  md: "10px"
-  lg: "16px"
-  xl: "24px"
-  full: "9999px"
-spacing:
-  xs: "4px"
-  sm: "8px"
-  md: "16px"
-  lg: "24px"
-  xl: "32px"
-components:
-  panel-container:
-    backgroundColor: "{colors.panel}"
-    borderColor: "{colors.border-hairline}"
-    rounded: "{rounded.xl}"
-  card-interactive:
-    backgroundColor: "{colors.panel-raised}"
-    borderColor: "{colors.border-hairline}"
-    rounded: "{rounded.lg}"
-    textColor: "{colors.text-primary}"
-  composer-box:
-    backgroundColor: "{colors.composer}"
-    borderColor: "{colors.border-hairline}"
-    rounded: "{rounded.xl}"
+# Docora Design System: Paper & Instruments
+
+## 1. Product & Design Philosophy
+Docora is an AI document intelligence application built for scholars, researchers, and serious readers.
+It rejects "AI slop" — no purple/indigo gradients, no glowing neon blobs, no cards-inside-cards syndrome, and no marketing fluff.
+
+- **Calm, Focused, Document-First**: The source material and the cited answer are the hero on every screen.
+- **Editorial Reading-Room Aesthetic**: Tactile paper canvas, elevated pure white/charcoal sheets, hairline ink rules (`border-black/[0.08]` / `border-white/[0.08]`), and deep charcoal typography.
+- **Jewelry Accent**: Warm Kinpaku Gold (`#E5A93B` / `#D97706`) reserved strictly for primary actions.
+- **Truth Accent**: Patina Verdigris (`#0D9488` / `#059669`) dedicated to verified, source-grounded citations and status indicators.
+
 ---
 
-# Docora Atelier Design System
+## 2. Design Tokens
 
-## Brand Identity & Direction
-Docora is an intelligent research workspace built for scholars, analysts, executives, and knowledge workers. It rejects standard "AI slop" — meaning:
-* **No generic rainbow tiles:** Studio tools share an editorial, unified visual language rather than a clown-car of mismatched neon badges.
-* **No muddy gray borders:** Containers use crisp, ultra-fine white hairlines (`rgba(255, 255, 255, 0.08)`) with subtle inner bevels that evoke glass and machined obsidian.
-* **No heavy nested cards:** Layouts breathe with deliberate rhythm, generous negative space, and content-first typography.
-* **Tactile & Responsive:** Controls respond to user action with crisp state shifts (`active:scale-[0.98]`, subtle luminous border highlights on focus).
+### Light Mode (Default)
+- **Canvas Base**: `#F8F9FA` (Warm tactile paper)
+- **Surface / Sheets**: `#FFFFFF` (Elevated card/panel)
+- **Subtle Surface**: `#F4F5F7` (Inputs, secondary tiles, code blocks)
+- **Hairline Border**: `rgba(0, 0, 0, 0.08)` (Ink rule)
+- **Border Strong**: `rgba(0, 0, 0, 0.16)`
+- **Text Primary**: `#18181B` (Deep charcoal ink)
+- **Text Secondary**: `#3F3F46` (Muted ink)
+- **Text Muted**: `#71717A` (Pencil graphite)
+- **Primary Accent**: `#E5A93B` (Kinpaku Gold) / hover: `#D97706`
+- **Citation / Verified**: `#0D9488` (Patina Verdigris) / bg: `rgba(13, 148, 136, 0.08)`
 
-## Color System Application
-* **Canvas (`#08090D`):** The foundational void. Deep, neutral, velvety black with no muddy blue casts.
-* **Workspace Panels (`#0E1118`):** Rested surfaces for reading and drafting, framed by subtle hairline boundaries.
-* **Raised Cards & Tiles (`#151823`):** Interactive items that elevate on hover with `rgba(255, 255, 255, 0.04)`.
-* **Electric Indigo (`#6366F1`):** Precision accent for intentional actions (generate, submit, active selection).
-* **Emerald Citation (`#10B981`):** Dedicated to verified source-grounded truth and factual citations.
+### Dark Mode (Unified Semantic Mapping)
+- **Canvas Base**: `#121316` (Warm charcoal desk)
+- **Surface / Sheets**: `#1A1B1F` (Elevated slate sheet)
+- **Subtle Surface**: `#22242A` (Secondary inputs, tiles)
+- **Hairline Border**: `rgba(255, 255, 255, 0.08)` (Chalk rule)
+- **Border Strong**: `rgba(255, 255, 255, 0.16)`
+- **Text Primary**: `#F4F4F5` (Crisp bone ink)
+- **Text Secondary**: `#A1A1AA` (Graphite)
+- **Text Muted**: `#71717A` (Muted)
+- **Primary Accent**: `#F59E0B` (Amber Gold)
+- **Citation / Verified**: `#14B8A6` (Verdigris)
 
-## Typography Hierarchy
-* **Headings:** Negative letter-spacing (`-0.02em` to `-0.03em`), clear weight separation, high contrast (`#F3F4F6`).
-* **Reading Body:** 15px font size with 1.6 line-height for effortless reading of research documents and assistant responses.
-* **Metadata & Badges:** 11px uppercase with `tracking-wider` and muted contrast for unobtrusive guidance.
-* **Code & Citations:** Crisp monospace with subtle background encapsulation.
+---
 
-## Spatial System & Elevation
-* Multi-panel floating canvas layout with 12px perimeter margins on desktop.
-* Hairline borders (`border-white/[0.08]`) replace generic thick borders.
-* Inset rim highlights (`shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]`) create authentic hardware-like depth.
+## 3. Typography Pairing
+- **Reading Body (Answers, Prose, Documents)**:
+  - Font: `Charter`, `Georgia`, `Newsreader`, `Source Serif 4`, serif
+  - Optical Measure: 60 to 75 characters (`max-w-prose` / `max-w-2xl`)
+  - Line Height: `1.65` to `1.75`
+- **UI & Controls (Buttons, Tabs, Navigation, Headers)**:
+  - Font: System Sans (`-apple-system`, `BlinkMacSystemFont`, `Segoe UI`, `Inter`, sans-serif)
+  - Letter Spacing: `-0.01em` to `-0.02em` on titles; `0.02em` uppercase on micro-labels
+- **Technical & Citations**:
+  - Font: `JetBrains Mono`, `ui-monospace`, `Menlo`, monospace
+
+---
+
+## 4. Spacing, Elevation & Rhythm
+- Spacing rhythm based on 4px grid (4, 8, 12, 16, 24, 32, 48px).
+- Flat elevations with hairline borders and soft ambient drops:
+  - Sheet shadow: `shadow-[0_1px_3px_rgba(0,0,0,0.04),0_6px_16px_rgba(0,0,0,0.03)]`
+  - Popover shadow: `shadow-[0_12px_32px_-4px_rgba(0,0,0,0.12)]`
+- Functional micro-transitions: `<= 150ms ease-out`. Zero decorative delays.

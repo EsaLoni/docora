@@ -119,6 +119,42 @@ export function useNotebook(notebookId: string) {
     }
   };
 
+  // Rename Source
+  const handleRenameSource = async (sourceId: string, newTitle: string) => {
+    const trimmed = newTitle.trim();
+    if (!trimmed) return;
+    setSources((prev) =>
+      prev.map((s) => (s.id === sourceId ? { ...s, title: trimmed } : s))
+    );
+    try {
+      const source = sources.find((s) => s.id === sourceId);
+      if (source?.document_id) {
+        await apiClient.updateDocument(source.document_id, { title: trimmed });
+      }
+      showToast("success", "Source Renamed", `Updated title to "${trimmed}"`);
+    } catch (err: any) {
+      showToast("error", "Rename Failed", err.message || "Failed to rename source");
+    }
+  };
+
+  // Retry Source Ingestion
+  const handleRetrySource = async (source: SourceItem) => {
+    try {
+      showToast("info", "Retrying Ingestion", `Re-processing "${source.title}"...`);
+      if (source.url) {
+        await apiClient.addSource(notebookId, {
+          source_type: source.source_type,
+          title: source.title,
+          url: source.url,
+        });
+      }
+      await refreshNotebook();
+      showToast("success", "Ingestion Triggered", `"${source.title}" is being indexed.`);
+    } catch (err: any) {
+      showToast("error", "Retry Failed", err.message || "Could not re-trigger ingestion");
+    }
+  };
+
   // Delete Source
   const handleDeleteSource = async (sourceId: string) => {
     try {
@@ -274,6 +310,8 @@ export function useNotebook(notebookId: string) {
     refreshNotebook,
     handleSaveTitle,
     handleToggleSource,
+    handleRenameSource,
+    handleRetrySource,
     handleDeleteSource,
     handleAddSource,
     handleCreateNote,

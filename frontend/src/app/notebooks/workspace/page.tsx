@@ -37,6 +37,8 @@ function NotebookWorkspaceContent() {
     refreshNotebook,
     handleSaveTitle,
     handleToggleSource,
+    handleRenameSource,
+    handleRetrySource,
     handleDeleteSource,
     handleAddSource,
     handleCreateNote,
@@ -163,6 +165,8 @@ function NotebookWorkspaceContent() {
             onOpenAddSource={() => setIsAddSourceOpen(true)}
             onOpenCreateNote={() => setIsCreateNoteOpen(true)}
             onDeleteNote={handleDeleteNote}
+            onRenameSource={handleRenameSource}
+            onRetrySource={handleRetrySource}
           />
         }
         chatPanel={
@@ -218,6 +222,7 @@ function NotebookWorkspaceContent() {
         isOpen={isAddSourceOpen}
         onClose={() => setIsAddSourceOpen(false)}
         workspaceDocuments={workspaceDocuments}
+        existingSources={sources}
         onAddSource={handleAddSource}
       />
 

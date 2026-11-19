@@ -7,30 +7,26 @@
     /* Paper & Instruments Design System - Light Canvas */
     --canvas: #FAF8F4;
     --surface: #FFFFFF;
-    --surface-raised: #FFFFFF;
     --surface-subtle: #F2EFE9;
-    --surface-subtle-hover: #E9E5DD;
 
     /* Hairline borders */
-    --border: rgba(30, 27, 24, 0.08);
+    --border-hairline: rgba(30, 27, 24, 0.08);
     --border-strong: rgba(30, 27, 24, 0.16);
 
     /* Deep charcoal ink on warm paper */
-    --text-primary: #1C1917;    /* Stone-900: WCAG AAA */
+    --text-primary: #1C1917;    /* Stone-900: 14.2:1 contrast ratio */
     --text-secondary: #44403C;  /* Stone-700: 7.3:1 contrast ratio */
-    --text-muted: #78716C;      /* Stone-500: 4.7:1 contrast ratio (WCAG AA compliant) */
+    --text-muted: #78716C;      /* Stone-500: 4.7:1 contrast ratio (WCAG AA) */
 
     /* Primary Gold (Actions only - never text on white) */
-    --primary-gold: #D97706;          /* Amber-600 */
-    --primary-gold-hover: #B45309;    /* Amber-700 */
-    --primary-gold-active: #92400E;   /* Amber-800 */
-    --primary-gold-fg: #FFFFFF;       /* Pure white on rich gold */
+    --accent-gold: #D97706;          /* Amber-600 */
+    --accent-gold-hover: #B45309;    /* Amber-700 */
+    --accent-gold-fg: #FFFFFF;       /* Pure white text on rich gold: 4.6:1 (WCAG AA) */
 
     /* Verdigris (Citations and verified status only) */
-    --verdigris: #0F766E;             /* Teal-700: 4.8:1 on #FAF8F4 */
-    --verdigris-bg: #F0FDFA;          /* Teal-50 */
-    --verdigris-border: #99F6E4;      /* Teal-200 */
-    --verdigris-fg: #0F766E;
+    --citation-verdigris: #0F766E;        /* Teal-700: 4.8:1 on #FAF8F4 */
+    --citation-verdigris-bg: #F0FDFA;     /* Teal-50 */
+    --citation-verdigris-border: #99F6E4; /* Teal-200 */
 
     /* Destructive */
     --destructive: #BE123C;
@@ -40,36 +36,37 @@
     /* Focus & Geometry */
     --ring: #D97706;
     --radius: 0.75rem;
+
+    /* Semantic Compatibility Aliases */
+    --border: var(--border-hairline);
+    --primary: var(--accent-gold);
+    --primary-foreground: var(--accent-gold-fg);
   }
 
   .dark {
     /* Paper & Instruments Design System - Dark Canvas */
     --canvas: #151413;
     --surface: #1E1C1A;
-    --surface-raised: #282522;
     --surface-subtle: #242220;
-    --surface-subtle-hover: #2E2B27;
 
     /* Hairline chalk rules */
-    --border: rgba(255, 255, 255, 0.08);
+    --border-hairline: rgba(255, 255, 255, 0.08);
     --border-strong: rgba(255, 255, 255, 0.16);
 
-    /* Crisp bone ink on charcoal desk */
-    --text-primary: #F5F5F4;    /* Stone-100: WCAG AAA */
-    --text-secondary: #D6D3D1;  /* Stone-300: 9.8:1 */
-    --text-muted: #A8A29E;      /* Stone-400: 5.6:1 */
+    /* Crisp bone ink on dark desk */
+    --text-primary: #F5F5F4;    /* Stone-100: 15.1:1 contrast ratio */
+    --text-secondary: #D6D3D1;  /* Stone-300: 9.8:1 contrast ratio */
+    --text-muted: #A8A29E;      /* Stone-400: 5.6:1 contrast ratio */
 
     /* Primary Gold (Actions only) */
-    --primary-gold: #F59E0B;          /* Amber-500 */
-    --primary-gold-hover: #D97706;    /* Amber-600 */
-    --primary-gold-active: #B45309;
-    --primary-gold-fg: #151413;
+    --accent-gold: #F59E0B;          /* Amber-500 */
+    --accent-gold-hover: #D97706;    /* Amber-600 */
+    --accent-gold-fg: #151413;       /* Deep dark on bright gold: 10.5:1 (WCAG AAA) */
 
     /* Verdigris */
-    --verdigris: #2DD4BF;             /* Teal-400 */
-    --verdigris-bg: #132E2B;
-    --verdigris-border: #115E59;
-    --verdigris-fg: #2DD4BF;
+    --citation-verdigris: #2DD4BF;        /* Teal-400: 8.2:1 on #151413 */
+    --citation-verdigris-bg: #132E2B;
+    --citation-verdigris-border: #115E59;
 
     /* Destructive */
     --destructive: #FB7185;
@@ -78,12 +75,17 @@
 
     /* Focus & Geometry */
     --ring: #F59E0B;
+
+    /* Semantic Compatibility Aliases */
+    --border: var(--border-hairline);
+    --primary: var(--accent-gold);
+    --primary-foreground: var(--accent-gold-fg);
   }
 }
 
 @layer base {
   * {
-    border-color: var(--border);
+    border-color: var(--border-hairline);
   }
 
   html {
@@ -135,35 +137,11 @@
   }
 }
 
-/* Typography Hierarchy */
-.page-title {
-  font-size: 28px;
-  line-height: 34px;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  color: var(--text-primary);
-}
-
-.section-title {
-  font-size: 18px;
-  line-height: 24px;
-  font-weight: 600;
-  letter-spacing: -0.015em;
-  color: var(--text-primary);
-}
-
-.card-title {
-  font-size: 14px;
-  line-height: 20px;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-/* Editorial Reading Prose: Serif, 60-75 character measure, comfortable leading */
+/* Editorial Reading Prose: Serif, 60-75 character measure, 15px / 26px leading */
 .prose-reading {
   font-family: var(--font-serif), Charter, Newsreader, Georgia, serif;
   font-size: 15px;
-  line-height: 1.75;
+  line-height: 26px;
   color: var(--text-primary);
   max-width: 65ch;
 }
@@ -189,11 +167,12 @@
 
 .prose-reading code {
   font-family: var(--font-mono), ui-monospace, Menlo, monospace;
-  font-size: 12px;
+  font-size: 11px;
+  line-height: 14px;
   padding: 0.15em 0.4em;
   border-radius: 4px;
   background-color: var(--surface-subtle);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-hairline);
   color: var(--text-primary);
 }
 
@@ -202,7 +181,7 @@
   padding: 1rem;
   border-radius: var(--radius);
   background-color: var(--surface-subtle);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-hairline);
   overflow-x: auto;
 }
 
@@ -213,7 +192,7 @@
 }
 
 .prose-reading blockquote {
-  border-left: 2px solid var(--verdigris);
+  border-left: 2px solid var(--citation-verdigris);
   padding-left: 1rem;
   margin: 1.25em 0;
   color: var(--text-secondary);

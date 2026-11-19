@@ -19,6 +19,7 @@ import { ArtifactViewerModal } from "@/components/notebook/ArtifactViewerModal";
 import { GeminiKeyModal } from "@/components/notebook/GeminiKeyModal";
 import { ToastContainer } from "@/components/notebook/ToastContainer";
 import { SourceItem, ArtifactItem, apiClient, NotebookItem } from "@/lib/api-client";
+import { Button } from "@/components/ui";
 
 function NotebookWorkspaceContent() {
   const router = useRouter();
@@ -71,36 +72,35 @@ function NotebookWorkspaceContent() {
   // Auto-redirect to first notebook if notebookId is missing
   useEffect(() => {
     if (!notebookId) {
-      apiClient.listNotebooks().then((nbs: NotebookItem[]) => {
-        if (nbs && nbs.length > 0) {
-          router.replace(`/notebooks/workspace?id=${nbs[0].id}`);
-        } else {
-          router.replace("/notebooks");
-        }
-      }).catch(() => router.replace("/notebooks"));
+      apiClient
+        .listNotebooks()
+        .then((nbs: NotebookItem[]) => {
+          if (nbs && nbs.length > 0) {
+            router.replace(`/notebooks/workspace?id=${nbs[0].id}`);
+          } else {
+            router.replace("/notebooks");
+          }
+        })
+        .catch(() => router.replace("/notebooks"));
     }
   }, [notebookId, router]);
 
   // Conditional renders strictly below all hook declarations
   if (!notebookId) {
     return (
-      <div className="h-screen w-screen flex flex-col items-center justify-center bg-[#F8F9FA] text-neutral-900 p-6 space-y-4 font-sans select-none">
-        <div className="h-14 w-14 rounded-2xl bg-white border border-black/[0.08] flex items-center justify-center text-amber-600 shadow-sm">
+      <div className="h-screen w-screen flex flex-col items-center justify-center bg-canvas text-ink p-6 space-y-4 font-sans select-none">
+        <div className="h-14 w-14 rounded-2xl bg-surface border border-hairline flex items-center justify-center text-gold shadow-xs">
           <BookMarked className="h-7 w-7" />
         </div>
         <div className="text-center space-y-1.5 max-w-sm">
-          <h2 className="text-lg font-semibold text-neutral-900 tracking-tight">No Notebook Specified</h2>
-          <p className="text-xs text-neutral-500 leading-relaxed">
+          <h2 className="text-title font-semibold text-ink tracking-tight">No Notebook Specified</h2>
+          <p className="text-caption text-ink-muted leading-relaxed">
             Please select a notebook from your workspace collection or create a new research session.
           </p>
         </div>
         <div className="flex items-center gap-3 pt-2">
-          <Link
-            href="/notebooks"
-            prefetch={false}
-            className="px-4 py-2 rounded-xl bg-[#E5A93B] text-neutral-950 text-xs font-bold hover:bg-[#D97706] active:scale-[0.98] transition-all shadow-xs"
-          >
-            Return to My Notebooks
+          <Link href="/notebooks" prefetch={false}>
+            <Button variant="primary">Return to My Notebooks</Button>
           </Link>
         </div>
       </div>
@@ -109,32 +109,28 @@ function NotebookWorkspaceContent() {
 
   if (loading) {
     return (
-      <div className="h-screen w-screen flex flex-col items-center justify-center bg-[#F8F9FA] text-neutral-500 gap-3 font-sans select-none">
-        <div className="w-8 h-8 rounded-full border-2 border-amber-600 border-t-transparent animate-spin" />
-        <span className="text-xs font-medium tracking-wide text-neutral-700">Loading workspace...</span>
+      <div className="h-screen w-screen flex flex-col items-center justify-center bg-canvas text-ink-muted gap-3 font-sans select-none">
+        <div className="w-8 h-8 rounded-full border-2 border-gold border-t-transparent animate-spin" />
+        <span className="text-caption font-medium tracking-wide text-ink-secondary">Loading workspace...</span>
       </div>
     );
   }
 
   if (!notebook) {
     return (
-      <div className="h-screen w-screen flex flex-col items-center justify-center bg-[#F8F9FA] text-neutral-900 p-6 space-y-4 font-sans select-none">
-        <div className="h-14 w-14 rounded-2xl bg-white border border-black/[0.08] flex items-center justify-center text-amber-600 shadow-sm">
+      <div className="h-screen w-screen flex flex-col items-center justify-center bg-canvas text-ink p-6 space-y-4 font-sans select-none">
+        <div className="h-14 w-14 rounded-2xl bg-surface border border-hairline flex items-center justify-center text-gold shadow-xs">
           <BookMarked className="h-7 w-7" />
         </div>
         <div className="text-center space-y-1.5 max-w-sm">
-          <h2 className="text-lg font-semibold text-neutral-900 tracking-tight">Notebook Not Found</h2>
-          <p className="text-xs text-neutral-500 leading-relaxed">
+          <h2 className="text-title font-semibold text-ink tracking-tight">Notebook Not Found</h2>
+          <p className="text-caption text-ink-muted leading-relaxed">
             This notebook does not exist or belongs to another workspace. Access is restricted under workspace isolation.
           </p>
         </div>
         <div className="flex items-center gap-3 pt-2">
-          <Link
-            href="/notebooks"
-            prefetch={false}
-            className="px-4 py-2 rounded-xl bg-[#E5A93B] text-neutral-950 text-xs font-bold hover:bg-[#D97706] active:scale-[0.98] transition-all shadow-xs"
-          >
-            Return to My Notebooks
+          <Link href="/notebooks" prefetch={false}>
+            <Button variant="primary">Return to My Notebooks</Button>
           </Link>
         </div>
       </div>
@@ -147,7 +143,7 @@ function NotebookWorkspaceContent() {
         header={
           <WorkspaceHeader
             title={notebook?.title || "Untitled Notebook"}
-            modelLabel="Gemini 3 Flash"
+            modelLabel="Gemini 2.5 Flash"
             isLeftPanelOpen={isLeftPanelOpen}
             isRightPanelOpen={isRightPanelOpen}
             onToggleLeftPanel={() => setIsLeftPanelOpen(!isLeftPanelOpen)}
@@ -273,9 +269,9 @@ export default function NotebookWorkspacePage() {
   return (
     <Suspense
       fallback={
-        <div className="h-screen w-screen flex flex-col items-center justify-center bg-[#F8F9FA] text-neutral-500 gap-3 font-sans select-none">
-          <div className="w-8 h-8 rounded-full border-2 border-amber-600 border-t-transparent animate-spin" />
-          <span className="text-xs font-medium tracking-wide text-neutral-700">Loading workspace...</span>
+        <div className="h-screen w-screen flex flex-col items-center justify-center bg-canvas text-ink-muted gap-3 font-sans select-none">
+          <div className="w-8 h-8 rounded-full border-2 border-gold border-t-transparent animate-spin" />
+          <span className="text-caption font-medium tracking-wide text-ink-secondary">Loading workspace...</span>
         </div>
       }
     >

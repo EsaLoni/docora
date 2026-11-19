@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   BookOpen,
   MessageSquare,
@@ -8,19 +8,23 @@ import {
   ChevronRight,
   ChevronLeft,
 } from "lucide-react";
+import { ShortcutsModal } from "./ShortcutsModal";
 
-interface WorkspaceShellProps {
+export interface WorkspaceShellProps {
   header: React.ReactNode;
   sourcesPanel: React.ReactNode;
   chatPanel: React.ReactNode;
   studioPanel: React.ReactNode;
   isLeftPanelOpen: boolean;
   isRightPanelOpen: boolean;
-  setIsLeftPanelOpen: (open: boolean) => void;
-  setIsRightPanelOpen: (open: boolean) => void;
+  setIsLeftPanelOpen: (open: boolean | ((prev: boolean) => boolean)) => void;
+  setIsRightPanelOpen: (open: boolean | ((prev: boolean) => boolean)) => void;
   sourcesCount: number;
   artifactsCount: number;
 }
+
+const DEFAULT_LEFT_WIDTH = 340;
+const DEFAULT_RIGHT_WIDTH = 360;
 
 export function WorkspaceShell({
   header,
@@ -38,18 +42,57 @@ export function WorkspaceShell({
   const [mobileTab, setMobileTab] = useState<"sources" | "chat" | "studio">("chat");
 
   // Panel widths
-  const [leftWidth, setLeftWidth] = useState(360);
-  const [rightWidth, setRightWidth] = useState(380);
+  const [leftWidth, setLeftWidth] = useState(DEFAULT_LEFT_WIDTH);
+  const [rightWidth, setRightWidth] = useState(DEFAULT_RIGHT_WIDTH);
+  const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
 
-  // Load persisted widths
+  // Load persisted widths from localStorage
   useEffect(() => {
     try {
-      const savedLeft = localStorage.getItem("udip-left-panel-width");
-      const savedRight = localStorage.getItem("udip-right-panel-width");
-      if (savedLeft) setLeftWidth(Math.max(280, Math.min(550, parseInt(savedLeft))));
-      if (savedRight) setRightWidth(Math.max(300, Math.min(550, parseInt(savedRight))));
+      const savedLeft = localStorage.getItem("docora-left-panel-width");
+      const savedRight = localStorage.getItem("docora-right-panel-width");
+      if (savedLeft) setLeftWidth(Math.max(260, Math.min(480, parseInt(savedLeft))));
+      if (savedRight) setRightWidth(Math.max(280, Math.min(500, parseInt(savedRight))));
     } catch {}
   }, []);
+
+  // Keyboard shortcuts: Cmd+B (sources), Cmd+J (studio), ? (shortcuts overlay)
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      const isInput =
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.isContentEditable;
+
+      // Cmd+B / Ctrl+B: Toggle sources panel
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "b") {
+        e.preventDefault();
+        setIsLeftPanelOpen((prev: boolean) => !prev);
+        return;
+      }
+
+      // Cmd+J / Ctrl+J: Toggle studio panel
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "j") {
+        e.preventDefault();
+        setIsRightPanelOpen((prev: boolean) => !prev);
+        return;
+      }
+
+      // ?: Open shortcuts overlay (when not in an input)
+      if (e.key === "?" && !isInput && !e.metaKey && !e.ctrlKey) {
+        e.preventDefault();
+        setIsShortcutsOpen(true);
+        return;
+      }
+    },
+    [setIsLeftPanelOpen, setIsRightPanelOpen]
+  );
+
+  useEffect(() => {
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleKeyDown]);
 
   // Resizing logic for Left Panel
   const isResizingLeft = useRef(false);
@@ -61,7 +104,7 @@ export function WorkspaceShell({
 
     const onMouseMove = (moveEvent: MouseEvent) => {
       if (!isResizingLeft.current) return;
-      const newWidth = Math.max(280, Math.min(550, moveEvent.clientX));
+      const newWidth = Math.max(260, Math.min(480, moveEvent.clientX));
       setLeftWidth(newWidth);
     };
 
@@ -71,7 +114,7 @@ export function WorkspaceShell({
       document.body.style.userSelect = "";
       window.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("mouseup", onMouseUp);
-      localStorage.setItem("udip-left-panel-width", leftWidth.toString());
+      localStorage.setItem("docora-left-panel-width", leftWidth.toString());
     };
 
     window.addEventListener("mousemove", onMouseMove);
@@ -88,7 +131,7 @@ export function WorkspaceShell({
 
     const onMouseMove = (moveEvent: MouseEvent) => {
       if (!isResizingRight.current) return;
-      const newWidth = Math.max(300, Math.min(550, window.innerWidth - moveEvent.clientX));
+      const newWidth = Math.max(280, Math.min(500, window.innerWidth - moveEvent.clientX));
       setRightWidth(newWidth);
     };
 
@@ -98,7 +141,7 @@ export function WorkspaceShell({
       document.body.style.userSelect = "";
       window.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("mouseup", onMouseUp);
-      localStorage.setItem("udip-right-panel-width", rightWidth.toString());
+      localStorage.setItem("docora-right-panel-width", rightWidth.toString());
     };
 
     window.addEventListener("mousemove", onMouseMove);
@@ -106,47 +149,47 @@ export function WorkspaceShell({
   };
 
   const handleResetLeftWidth = () => {
-    setLeftWidth(360);
-    localStorage.setItem("udip-left-panel-width", "360");
+    setLeftWidth(DEFAULT_LEFT_WIDTH);
+    localStorage.setItem("docora-left-panel-width", DEFAULT_LEFT_WIDTH.toString());
   };
 
   const handleResetRightWidth = () => {
-    setRightWidth(380);
-    localStorage.setItem("udip-right-panel-width", "380");
+    setRightWidth(DEFAULT_RIGHT_WIDTH);
+    localStorage.setItem("docora-right-panel-width", DEFAULT_RIGHT_WIDTH.toString());
   };
 
   return (
-    <div className="h-screen w-screen flex flex-col bg-[var(--canvas)] overflow-hidden font-sans select-none text-[var(--text-primary)]">
-      {/* Header */}
+    <div className="h-screen w-screen flex flex-col bg-canvas text-ink overflow-hidden font-sans select-none">
+      {/* Header Bar */}
       {header}
 
-      {/* Main Floating Workspace Canvas */}
-      <main className="flex-1 w-full px-3 pb-3 pt-0 flex gap-3 min-h-0 overflow-hidden relative">
-        {/* DESKTOP / TABLET THREE-PANEL LAYOUT */}
-        <div className="hidden md:flex w-full h-full gap-3 min-h-0 overflow-hidden">
-          {/* LEFT: SOURCES PANEL */}
+      {/* Main Workspace 3-Panel Canvas */}
+      <main className="flex-1 w-full p-2.5 pt-0 flex gap-2.5 min-h-0 overflow-hidden relative">
+        {/* DESKTOP / TABLET THREE-PANEL LAYOUT (>= 768px) */}
+        <div className="hidden md:flex w-full h-full gap-2.5 min-h-0 overflow-hidden">
+          {/* LEFT: SOURCES & NOTES PANEL */}
           {isLeftPanelOpen ? (
             <section
               style={{ width: `${leftWidth}px` }}
-              className="h-full shrink-0 rounded-2xl border border-black/[0.08] bg-white shadow-[0_1px_3px_rgba(0,0,0,0.04),0_6px_16px_rgba(0,0,0,0.03)] overflow-hidden flex flex-col transition-all duration-200"
+              className="h-full shrink-0 rounded-xl border border-hairline bg-surface shadow-xs overflow-hidden flex flex-col transition-all duration-150"
             >
               {sourcesPanel}
             </section>
           ) : (
             <aside
               onClick={() => setIsLeftPanelOpen(true)}
-              className="h-full w-12 shrink-0 rounded-2xl border border-black/[0.08] bg-white shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:bg-neutral-50 cursor-pointer flex flex-col items-center py-4 transition-colors group"
-              title="Expand Sources"
+              className="h-full w-12 shrink-0 rounded-xl border border-hairline bg-surface shadow-xs hover:bg-surface-subtle cursor-pointer flex flex-col items-center py-4 transition-colors duration-150 group select-none"
+              title="Expand Sources (⌘/Ctrl + B)"
             >
-              <div className="p-2 rounded-xl text-neutral-500 group-hover:text-amber-600">
+              <div className="p-1 rounded text-ink-muted group-hover:text-ink transition-colors duration-150">
                 <ChevronRight className="w-4 h-4" />
               </div>
               <div className="mt-4 flex-1 flex items-center justify-center">
-                <span className="[writing-mode:vertical-lr] rotate-180 text-[11px] font-semibold tracking-wider text-neutral-500 group-hover:text-neutral-800 uppercase">
+                <span className="[writing-mode:vertical-lr] rotate-180 text-micro uppercase tracking-wider text-ink-muted group-hover:text-ink font-medium">
                   Sources ({sourcesCount})
                 </span>
               </div>
-              <BookOpen className="w-4 h-4 text-neutral-400" />
+              <BookOpen className="w-4 h-4 text-ink-muted" />
             </aside>
           )}
 
@@ -155,15 +198,15 @@ export function WorkspaceShell({
             <div
               onMouseDown={handleLeftResizeStart}
               onDoubleClick={handleResetLeftWidth}
-              className="w-1.5 h-full cursor-col-resize hover:bg-amber-500/30 active:bg-amber-500 transition-colors rounded-full shrink-0 flex items-center justify-center group"
-              title="Drag to resize, double-click to reset"
+              className="w-1.5 h-full cursor-col-resize hover:bg-border-strong active:bg-gold transition-colors duration-150 rounded-full shrink-0 flex items-center justify-center group"
+              title="Drag to resize, double-click to reset width"
             >
-              <div className="w-0.5 h-8 bg-black/[0.12] rounded-full group-hover:bg-amber-600" />
+              <div className="w-0.5 h-8 bg-border-hairline rounded-full group-hover:bg-ink-muted" />
             </div>
           )}
 
-          {/* CENTER: CHAT PANEL */}
-          <section className="flex-1 h-full min-w-[320px] rounded-2xl border border-black/[0.08] bg-white shadow-[0_2px_8px_rgba(0,0,0,0.05),0_12px_24px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col relative">
+          {/* CENTER: READING & SYNTHESIS CANVAS (PRIMARY FOCAL POINT) */}
+          <section className="flex-1 h-full min-w-[320px] rounded-xl border border-hairline bg-surface shadow-xs overflow-hidden flex flex-col relative transition-all duration-150">
             {chatPanel}
           </section>
 
@@ -172,56 +215,56 @@ export function WorkspaceShell({
             <div
               onMouseDown={handleRightResizeStart}
               onDoubleClick={handleResetRightWidth}
-              className="w-1.5 h-full cursor-col-resize hover:bg-amber-500/30 active:bg-amber-500 transition-colors rounded-full shrink-0 flex items-center justify-center group"
-              title="Drag to resize, double-click to reset"
+              className="w-1.5 h-full cursor-col-resize hover:bg-border-strong active:bg-gold transition-colors duration-150 rounded-full shrink-0 flex items-center justify-center group"
+              title="Drag to resize, double-click to reset width"
             >
-              <div className="w-0.5 h-8 bg-black/[0.12] rounded-full group-hover:bg-amber-600" />
+              <div className="w-0.5 h-8 bg-border-hairline rounded-full group-hover:bg-ink-muted" />
             </div>
           )}
 
-          {/* RIGHT: STUDIO PANEL */}
+          {/* RIGHT: STUDIO WORKSHOP SHELF */}
           {isRightPanelOpen ? (
             <section
               style={{ width: `${rightWidth}px` }}
-              className="h-full shrink-0 rounded-2xl border border-black/[0.08] bg-white shadow-[0_1px_3px_rgba(0,0,0,0.04),0_6px_16px_rgba(0,0,0,0.03)] overflow-hidden flex flex-col transition-all duration-200"
+              className="h-full shrink-0 rounded-xl border border-hairline bg-surface shadow-xs overflow-hidden flex flex-col transition-all duration-150"
             >
               {studioPanel}
             </section>
           ) : (
             <aside
               onClick={() => setIsRightPanelOpen(true)}
-              className="h-full w-12 shrink-0 rounded-2xl border border-black/[0.08] bg-white shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:bg-neutral-50 cursor-pointer flex flex-col items-center py-4 transition-colors group"
-              title="Expand Studio"
+              className="h-full w-12 shrink-0 rounded-xl border border-hairline bg-surface shadow-xs hover:bg-surface-subtle cursor-pointer flex flex-col items-center py-4 transition-colors duration-150 group select-none"
+              title="Expand Studio (⌘/Ctrl + J)"
             >
-              <div className="p-2 rounded-xl text-neutral-500 group-hover:text-amber-600">
+              <div className="p-1 rounded text-ink-muted group-hover:text-ink transition-colors duration-150">
                 <ChevronLeft className="w-4 h-4" />
               </div>
               <div className="mt-4 flex-1 flex items-center justify-center">
-                <span className="[writing-mode:vertical-lr] text-xs font-semibold tracking-wider text-neutral-500 group-hover:text-neutral-800 uppercase">
+                <span className="[writing-mode:vertical-lr] text-micro uppercase tracking-wider text-ink-muted group-hover:text-ink font-medium">
                   Studio ({artifactsCount})
                 </span>
               </div>
-              <Sparkles className="w-4 h-4 text-[var(--text-muted)]" />
+              <Sparkles className="w-4 h-4 text-ink-muted" />
             </aside>
           )}
         </div>
 
-        {/* MOBILE VIEW (Single Active Panel) */}
+        {/* MOBILE VIEW (< 768px): Single Active Panel with Bottom Tabs */}
         <div className="flex md:hidden w-full h-full flex-col min-h-0">
-          <div className="flex-1 rounded-3xl border border-[var(--border-subtle)] bg-[var(--panel)] shadow-sm overflow-hidden flex flex-col">
+          <div className="flex-1 rounded-xl border border-hairline bg-surface shadow-xs overflow-hidden flex flex-col min-h-0">
             {mobileTab === "sources" && sourcesPanel}
             {mobileTab === "chat" && chatPanel}
             {mobileTab === "studio" && studioPanel}
           </div>
 
           {/* Mobile Bottom Navigation Bar */}
-          <nav className="h-14 mt-2 px-6 rounded-2xl border border-[var(--border-subtle)] bg-[var(--panel)] flex items-center justify-around shrink-0">
+          <nav className="h-13 mt-2 px-4 rounded-xl border border-hairline bg-surface flex items-center justify-around shrink-0 shadow-xs">
             <button
               onClick={() => setMobileTab("sources")}
-              className={`flex flex-col items-center gap-1 text-xs font-medium transition-colors ${
+              className={`flex flex-col items-center gap-1 py-1 px-3 text-caption font-medium transition-colors duration-150 cursor-pointer ${
                 mobileTab === "sources"
-                  ? "text-[var(--accent-blue)]"
-                  : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                  ? "text-verdigris font-semibold"
+                  : "text-ink-muted hover:text-ink"
               }`}
             >
               <BookOpen className="w-4 h-4" />
@@ -230,10 +273,10 @@ export function WorkspaceShell({
 
             <button
               onClick={() => setMobileTab("chat")}
-              className={`flex flex-col items-center gap-1 text-xs font-medium transition-colors ${
+              className={`flex flex-col items-center gap-1 py-1 px-3 text-caption font-medium transition-colors duration-150 cursor-pointer ${
                 mobileTab === "chat"
-                  ? "text-[var(--accent-blue)]"
-                  : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                  ? "text-verdigris font-semibold"
+                  : "text-ink-muted hover:text-ink"
               }`}
             >
               <MessageSquare className="w-4 h-4" />
@@ -242,10 +285,10 @@ export function WorkspaceShell({
 
             <button
               onClick={() => setMobileTab("studio")}
-              className={`flex flex-col items-center gap-1 text-xs font-medium transition-colors ${
+              className={`flex flex-col items-center gap-1 py-1 px-3 text-caption font-medium transition-colors duration-150 cursor-pointer ${
                 mobileTab === "studio"
-                  ? "text-[var(--accent-blue)]"
-                  : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                  ? "text-verdigris font-semibold"
+                  : "text-ink-muted hover:text-ink"
               }`}
             >
               <Sparkles className="w-4 h-4" />
@@ -254,6 +297,12 @@ export function WorkspaceShell({
           </nav>
         </div>
       </main>
+
+      {/* Global Shortcuts Modal */}
+      <ShortcutsModal
+        isOpen={isShortcutsOpen}
+        onClose={() => setIsShortcutsOpen(false)}
+      />
     </div>
   );
 }

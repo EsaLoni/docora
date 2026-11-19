@@ -90,7 +90,7 @@ export function CitationDrawer({
           <label className="text-micro font-mono uppercase tracking-wider text-ink-muted">
             Cited Passage
           </label>
-          <div className="rounded-lg bg-surface-subtle border border-hairline border-l-2 border-l-verdigris p-4">
+          <div className="rounded-lg bg-surface-subtle border border-hairline p-4">
             <p className="font-serif text-reading leading-relaxed text-ink italic select-text">
               {citation.quote ? (
                 `"${citation.quote.trim()}"`

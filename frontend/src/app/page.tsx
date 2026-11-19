@@ -237,7 +237,7 @@ export default function HomePage() {
 
             {/* Interactive Source Passage Box */}
             {activeCitation && (
-              <div className="rounded-lg bg-surface-subtle border border-hairline border-l-2 border-l-verdigris p-4 space-y-1.5 animate-in fade-in duration-150">
+              <div className="rounded-lg bg-surface-subtle border border-hairline p-4 space-y-1.5 animate-in fade-in duration-150">
                 <div className="flex items-center justify-between text-micro text-ink-muted">
                   <div className="flex items-center gap-2">
                     <span className="font-mono text-verdigris font-medium">

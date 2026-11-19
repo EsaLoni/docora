@@ -502,7 +502,7 @@ function ChatComponent() {
 
               {showOptions && (
                 <div className="absolute right-0 mt-1.5 w-48 bg-card border rounded-xl shadow-lg p-2 z-20 space-y-1">
-                  <div className="px-2 py-1 text-[10px] uppercase font-semibold text-muted-foreground">
+                  <div className="px-2 py-1 text-micro uppercase font-semibold text-muted-foreground">
                     Retrieval Mode
                   </div>
                   {(["hybrid", "vector", "keyword"] as const).map((m) => (
@@ -607,11 +607,11 @@ function ChatComponent() {
                           <span className="text-xs font-semibold text-foreground tracking-tight">
                             Docora Intelligence
                           </span>
-                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-micro font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
                             <ShieldCheck className="w-2.5 h-2.5" />
                             Grounded
                           </span>
-                          <span className="text-[10px] text-muted-foreground/70 hidden sm:inline-block">
+                          <span className="text-micro text-muted-foreground/70 hidden sm:inline-block">
                             Gemini 3.5 Flash
                           </span>
                         </div>
@@ -672,7 +672,7 @@ function ChatComponent() {
                                   <p className="text-[11px] font-medium text-foreground truncate group-hover/card:text-primary transition-colors">
                                     {cite.document_filename}
                                   </p>
-                                  <p className="text-[10px] text-muted-foreground flex items-center justify-between mt-0.5">
+                                  <p className="text-micro text-muted-foreground flex items-center justify-between mt-0.5">
                                     <span>Page {cite.page_number}</span>
                                     <span className="opacity-0 group-hover/card:opacity-100 transition-opacity text-primary inline-flex items-center gap-0.5 font-medium">
                                       View <ExternalLink className="w-2.5 h-2.5" />
@@ -710,7 +710,7 @@ function ChatComponent() {
                   <button
                     type="button"
                     onClick={() => setSelectedDocId("all")}
-                    className="ml-auto text-[10px] text-muted-foreground hover:text-foreground hover:underline"
+                    className="ml-auto text-micro text-muted-foreground hover:text-foreground hover:underline"
                   >
                     Clear Filter
                   </button>
@@ -764,7 +764,7 @@ function ChatComponent() {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] text-muted-foreground/60 hidden sm:inline-block">
+                  <span className="text-micro text-muted-foreground/60 hidden sm:inline-block">
                     Press <kbd className="font-mono bg-muted/60 px-1 py-0.5 rounded text-[9.5px]">Enter</kbd> to send
                   </span>
 

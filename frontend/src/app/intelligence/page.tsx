@@ -552,7 +552,7 @@ export default function InsightsPage() {
                         <tr key={idx} className="hover:bg-muted/30">
                           <td className="py-2.5 px-3 font-medium text-foreground">{f.field_name}</td>
                           <td className="py-2.5 px-3 font-mono text-[11px] text-foreground">{String(f.value)}</td>
-                          <td className="py-2.5 px-3 text-muted-foreground font-mono text-[10px]">{f.data_type}</td>
+                          <td className="py-2.5 px-3 text-muted-foreground font-mono text-micro">{f.data_type}</td>
                           <td className="py-2.5 px-3 font-mono text-[11px] text-emerald-600">
                             {Math.round((f.confidence || 0.95) * 100)}%
                           </td>
@@ -663,7 +663,7 @@ export default function InsightsPage() {
                     <div key={idx} className="p-3 rounded-lg border bg-muted/20 space-y-2">
                       <div className="flex items-center justify-between">
                         <span className="font-semibold text-xs text-foreground">{diff.category}</span>
-                        <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
+                        <span className="text-micro px-2 py-0.5 rounded-full font-medium bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
                           {diff.status}
                         </span>
                       </div>
@@ -737,7 +737,7 @@ export default function InsightsPage() {
                     <div key={idx} className="p-3 rounded-lg border bg-muted/20 space-y-1.5">
                       <div className="flex items-center justify-between">
                         <span className="font-semibold text-xs text-foreground">{ins.title}</span>
-                        <span className="text-[10px] text-emerald-600 font-mono">
+                        <span className="text-micro text-emerald-600 font-mono">
                           {Math.round((ins.confidence_score || 0.9) * 100)}% confidence
                         </span>
                       </div>

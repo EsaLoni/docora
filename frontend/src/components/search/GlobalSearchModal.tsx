@@ -207,7 +207,7 @@ export function GlobalSearchModal({
               </button>
             </div>
 
-            <span className="text-[10px] text-muted-foreground font-mono">
+            <span className="text-micro text-muted-foreground font-mono">
               384-Dim pgvector + FTS
             </span>
           </div>
@@ -254,21 +254,21 @@ export function GlobalSearchModal({
                       <span className="text-xs font-bold text-foreground truncate group-hover:text-primary transition-colors">
                         {res.document_title}
                       </span>
-                      <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-muted text-muted-foreground shrink-0">
+                      <span className="text-micro px-2 py-0.5 rounded-full font-medium bg-muted text-muted-foreground shrink-0 font-mono">
                         Page {res.page_number}
                       </span>
                       {res.section_title && (
-                        <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-primary/10 text-primary border border-primary/20 truncate hidden sm:inline">
+                        <span className="text-micro px-2 py-0.5 rounded-full font-medium bg-primary/10 text-primary border border-primary/20 truncate hidden sm:inline">
                           {res.section_title}
                         </span>
                       )}
                     </div>
 
                     {/* Score Indicator */}
-                    <div className="flex items-center gap-1 shrink-0">
+                    <div className="flex items-center gap-1 shrink-0 font-mono">
                       <span
                         className={cn(
-                          "text-[10px] font-bold px-2 py-0.5 rounded-full",
+                          "text-micro font-bold px-2 py-0.5 rounded-full",
                           res.score >= 0.9
                             ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
                             : res.score >= 0.8
@@ -288,7 +288,7 @@ export function GlobalSearchModal({
                   </p>
 
                   {/* Result Footer */}
-                  <div className="flex items-center justify-between text-[10px] text-muted-foreground pt-1">
+                  <div className="flex items-center justify-between text-micro text-muted-foreground pt-1">
                     <span className="font-mono">{res.document_filename}</span>
                     <span className="inline-flex items-center gap-1 text-primary font-medium group-hover:underline">
                       Inspect Citation Page <ArrowRight className="h-3 w-3" />
@@ -301,8 +301,8 @@ export function GlobalSearchModal({
         </div>
 
         {/* Modal Footer */}
-        <div className="border-t px-4 py-2.5 bg-muted/20 flex items-center justify-between text-[11px] text-muted-foreground">
-          <span>Press <kbd className="px-1.5 py-0.5 bg-muted border rounded font-mono text-[10px]">Esc</kbd> to exit</span>
+        <div className="border-t px-4 py-2.5 bg-muted/20 flex items-center justify-between text-caption text-muted-foreground">
+          <span>Press <kbd className="px-1.5 py-0.5 bg-muted border rounded font-mono text-micro">Esc</kbd> to exit</span>
           <span className="flex items-center gap-1 font-semibold text-foreground">
             <Bookmark className="h-3 w-3 text-primary" /> Workspace Multi-Tenant Guarded
           </span>

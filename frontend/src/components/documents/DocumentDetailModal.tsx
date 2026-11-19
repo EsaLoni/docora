@@ -131,7 +131,7 @@ export function DocumentDetailModal({
                 <h2 className="text-base font-bold text-foreground truncate">{document.title}</h2>
                 <span
                   className={cn(
-                    "text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider",
+                    "text-micro font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider",
                     isReady && "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20",
                     isProcessing && "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 animate-pulse",
                     isFailed && "bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20",
@@ -316,11 +316,11 @@ export function DocumentDetailModal({
                   <div key={idx} className="border rounded-xl overflow-hidden shadow-sm">
                     <div className="bg-muted/40 px-4 py-2 text-xs font-semibold border-b flex items-center justify-between">
                       <span>Table {idx + 1} &bull; {t.rows.length} Rows</span>
-                      <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Markdown Structured</span>
+                      <span className="text-micro text-muted-foreground uppercase tracking-wider font-mono">Markdown Structured</span>
                     </div>
                     <div className="overflow-x-auto">
                       <table className="w-full text-xs text-left">
-                        <thead className="bg-muted/20 text-muted-foreground uppercase text-[10px] border-b">
+                        <thead className="bg-muted/20 text-muted-foreground uppercase text-micro font-mono border-b">
                           <tr>
                             {t.headers.map((h, hIdx) => (
                               <th key={hIdx} className="px-3 py-2 font-semibold">{h}</th>
@@ -379,7 +379,7 @@ export function DocumentDetailModal({
                       <span className="font-mono text-muted-foreground">
                         Chunk #{idx} &bull; Page {currentPage} &bull; ~128 tokens
                       </span>
-                      <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 font-medium border border-emerald-500/20">
+                      <span className="inline-flex items-center gap-1 text-micro px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 font-medium border border-emerald-500/20 font-mono">
                         <CheckCircle2 className="h-2.5 w-2.5" />
                         pgvector Synced
                       </span>

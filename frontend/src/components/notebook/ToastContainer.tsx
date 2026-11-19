@@ -40,13 +40,13 @@ export function ToastContainer({ toasts, onRemoveToast }: ToastContainerProps) {
                   <div className="mt-1.5">
                     <button
                       onClick={() => setExpandedId(isExpanded ? null : toast.id)}
-                      className="text-[10px] font-mono text-neutral-400 hover:text-neutral-700 flex items-center gap-1"
+                      className="text-micro font-mono text-ink-muted hover:text-ink flex items-center gap-1"
                     >
                       <span>Diagnostic info</span>
                       {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
                     </button>
                     {isExpanded && (
-                      <pre className="mt-1 p-2 rounded-xl bg-[#F4F5F7] border border-black/[0.08] text-[9px] font-mono text-neutral-600 overflow-x-auto whitespace-pre-wrap">
+                      <pre className="mt-1 p-2 rounded-md bg-surface-subtle border border-border-hairline text-micro font-mono text-ink-secondary overflow-x-auto whitespace-pre-wrap">
                         {JSON.stringify(toast.diagnostic, null, 2)}
                       </pre>
                     )}

@@ -97,7 +97,7 @@ export function GeminiKeyModal({ isOpen, onClose }: GeminiKeyModalProps) {
                 <span>Get a free key from Google AI Studio</span>
                 <ExternalLink className="w-3.5 h-3.5" />
               </a>
-              <span className="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 font-semibold">
+              <span className="text-micro font-mono text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 font-semibold">
                 100% Free
               </span>
             </div>

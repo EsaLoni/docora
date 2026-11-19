@@ -33,11 +33,11 @@ export function UploadQueueWidget() {
             <div className="flex items-center gap-2">
               <span className="text-xs font-bold text-foreground">Upload & Processing</span>
               {activeCount > 0 ? (
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+                <span className="px-2 py-0.5 rounded-full text-micro font-mono font-semibold bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300">
                   {activeCount} active
                 </span>
               ) : (
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
+                <span className="px-2 py-0.5 rounded-full text-micro font-mono font-semibold bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
                   All Complete
                 </span>
               )}

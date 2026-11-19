@@ -171,13 +171,13 @@ export function CommandPalette({
             autoFocus
             className="w-full bg-transparent border-0 text-xs text-neutral-900 placeholder-neutral-400 outline-none"
           />
-          <kbd className="px-1.5 py-0.5 rounded-md border border-black/[0.1] bg-white text-[10px] text-neutral-500 font-mono shadow-xs">
+          <kbd className="px-1.5 py-0.5 rounded-sm border border-border-hairline bg-surface text-micro text-ink-muted font-mono">
             ESC
           </kbd>
         </div>
 
         {/* Command List */}
-        <div className="max-h-84 overflow-y-auto p-2 space-y-1 bg-white">
+        <div className="max-h-84 overflow-y-auto p-2 space-y-1 bg-surface">
           {filtered.length > 0 ? (
             filtered.map((cmd, idx) => {
               const Icon = cmd.icon;
@@ -190,27 +190,27 @@ export function CommandPalette({
                     onClose();
                   }}
                   onMouseEnter={() => setSelectedIndex(idx)}
-                  className={`w-full flex items-center justify-between p-2.5 rounded-xl text-left transition-all ${
+                  className={`w-full flex items-center justify-between p-2 rounded-md text-left transition-colors cursor-pointer ${
                     isSelected
-                      ? "bg-[#E5A93B] text-neutral-950 shadow-xs"
-                      : "text-neutral-800 hover:bg-neutral-100"
+                      ? "bg-gold text-gold-fg shadow-xs"
+                      : "text-ink hover:bg-surface-subtle"
                   }`}
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <div
-                      className={`p-1.5 rounded-lg border shrink-0 ${
+                      className={`p-1.5 rounded-md border shrink-0 ${
                         isSelected
-                          ? "bg-white/40 border-neutral-900/10 text-neutral-950"
-                          : "bg-[#F4F5F7] border-black/[0.08] text-neutral-600"
+                          ? "bg-white/20 border-white/30 text-gold-fg"
+                          : "bg-surface-subtle border-border-hairline text-ink-secondary"
                       }`}
                     >
                       <Icon className="w-4 h-4" />
                     </div>
                     <div className="min-w-0">
-                      <p className="text-xs font-semibold truncate tracking-tight">{cmd.title}</p>
+                      <p className="text-ui font-medium truncate tracking-tight">{cmd.title}</p>
                       <p
-                        className={`text-[11px] truncate ${
-                          isSelected ? "text-neutral-900 font-medium" : "text-neutral-500"
+                        className={`text-caption truncate ${
+                          isSelected ? "text-gold-fg/90" : "text-ink-muted"
                         }`}
                       >
                         {cmd.desc}
@@ -219,7 +219,7 @@ export function CommandPalette({
                   </div>
 
                   {isSelected && (
-                    <div className="flex items-center gap-1 text-[10px] text-neutral-950 pr-1 shrink-0 font-bold">
+                    <div className="flex items-center gap-1 text-micro text-gold-fg pr-1 shrink-0 font-mono">
                       <span>↵</span>
                     </div>
                   )}
@@ -227,16 +227,16 @@ export function CommandPalette({
               );
             })
           ) : (
-            <div className="p-8 text-center text-xs text-neutral-500">
+            <div className="p-8 text-center text-caption text-ink-muted">
               No matching commands found.
             </div>
           )}
         </div>
 
         {/* Keyboard hints footer */}
-        <div className="px-4 py-2 bg-[#F4F5F7] border-t border-black/[0.08] flex items-center justify-between text-[10px] text-neutral-500">
-          <span>Navigate with <kbd className="font-mono text-neutral-600">↑</kbd> <kbd className="font-mono text-neutral-600">↓</kbd></span>
-          <span>Select with <kbd className="font-mono text-neutral-600">↵ Enter</kbd></span>
+        <div className="px-4 py-2 bg-surface-subtle border-t border-border-hairline flex items-center justify-between text-micro text-ink-muted font-mono">
+          <span>Navigate with <kbd className="text-ink">↑</kbd> <kbd className="text-ink">↓</kbd></span>
+          <span>Select with <kbd className="text-ink">↵ Enter</kbd></span>
         </div>
       </div>
     </div>

@@ -154,7 +154,7 @@ export function FormattedMessage({
             <hr className="border-0 h-px bg-border-hairline my-5" />
           ),
           blockquote: ({ children }) => (
-            <blockquote className="border-l-2 border-verdigris pl-4 py-2 my-3 bg-surface-subtle rounded-r text-ui text-ink-secondary italic font-serif">
+            <blockquote className="border border-border-hairline px-4 py-2.5 my-3 bg-surface-subtle rounded-md text-ui text-ink-secondary italic font-serif">
               {children}
             </blockquote>
           ),

@@ -17,8 +17,8 @@ export interface BrandLogoProps {
 }
 
 const sizeConfig = {
-  xs: { icon: 20, text: "text-xs font-semibold", tagline: "text-[9px]" },
-  sm: { icon: 24, text: "text-sm font-semibold", tagline: "text-[10px]" },
+  xs: { icon: 20, text: "text-xs font-semibold", tagline: "text-micro" },
+  sm: { icon: 24, text: "text-sm font-semibold", tagline: "text-micro" },
   md: { icon: 32, text: "text-base font-bold", tagline: "text-[11px]" },
   lg: { icon: 40, text: "text-xl font-bold", tagline: "text-xs" },
   xl: { icon: 48, text: "text-2xl font-bold", tagline: "text-sm" },
@@ -125,7 +125,7 @@ export function BrandLogo({
               Docora
             </span>
             {variant === "compact" && (
-              <span className="text-[10px] px-1.5 py-0.2 bg-primary/10 text-primary border border-primary/20 rounded font-medium tracking-normal">
+              <span className="text-micro px-1.5 py-0.2 bg-primary/10 text-primary border border-primary/20 rounded font-medium tracking-normal">
                 AI
               </span>
             )}

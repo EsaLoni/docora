@@ -55,41 +55,41 @@ export function Sidebar({ isMobileOpen = false, onCloseMobile }: SidebarProps) {
   };
 
   const navContent = (
-    <div className="flex flex-col justify-between h-full bg-[#F8F9FA] border-r border-black/[0.08] text-neutral-900">
+    <div className="flex flex-col justify-between h-full bg-surface border-r border-border-hairline text-ink font-sans">
       <div>
         {/* Brand Header */}
-        <div className="h-16 flex items-center justify-between px-5 border-b border-black/[0.08]">
-          <Link href="/" prefetch={false} className="flex items-center min-w-0 no-underline hover:opacity-95 transition-opacity">
+        <div className="h-14 flex items-center justify-between px-4 border-b border-border-hairline">
+          <Link href="/" prefetch={false} className="flex items-center min-w-0 no-underline hover:opacity-90 transition-opacity">
             <BrandLogo
               variant="full"
               size="sm"
               showTagline
               tagline="Document Intelligence"
-              textClassName="text-sm font-semibold text-neutral-900 tracking-tight"
+              textClassName="font-serif text-title font-medium text-ink tracking-tight"
             />
           </Link>
           {onCloseMobile && (
             <button
               type="button"
               onClick={onCloseMobile}
-              className="p-1 rounded-lg text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 md:hidden"
+              className="p-1 rounded-md text-ink-muted hover:text-ink hover:bg-surface-subtle md:hidden"
               aria-label="Close menu"
             >
-              <X className="h-5 w-5" />
+              <X className="h-4 w-4" />
             </button>
           )}
         </div>
 
         {/* Active Workspace Indicator */}
         <div className="px-3 pt-3 pb-2">
-          <div className="px-3 py-2 rounded-xl bg-white border border-black/[0.08] flex items-center justify-between text-xs text-neutral-600 shadow-xs">
+          <div className="px-3 py-1.5 rounded-md bg-surface-subtle border border-border-hairline flex items-center justify-between text-caption text-ink-secondary">
             <div className="flex items-center gap-2 min-w-0">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 shrink-0" title="Active Workspace" />
-              <span className="text-xs font-medium truncate text-neutral-800">
+              <span className="h-1.5 w-1.5 rounded-full bg-verdigris shrink-0" title="Active Workspace" />
+              <span className="text-caption font-medium truncate text-ink">
                 {user?.workspaces?.[0]?.name || "Personal Workspace"}
               </span>
             </div>
-            <span className="text-[10px] uppercase tracking-wider text-neutral-500 font-mono">LIVE</span>
+            <span className="text-micro uppercase font-mono text-ink-muted">SYNCED</span>
           </div>
         </div>
 
@@ -111,13 +111,13 @@ export function Sidebar({ isMobileOpen = false, onCloseMobile }: SidebarProps) {
                 prefetch={false}
                 onClick={onCloseMobile}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-all",
+                  "flex items-center gap-2.5 px-3 py-2 rounded-md text-ui font-medium transition-colors",
                   isActive
-                    ? "bg-neutral-900 text-white font-semibold shadow-xs"
-                    : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900"
+                    ? "bg-surface-subtle text-ink font-semibold border border-border-hairline"
+                    : "text-ink-secondary hover:bg-surface-subtle hover:text-ink"
                 )}
               >
-                <Icon className={cn("h-4 w-4 shrink-0", isActive ? "text-amber-400" : "text-neutral-500")} />
+                <Icon className={cn("h-4 w-4 shrink-0", isActive ? "text-gold" : "text-ink-muted")} />
                 <span>{item.name}</span>
               </Link>
             );
@@ -126,20 +126,20 @@ export function Sidebar({ isMobileOpen = false, onCloseMobile }: SidebarProps) {
       </div>
 
       {/* Bottom Area: Settings & Account Management */}
-      <div className="p-3 border-t border-black/[0.08] space-y-2 bg-[#F8F9FA]">
+      <div className="p-3 border-t border-border-hairline space-y-2 bg-surface">
         <Link
           href="/settings"
           prefetch={false}
           onClick={onCloseMobile}
           className={cn(
-            "flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium transition-colors",
+            "flex items-center gap-2.5 px-3 py-2 rounded-md text-ui font-medium transition-colors",
             pathname === "/settings"
-              ? "bg-neutral-900 text-white font-semibold"
-              : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900"
+              ? "bg-surface-subtle text-ink font-semibold border border-border-hairline"
+              : "text-ink-secondary hover:bg-surface-subtle hover:text-ink"
           )}
         >
-          <Settings className="h-4 w-4 shrink-0 text-neutral-500" />
-          <span>Settings & Isolation</span>
+          <Settings className="h-4 w-4 shrink-0 text-ink-muted" />
+          <span>Settings</span>
         </Link>
 
         {/* Account Profile Card */}
@@ -147,24 +147,24 @@ export function Sidebar({ isMobileOpen = false, onCloseMobile }: SidebarProps) {
           <button
             type="button"
             onClick={() => setShowAccountMenu(!showAccountMenu)}
-            className="w-full p-2 rounded-xl bg-white border border-black/[0.08] hover:border-black/[0.16] hover:bg-neutral-50 transition-all flex items-center justify-between text-left group shadow-xs"
+            className="w-full p-2 rounded-md bg-surface border border-border-hairline hover:bg-surface-subtle transition-colors flex items-center justify-between text-left group cursor-pointer"
           >
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="h-8 w-8 rounded-lg bg-neutral-900 text-white flex items-center justify-center font-bold text-xs shrink-0">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="h-7 w-7 rounded-md bg-surface-subtle border border-border-hairline text-ink flex items-center justify-center font-mono font-bold text-micro shrink-0">
                 {getInitials(user?.full_name, user?.email)}
               </div>
               <div className="flex flex-col min-w-0">
-                <span className="text-xs font-semibold text-neutral-900 truncate">
-                  {user?.full_name || "Research Scientist"}
+                <span className="text-caption font-medium text-ink truncate">
+                  {user?.full_name || "Researcher"}
                 </span>
-                <span className="text-[11px] text-neutral-500 truncate">
+                <span className="text-micro font-mono text-ink-muted truncate">
                   {user?.email || "user@docora.internal"}
                 </span>
               </div>
             </div>
             <ChevronUp
               className={cn(
-                "h-4 w-4 text-neutral-400 transition-transform",
+                "h-3.5 w-3.5 text-ink-muted transition-transform",
                 showAccountMenu ? "rotate-180" : ""
               )}
             />
@@ -172,15 +172,15 @@ export function Sidebar({ isMobileOpen = false, onCloseMobile }: SidebarProps) {
 
           {/* Account Popover Menu */}
           {showAccountMenu && (
-            <div className="absolute bottom-full left-0 right-0 mb-2 p-2 bg-white border border-black/[0.08] rounded-xl shadow-xl z-30 space-y-1 animate-in fade-in duration-100">
-              <div className="px-2.5 py-1.5 text-[11px] text-neutral-500 border-b border-black/[0.06] flex items-center justify-between">
+            <div className="absolute bottom-full left-0 right-0 mb-2 p-1.5 bg-surface border border-border-hairline rounded-md shadow-lg z-30 space-y-1 animate-in fade-in duration-100">
+              <div className="px-2.5 py-1 text-micro font-mono text-ink-muted border-b border-border-hairline flex items-center justify-between">
                 <span>Account Status</span>
-                <span className="text-emerald-600 font-semibold">Verified Active</span>
+                <span className="text-verdigris">Active</span>
               </div>
               <button
                 type="button"
                 onClick={handleSignOut}
-                className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-xs font-semibold text-rose-600 hover:bg-rose-50 transition text-left"
+                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-sm text-caption font-medium text-destructive hover:bg-destructive/10 transition-colors text-left cursor-pointer"
               >
                 <LogOut className="h-3.5 w-3.5 shrink-0" />
                 <span>Sign Out</span>
@@ -190,9 +190,9 @@ export function Sidebar({ isMobileOpen = false, onCloseMobile }: SidebarProps) {
         </div>
 
         {/* Security Isolation Tag */}
-        <div className="px-2 pt-1 flex items-center justify-center gap-1.5 text-[10px] text-neutral-500">
-          <ShieldCheck className="h-3 w-3 text-emerald-400 shrink-0" />
-          <span>Tenant Isolated & Encrypted</span>
+        <div className="px-2 pt-1 flex items-center justify-center gap-1.5 text-micro font-mono text-ink-muted">
+          <ShieldCheck className="h-3 w-3 text-verdigris shrink-0" />
+          <span>Isolated & Encrypted</span>
         </div>
       </div>
     </div>
@@ -201,7 +201,7 @@ export function Sidebar({ isMobileOpen = false, onCloseMobile }: SidebarProps) {
   return (
     <>
       {/* Desktop Fixed Sidebar */}
-      <aside className="hidden md:flex flex-col w-64 border-r border-white/[0.08] bg-[#0C0E15] shrink-0 h-screen sticky top-0 select-none z-20">
+      <aside className="hidden md:flex flex-col w-60 border-r border-border-hairline bg-surface shrink-0 h-screen sticky top-0 select-none z-20">
         {navContent}
       </aside>
 
@@ -209,10 +209,10 @@ export function Sidebar({ isMobileOpen = false, onCloseMobile }: SidebarProps) {
       {isMobileOpen && (
         <div className="fixed inset-0 z-50 flex md:hidden">
           <div
-            className="fixed inset-0 bg-black/75 backdrop-blur-xs transition-opacity"
+            className="fixed inset-0 bg-ink/40 backdrop-blur-xs transition-opacity"
             onClick={onCloseMobile}
           />
-          <aside className="relative flex flex-col w-72 max-w-[85vw] h-full bg-[#0C0E15] border-r border-white/[0.08] shadow-2xl select-none z-50 animate-in slide-in-from-left duration-200">
+          <aside className="relative flex flex-col w-64 max-w-[85vw] h-full bg-surface border-r border-border-hairline shadow-xl select-none z-50 animate-in slide-in-from-left duration-200">
             {navContent}
           </aside>
         </div>

@@ -2,6 +2,7 @@
 
 import React, { Component, ErrorInfo, ReactNode } from "react";
 import { AlertCircle, RotateCcw } from "lucide-react";
+import { Button } from "@/components/ui";
 
 interface Props {
   children?: ReactNode;
@@ -30,23 +31,25 @@ export class ErrorBoundary extends Component<Props, State> {
   public render() {
     if (this.state.hasError) {
       return (
-        <div className="p-6 rounded-xl border border-destructive/20 bg-destructive/5 text-center space-y-3 my-4">
-          <div className="h-10 w-10 mx-auto rounded-full bg-destructive/10 text-destructive flex items-center justify-center">
-            <AlertCircle className="h-5 w-5" />
+        <div className="p-6 rounded-lg border border-border-hairline bg-surface text-center space-y-3 my-4 font-sans">
+          <div className="h-9 w-9 mx-auto rounded-md bg-destructive/10 text-destructive flex items-center justify-center">
+            <AlertCircle className="h-4 w-4" />
           </div>
-          <h3 className="text-sm font-semibold text-foreground">
-            {this.props.fallbackTitle || "Unable to display this section"}
+          <h3 className="font-serif text-title font-medium text-ink">
+            {this.props.fallbackTitle || "Unable to load this section"}
           </h3>
-          <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-            {this.props.fallbackMessage || "An error occurred while rendering this component."}
+          <p className="text-caption text-ink-secondary max-w-sm mx-auto">
+            {this.props.fallbackMessage || "An unexpected error occurred while rendering this view. Your session data is intact."}
           </p>
-          <button
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={() => this.setState({ hasError: false, error: undefined })}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary text-secondary-foreground text-xs font-medium hover:bg-secondary/80 transition-colors"
+            className="gap-1.5"
           >
-            <RotateCcw className="h-3 w-3" />
-            <span>Retry</span>
-          </button>
+            <RotateCcw className="h-3.5 w-3.5" />
+            <span>Reload View</span>
+          </Button>
         </div>
       );
     }

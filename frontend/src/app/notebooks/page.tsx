@@ -7,56 +7,37 @@ import {
   Plus,
   Search,
   BookOpen,
-  Sparkles,
   ArrowRight,
   Trash2,
-  Layers,
   X,
+  Loader2,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { apiClient } from "@/lib/api-client";
-import { useAuth } from "@/context/AuthContext";
+import { Button } from "@/components/ui/Button";
 
 interface NotebookItem {
   id: string;
   title: string;
   description?: string;
-  color: string;
-  cover_image_url?: string;
-  is_archived: boolean;
-  is_shared: boolean;
-  settings?: any;
+  color?: string;
   created_at: string;
   updated_at: string;
-  source_count?: number;
-  note_count?: number;
-  artifact_count?: number;
 }
 
-const COLOR_MAP: Record<string, { badge: string; ring: string }> = {
-  blue: { badge: "bg-sky-400", ring: "ring-sky-400" },
-  indigo: { badge: "bg-indigo-400", ring: "ring-indigo-400" },
-  emerald: { badge: "bg-emerald-400", ring: "ring-emerald-400" },
-  purple: { badge: "bg-purple-400", ring: "ring-purple-400" },
-  amber: { badge: "bg-amber-400", ring: "ring-amber-400" },
-  rose: { badge: "bg-rose-400", ring: "ring-rose-400" },
-};
-
 export default function NotebooksPage() {
-  const { user } = useAuth();
   const [notebooks, setNotebooks] = useState<NotebookItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [newDesc, setNewDesc] = useState("");
-  const [newColor, setNewColor] = useState("indigo");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deleteCandidate, setDeleteCandidate] = useState<NotebookItem | null>(null);
 
   const loadNotebooks = async () => {
     try {
       const data = await apiClient.listNotebooks();
-      setNotebooks(data as any);
+      setNotebooks((data as any) || []);
     } catch (err) {
       console.error("Failed to fetch notebooks", err);
     } finally {
@@ -76,8 +57,7 @@ export default function NotebooksPage() {
     try {
       await apiClient.createNotebook({
         title: newTitle.trim(),
-        description: newDesc.trim() || null,
-        color: newColor,
+        description: newDesc.trim() || undefined,
       });
       setNewTitle("");
       setNewDesc("");
@@ -90,253 +70,262 @@ export default function NotebooksPage() {
     }
   };
 
-  const handleDeleteNotebook = async (id: string, e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!confirm("Are you sure you want to delete this notebook and its studio artifacts?")) return;
-
+  const handleConfirmDelete = async () => {
+    if (!deleteCandidate) return;
     try {
-      await apiClient.deleteNotebook(id);
-      setNotebooks((prev) => prev.filter((n) => n.id !== id));
+      await apiClient.deleteNotebook(deleteCandidate.id);
+      setNotebooks((prev) => prev.filter((n) => n.id !== deleteCandidate.id));
+      setDeleteCandidate(null);
     } catch (err) {
       console.error("Failed to delete notebook", err);
     }
   };
 
-  const filteredNotebooks = notebooks.filter(
-    (n) =>
-      n.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (n.description && n.description.toLowerCase().includes(searchQuery.toLowerCase()))
+  const filteredNotebooks = notebooks.filter((nb) =>
+    nb.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] max-w-6xl mx-auto space-y-8 select-none pb-16">
-      {/* Editorial Top Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-6 border-b border-black/[0.08]">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-amber-700 font-mono">
-              Workspace Atelier
-            </span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-semibold text-neutral-900 tracking-tight">
-            Research Notebooks
-          </h1>
-          <p className="text-sm text-neutral-600 mt-1 max-w-xl">
-            Grounded intelligence workspaces with conversational RAG, multi-source citations, and automated studio synthesis.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3 shrink-0">
-          {/* Refined Search input */}
-          <div className="relative flex items-center bg-white border border-black/[0.08] rounded-xl px-3 py-2 focus-within:border-amber-500/60 focus-within:ring-1 focus-within:ring-amber-500/40 transition-all w-52 sm:w-64 shadow-xs">
-            <Search className="h-3.5 w-3.5 text-neutral-400 mr-2 shrink-0" />
-            <input
-              type="text"
-              placeholder="Search notebooks..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-transparent text-xs text-neutral-900 placeholder-neutral-400 outline-none w-full"
-            />
-          </div>
-
-          {/* New Notebook CTA */}
-          <button
-            onClick={() => setIsCreateOpen(true)}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#E5A93B] text-neutral-950 text-xs font-bold hover:bg-[#D97706] active:scale-[0.98] transition-all shadow-xs shrink-0"
-          >
-            <Plus className="h-3.5 w-3.5 stroke-[2.5]" />
-            <span>New Notebook</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Grid of Notebooks */}
-      {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {[1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className="h-44 rounded-2xl border border-black/[0.06] bg-white animate-pulse p-5 space-y-3 shadow-xs"
-            >
-              <div className="h-4 bg-neutral-100 rounded w-2/3" />
-              <div className="h-3 bg-neutral-50 rounded w-full" />
-              <div className="h-3 bg-neutral-50 rounded w-4/5" />
-            </div>
-          ))}
-        </div>
-      ) : filteredNotebooks.length === 0 ? (
-        <div className="max-w-md mx-auto my-20 text-center space-y-4">
-          <div className="h-12 w-12 rounded-2xl bg-white text-neutral-700 border border-black/[0.08] mx-auto flex items-center justify-center shadow-xs">
-            <BookMarked className="h-5 w-5 text-amber-600" />
-          </div>
-          <div className="space-y-1.5">
-            <h3 className="text-base font-semibold text-neutral-900 tracking-tight">No Notebooks Found</h3>
-            <p className="text-xs text-neutral-600 leading-relaxed max-w-sm mx-auto">
-              Create a research notebook to ingest PDFs, web URLs, or transcripts and begin generating grounded studio artifacts.
+    <div className="min-h-screen bg-canvas text-ink font-sans select-none pb-16">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 space-y-8">
+        {/* Header Bar */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-hairline pb-6">
+          <div>
+            <h1 className="font-serif text-display font-semibold text-ink tracking-tight">
+              Research Notebooks
+            </h1>
+            <p className="text-ui text-ink-secondary mt-1">
+              Dedicated 3-panel workspaces for document ingestion, grounded chat, and studio synthesis.
             </p>
           </div>
-          <button
+
+          <Button
+            variant="primary"
+            size="sm"
             onClick={() => setIsCreateOpen(true)}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#E5A93B] hover:bg-[#D97706] text-neutral-950 text-xs font-bold active:scale-[0.98] transition-all shadow-xs"
+            className="text-ui flex items-center gap-1.5 self-start sm:self-auto"
           >
-            <Plus className="h-3.5 w-3.5 stroke-[2.5]" />
-            Create Notebook
-          </button>
+            <Plus className="w-4 h-4" />
+            <span>New Notebook</span>
+          </Button>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {filteredNotebooks.map((nb) => {
-            const colorCfg = COLOR_MAP[nb.color] || COLOR_MAP.indigo;
-            return (
+
+        {/* Filter Bar */}
+        {notebooks.length > 2 && (
+          <div className="relative max-w-sm">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Filter notebooks..."
+              className="w-full pl-9 pr-3 py-1.5 rounded-lg border border-hairline bg-surface text-ui text-ink placeholder:text-ink-muted outline-none focus:ring-1 focus:ring-border-strong"
+            />
+          </div>
+        )}
+
+        {/* Loading Skeletons matching final layout */}
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="h-40 rounded-xl border border-hairline bg-surface p-5 space-y-3 animate-pulse"
+              >
+                <div className="h-4 bg-surface-subtle rounded w-2/3" />
+                <div className="h-3 bg-surface-subtle rounded w-full" />
+                <div className="h-3 bg-surface-subtle rounded w-4/5" />
+              </div>
+            ))}
+          </div>
+        ) : filteredNotebooks.length === 0 ? (
+          /* Empty State */
+          <div className="max-w-md mx-auto my-16 text-center space-y-4">
+            <div className="h-12 w-12 rounded-xl bg-surface-subtle border border-hairline text-ink-muted mx-auto flex items-center justify-center">
+              <BookMarked className="h-6 w-6 stroke-[1.5]" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="font-serif text-title font-semibold text-ink">
+                No Research Notebooks
+              </h3>
+              <p className="text-ui text-ink-secondary leading-relaxed max-w-sm mx-auto">
+                Create a notebook to organize documents, grounded chat, and studio synthesis.
+              </p>
+            </div>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => setIsCreateOpen(true)}
+              className="mt-2 text-ui"
+            >
+              + Create Notebook
+            </Button>
+          </div>
+        ) : (
+          /* Notebooks Grid */
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredNotebooks.map((nb) => (
               <Link
                 key={nb.id}
                 href={`/notebooks/workspace?id=${nb.id}`}
-                prefetch={false}
-                className="group relative flex flex-col justify-between rounded-2xl border border-black/[0.08] bg-white p-5 hover:border-black/[0.16] hover:bg-neutral-50 shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer overflow-hidden"
+                className="group relative flex flex-col justify-between rounded-xl border border-hairline bg-surface p-5 hover:border-border-strong hover:bg-surface-subtle transition-colors duration-150 cursor-pointer shadow-2xs"
               >
-                {/* Top Accent Dot & Delete Action */}
-                <div className="space-y-3">
+                <div className="space-y-2.5">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className={cn("h-2 w-2 rounded-full shrink-0 shadow-xs", colorCfg.badge)} />
-                      <span className="text-[11px] font-medium text-neutral-500 uppercase tracking-wider font-mono">
-                        Notebook
-                      </span>
-                    </div>
-
+                    <span className="font-mono text-micro uppercase text-ink-muted">
+                      Research Notebook
+                    </span>
                     <button
-                      onClick={(e) => handleDeleteNotebook(nb.id, e)}
-                      className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg hover:bg-neutral-100 text-neutral-400 hover:text-rose-600 transition-all"
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setDeleteCandidate(nb);
+                      }}
+                      className="opacity-0 group-hover:opacity-100 p-1 rounded text-ink-muted hover:text-destructive hover:bg-destructive-subtle transition-opacity"
                       title="Delete notebook"
                     >
-                      <Trash2 className="h-3.5 w-3.5" />
+                      <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   </div>
 
                   <div>
-                    <h3 className="text-base font-semibold text-neutral-900 group-hover:text-amber-800 transition-colors line-clamp-1 tracking-tight">
+                    <h3 className="text-section font-semibold text-ink truncate leading-tight">
                       {nb.title}
                     </h3>
-                    <p className="text-xs text-neutral-400 line-clamp-2 mt-1 leading-relaxed">
+                    <p className="text-caption text-ink-secondary line-clamp-2 mt-1 leading-relaxed">
                       {nb.description || "Grounded research workspace with multi-source synthesis."}
                     </p>
                   </div>
                 </div>
 
-                {/* Footer Metrics & Link */}
-                <div className="pt-4 mt-4 border-t border-white/[0.06] flex items-center justify-between text-xs text-neutral-400">
-                  <div className="flex items-center gap-3 text-[11px]">
-                    <span className="flex items-center gap-1.5 text-neutral-400">
-                      <BookOpen className="h-3 w-3 text-neutral-400" />
-                      Sources
-                    </span>
-                    <span className="flex items-center gap-1.5 text-neutral-400">
-                      <Sparkles className="h-3 w-3 text-indigo-400" />
-                      Studio
-                    </span>
-                  </div>
-
-                  <span className="inline-flex items-center gap-1 text-indigo-400 font-medium text-xs group-hover:translate-x-0.5 transition-transform">
-                    Enter Workspace <ArrowRight className="h-3 w-3" />
+                <div className="pt-3 mt-4 border-t border-hairline flex items-center justify-between text-micro text-ink-muted">
+                  <span className="font-mono">
+                    Updated {new Date(nb.updated_at || nb.created_at).toLocaleDateString()}
+                  </span>
+                  <span className="flex items-center gap-1 text-ink font-medium group-hover:translate-x-0.5 transition-transform">
+                    <span>Open</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
                   </span>
                 </div>
               </Link>
-            );
-          })}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
 
-      {/* Modal: Create Notebook */}
-      {isCreateOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="relative w-full max-w-md rounded-2xl border border-black/[0.08] bg-white p-6 shadow-2xl space-y-5">
-            <div className="flex items-start justify-between">
-              <div>
-                <h2 className="text-lg font-semibold text-neutral-900 tracking-tight">Create New Notebook</h2>
-                <p className="text-xs text-neutral-500 mt-0.5">
-                  Set the topic, scope, and accent for your research workspace.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsCreateOpen(false)}
-                className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 transition-colors"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-
-            <form onSubmit={handleCreateNotebook} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
-                  Notebook Title <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Q4 Financial Review, Quantum Computing Primer"
-                  value={newTitle}
-                  onChange={(e) => setNewTitle(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-black/[0.08] bg-[#F4F5F7] text-xs text-neutral-900 outline-none focus:border-amber-500 focus:bg-white focus:ring-2 focus:ring-amber-500/20 transition-all placeholder-neutral-400"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Description (Optional)</label>
-                <textarea
-                  rows={2}
-                  placeholder="Brief summary of research focus or sources..."
-                  value={newDesc}
-                  onChange={(e) => setNewDesc(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-black/[0.08] bg-[#F4F5F7] text-xs text-neutral-900 outline-none focus:border-amber-500 focus:bg-white focus:ring-2 focus:ring-amber-500/20 transition-all resize-none placeholder-neutral-400"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-neutral-700 mb-2">Accent Theme</label>
-                <div className="flex items-center gap-2.5">
-                  {Object.keys(COLOR_MAP).map((cKey) => {
-                    const isSelected = newColor === cKey;
-                    return (
-                      <button
-                        type="button"
-                        key={cKey}
-                        onClick={() => setNewColor(cKey)}
-                        className={cn(
-                          "h-6 w-6 rounded-full transition-all",
-                          COLOR_MAP[cKey].badge,
-                          isSelected
-                            ? "ring-2 ring-neutral-900 ring-offset-2 ring-offset-white scale-110 shadow-sm"
-                            : "opacity-60 hover:opacity-100"
-                        )}
-                        title={cKey}
-                      />
-                    );
-                  })}
+        {/* Modal: Create Notebook */}
+        {isCreateOpen && (
+          <div
+            role="dialog"
+            aria-modal="true"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 animate-in fade-in duration-150"
+          >
+            <div className="w-full max-w-md bg-surface border border-hairline rounded-xl p-6 shadow-xl space-y-4 text-ink font-sans">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h3 className="text-section font-semibold text-ink">
+                    New Research Notebook
+                  </h3>
+                  <p className="text-caption text-ink-muted mt-0.5">
+                    Organize your documents, chat synthesis, and studio outputs.
+                  </p>
                 </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsCreateOpen(false)}
+                  className="h-7 w-7 p-0 text-ink-muted hover:text-ink"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
               </div>
 
-              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-black/[0.08]">
-                <button
-                  type="button"
-                  onClick={() => setIsCreateOpen(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-medium text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 transition-colors"
+              <form onSubmit={handleCreateNotebook} className="space-y-3.5">
+                <div className="space-y-1">
+                  <label className="text-caption font-medium text-ink block">
+                    Notebook Title
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    autoFocus
+                    value={newTitle}
+                    onChange={(e) => setNewTitle(e.target.value)}
+                    placeholder="e.g., Financial Due Diligence or Airline Analytics"
+                    className="w-full px-3 py-2 rounded-lg border border-hairline bg-surface text-[16px] sm:text-ui text-ink placeholder:text-ink-muted outline-none focus:ring-1 focus:ring-border-strong"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-caption font-medium text-ink block">
+                    Description (Optional)
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={newDesc}
+                    onChange={(e) => setNewDesc(e.target.value)}
+                    placeholder="Core scope, research questions, or project objective"
+                    className="w-full px-3 py-2 rounded-lg border border-hairline bg-surface text-[16px] sm:text-ui text-ink placeholder:text-ink-muted outline-none focus:ring-1 focus:ring-border-strong resize-none"
+                  />
+                </div>
+
+                <div className="flex items-center justify-end gap-2 pt-2 border-t border-hairline">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    type="button"
+                    onClick={() => setIsCreateOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    type="submit"
+                    disabled={isSubmitting || !newTitle.trim()}
+                  >
+                    {isSubmitting ? "Creating..." : "Create Notebook"}
+                  </Button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Modal: Delete Confirmation */}
+        {deleteCandidate && (
+          <div
+            role="dialog"
+            aria-modal="true"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 animate-in fade-in duration-150"
+          >
+            <div className="w-full max-w-sm bg-surface border border-hairline rounded-xl p-5 shadow-xl space-y-4 text-ink font-sans">
+              <h3 className="text-section font-semibold text-ink">
+                Delete Notebook?
+              </h3>
+              <p className="text-caption text-ink-secondary leading-relaxed">
+                Are you sure you want to delete <span className="font-medium text-ink">"{deleteCandidate.title}"</span>? All unattached notes and studio artifacts in this notebook will be permanently removed.
+              </p>
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-hairline">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setDeleteCandidate(null)}
                 >
                   Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={!newTitle.trim() || isSubmitting}
-                  className="px-4 py-2 rounded-xl bg-[#E5A93B] text-neutral-950 text-xs font-bold hover:bg-[#D97706] disabled:opacity-50 active:scale-[0.98] transition-all shadow-xs"
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleConfirmDelete}
                 >
-                  {isSubmitting ? "Creating..." : "Create Notebook"}
-                </button>
+                  Delete Notebook
+                </Button>
               </div>
-            </form>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

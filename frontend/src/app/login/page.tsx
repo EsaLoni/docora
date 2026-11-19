@@ -4,8 +4,8 @@ import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import { Eye, EyeOff, Lock, Mail, ArrowRight, Loader2, Sparkles } from "lucide-react";
-import { DocoraSymbol } from "@/components/brand/BrandLogo";
+import { Eye, EyeOff, Lock, Mail, ArrowRight, Loader2, AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/Button";
 
 function LoginForm() {
   const router = useRouter();
@@ -30,19 +30,33 @@ function LoginForm() {
     e.preventDefault();
     setErrorMessage(null);
 
-    if (!email.trim() || !password) {
-      setErrorMessage("Please enter both your email address and password.");
+    const cleanEmail = email.trim();
+    if (!cleanEmail) {
+      setErrorMessage("Enter your email address to continue.");
+      return;
+    }
+    if (!cleanEmail.includes("@") || !cleanEmail.includes(".")) {
+      setErrorMessage("Enter a valid email address (e.g., name@company.com).");
+      return;
+    }
+    if (!password) {
+      setErrorMessage("Enter your account password.");
       return;
     }
 
     setIsLoading(true);
     try {
-      await login(email, password, rememberMe);
+      await login(cleanEmail, password, rememberMe);
       router.push(redirectUrl);
     } catch (err: any) {
-      setErrorMessage(
-        err.message || err.detail || "Authentication failed. Please verify your credentials."
-      );
+      const msg = err.message || err.detail || "";
+      if (msg.includes("401") || msg.toLowerCase().includes("credential") || msg.toLowerCase().includes("invalid")) {
+        setErrorMessage("Incorrect email or password. Verify your credentials and try again.");
+      } else if (msg.includes("fetch") || msg.includes("network")) {
+        setErrorMessage("Unable to connect to the authentication server. Check your connection or retry in a few moments.");
+      } else {
+        setErrorMessage(msg || "Authentication failed. Please verify your email and password.");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -55,39 +69,36 @@ function LoginForm() {
   };
 
   return (
-    <div className="w-full max-w-md p-7 sm:p-9 rounded-3xl bg-white border border-black/[0.08] shadow-[0_4px_24px_rgba(0,0,0,0.06),0_1px_2px_rgba(0,0,0,0.04)] relative z-10 select-none">
+    <div className="w-full max-w-sm p-6 sm:p-8 rounded-xl bg-surface border border-hairline shadow-xs select-none text-ink font-sans">
       {/* Brand Header */}
-      <div className="text-center mb-8">
-        <div className="inline-flex items-center justify-center mb-4 transition-transform hover:scale-105 duration-200">
-          <DocoraSymbol size={48} />
-        </div>
-        <h1 className="text-2xl sm:text-[26px] font-semibold tracking-tight text-neutral-900">
-          Welcome to Docora
+      <div className="text-center mb-6 space-y-1">
+        <h1 className="font-serif text-title font-semibold text-ink tracking-tight">
+          Sign in to Docora
         </h1>
-        <p className="text-xs text-neutral-500 mt-1.5 tracking-normal">
-          Your documents. Your intelligence.
+        <p className="text-caption text-ink-muted">
+          Access your research notebooks and grounded documents.
         </p>
       </div>
 
       {/* Error Alert */}
       {errorMessage && (
-        <div className="mb-6 p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-start gap-2.5 animate-in fade-in duration-150">
-          <span className="text-rose-500 font-bold shrink-0">•</span>
-          <span className="leading-relaxed">{errorMessage}</span>
+        <div className="mb-5 p-3 rounded-lg bg-destructive-subtle border border-destructive-border text-destructive text-ui flex items-start gap-2">
+          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+          <span className="leading-snug">{errorMessage}</span>
         </div>
       )}
 
       {/* Login Form */}
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
+        <div className="space-y-1">
           <label
             htmlFor="email"
-            className="block text-[11px] font-semibold uppercase tracking-wider text-neutral-600 mb-1.5"
+            className="block text-caption font-medium text-ink"
           >
             Email Address
           </label>
           <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-400">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-ink-muted">
               <Mail className="w-4 h-4" />
             </div>
             <input
@@ -96,31 +107,34 @@ function LoginForm() {
               autoComplete="email"
               required
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                if (errorMessage) setErrorMessage(null);
+              }}
               placeholder="name@company.com"
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#F4F5F7] border border-black/[0.08] text-neutral-900 placeholder-neutral-400 text-xs focus:outline-none focus:border-amber-500 focus:bg-white focus:ring-2 focus:ring-amber-500/20 transition-all"
+              className="w-full pl-9 pr-3 py-2 rounded-lg bg-surface border border-hairline text-ink placeholder:text-ink-muted text-[16px] sm:text-ui outline-none focus:ring-1 focus:ring-border-strong transition-colors"
             />
           </div>
         </div>
 
-        <div>
-          <div className="flex items-center justify-between mb-1.5">
+        <div className="space-y-1">
+          <div className="flex items-center justify-between">
             <label
               htmlFor="password"
-              className="block text-[11px] font-semibold uppercase tracking-wider text-neutral-600"
+              className="block text-caption font-medium text-ink"
             >
               Password
             </label>
             <Link
               href="/forgot-password"
               prefetch={false}
-              className="text-[11px] text-amber-700 hover:text-amber-800 font-medium transition-colors"
+              className="text-caption text-ink-muted hover:text-ink transition-colors"
             >
               Forgot password?
             </Link>
           </div>
           <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-400">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-ink-muted">
               <Lock className="w-4 h-4" />
             </div>
             <input
@@ -129,41 +143,46 @@ function LoginForm() {
               autoComplete="current-password"
               required
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                if (errorMessage) setErrorMessage(null);
+              }}
               placeholder="••••••••"
-              className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-[#F4F5F7] border border-black/[0.08] text-neutral-900 placeholder-neutral-400 text-xs focus:outline-none focus:border-amber-500 focus:bg-white focus:ring-2 focus:ring-amber-500/20 transition-all"
+              className="w-full pl-9 pr-9 py-2 rounded-lg bg-surface border border-hairline text-ink placeholder:text-ink-muted text-[16px] sm:text-ui outline-none focus:ring-1 focus:ring-border-strong transition-colors"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-neutral-400 hover:text-neutral-700 transition-colors"
+              className="absolute inset-y-0 right-0 pr-3 flex items-center text-ink-muted hover:text-ink transition-colors"
+              aria-label={showPassword ? "Hide password" : "Show password"}
             >
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
           </div>
         </div>
 
-        <div className="flex items-center justify-between pt-1">
-          <label className="flex items-center gap-2 text-xs text-neutral-600 cursor-pointer">
+        <div className="flex items-center justify-between pt-0.5">
+          <label className="flex items-center gap-2 text-caption text-ink-secondary cursor-pointer">
             <input
               id="remember_me"
               type="checkbox"
               checked={rememberMe}
               onChange={(e) => setRememberMe(e.target.checked)}
-              className="w-3.5 h-3.5 rounded border-neutral-300 text-amber-600 focus:ring-amber-500/30 cursor-pointer"
+              className="w-3.5 h-3.5 rounded border-hairline text-gold focus:ring-gold cursor-pointer"
             />
             <span>Remember this device</span>
           </label>
         </div>
 
-        <button
+        <Button
           type="submit"
+          variant="primary"
           disabled={isLoading}
-          className="w-full py-2.5 px-4 rounded-xl bg-[#E5A93B] hover:bg-[#D97706] text-neutral-950 font-bold text-xs flex items-center justify-center gap-2 shadow-xs active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+          className="w-full py-2 text-ui flex items-center justify-center gap-2 mt-2"
         >
           {isLoading ? (
             <>
-              <Loader2 className="w-4 h-4 animate-spin text-neutral-950" />
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
               <span>Signing in...</span>
             </>
           ) : (
@@ -172,29 +191,29 @@ function LoginForm() {
               <ArrowRight className="w-3.5 h-3.5" />
             </>
           )}
-        </button>
+        </Button>
       </form>
 
       {/* Demo helper */}
-      <div className="mt-6 pt-5 border-t border-black/[0.08] text-center">
+      <div className="mt-5 pt-4 border-t border-hairline text-center">
         <button
           type="button"
           onClick={handleQuickFillDev}
-          className="text-xs text-amber-700 hover:text-amber-800 font-semibold transition-colors"
+          className="text-caption text-ink-secondary hover:text-ink transition-colors cursor-pointer"
         >
-          Quick fill demo credentials
+          Fill demo test credentials
         </button>
       </div>
 
       {/* Footer Registration Link */}
-      <div className="mt-5 text-center text-xs text-neutral-600">
+      <div className="mt-4 text-center text-caption text-ink-muted">
         Don't have an account?{" "}
         <Link
           href={`/register?redirect=${encodeURIComponent(redirectUrl)}`}
           prefetch={false}
-          className="text-amber-700 font-semibold hover:underline ml-1"
+          className="text-ink font-medium hover:underline ml-1"
         >
-          Create one now
+          Create account
         </Link>
       </div>
     </div>
@@ -203,12 +222,12 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen w-full bg-[#F8F9FA] flex flex-col items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen w-full bg-canvas flex flex-col items-center justify-center p-4 select-none">
       <Suspense
         fallback={
-          <div className="text-xs text-neutral-500 flex items-center gap-2">
-            <Loader2 className="w-4 h-4 animate-spin text-amber-600" />
-            Loading authentication...
+          <div className="text-ui text-ink-muted flex items-center gap-2">
+            <Loader2 className="w-4 h-4 animate-spin text-ink-muted" />
+            <span>Loading...</span>
           </div>
         }
       >

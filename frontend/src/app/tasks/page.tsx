@@ -10,11 +10,11 @@ import {
   Plus,
   Trash2,
   Check,
-  ChevronRight,
-  Filter,
-  FileText,
+  X,
+  Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button, Input } from "@/components/ui";
 import { useAuth } from "@/context/AuthContext";
 import { apiClient } from "@/lib/api-client";
 
@@ -56,7 +56,7 @@ interface ReminderItem {
 
 export default function TasksPage() {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<"actions" | "reminders" | "suggestions">("actions");
+  const [activeTab, setActiveTab] = useState<"actions" | "suggestions" | "reminders">("actions");
   const [actions, setActions] = useState<ActionItem[]>([]);
   const [suggestions, setSuggestions] = useState<ActionSuggestion[]>([]);
   const [reminders, setReminders] = useState<ReminderItem[]>([]);
@@ -67,9 +67,9 @@ export default function TasksPage() {
   const [newTitle, setNewTitle] = useState("");
   const [newDueDate, setNewDueDate] = useState("");
   const [newPriority, setNewPriority] = useState<"low" | "medium" | "high" | "critical">("medium");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fetchData = async () => {
-    setLoading(true);
     try {
       const [actRes, sugRes, remRes] = await Promise.all([
         apiClient.listActions().catch(() => ({ items: [] })),
@@ -80,8 +80,8 @@ export default function TasksPage() {
       setActions((actRes.items as any) || []);
       setSuggestions(sugRes.items || []);
       setReminders(remRes.items || []);
-    } catch (e) {
-      console.warn("Failed to fetch tasks data", e);
+    } catch {
+      // Retain existing state
     } finally {
       setLoading(false);
     }
@@ -120,8 +120,8 @@ export default function TasksPage() {
     try {
       await apiClient.approveActionSuggestion(sugId, { priority: "high" });
       fetchData();
-    } catch (e) {
-      console.error(e);
+    } catch {
+      // Fallback
     }
   };
 
@@ -129,15 +129,16 @@ export default function TasksPage() {
     try {
       await apiClient.dismissActionSuggestion(sugId);
       fetchData();
-    } catch (e) {
-      console.error(e);
+    } catch {
+      // Fallback
     }
   };
 
   const handleCreateAction = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newTitle.trim()) return;
+    if (!newTitle.trim() || isSubmitting) return;
 
+    setIsSubmitting(true);
     try {
       await apiClient.createAction({
         title: newTitle.trim(),
@@ -148,46 +149,50 @@ export default function TasksPage() {
       setNewDueDate("");
       setIsCreateOpen(false);
       fetchData();
-    } catch (err) {
-      console.error(err);
+    } catch {
+      // Fallback
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const pendingSuggestions = suggestions.filter((s) => !s.is_approved && !s.is_dismissed);
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 pb-12">
+    <div className="max-w-6xl mx-auto space-y-6 pb-12 font-sans select-none">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-black/[0.08]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border-hairline">
         <div>
-          <h1 className="text-[28px] font-bold text-neutral-900 tracking-tight leading-tight">
+          <h1 className="font-serif text-title sm:text-display font-medium text-ink tracking-tight leading-tight">
             Tasks & Obligations
           </h1>
-          <p className="text-[13px] text-neutral-500 mt-1">
-            Track extracted deliverables, contractual deadlines, and AI-discovered commitments.
+          <p className="text-caption text-ink-secondary mt-1">
+            Contractual deadlines, deliverables, and detected commitments across documents.
           </p>
         </div>
 
-        <button
+        <Button
           type="button"
+          variant="primary"
+          size="sm"
           onClick={() => setIsCreateOpen(true)}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#E5A93B] text-neutral-950 text-xs font-semibold hover:bg-[#D97706] transition shadow-xs self-start sm:self-auto cursor-pointer"
+          className="gap-1.5 self-start sm:self-auto"
         >
-          <Plus className="h-4 w-4 stroke-[2.5]" />
+          <Plus className="h-3.5 w-3.5" />
           <span>New Task</span>
-        </button>
+        </Button>
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-1.5 border-b border-black/[0.08] pb-px">
+      <div className="flex items-center gap-2 border-b border-border-hairline pb-px">
         <button
           type="button"
           onClick={() => setActiveTab("actions")}
           className={cn(
-            "flex items-center gap-2 px-4 py-2.5 text-xs font-medium border-b-2 transition -mb-px rounded-t-lg cursor-pointer",
+            "flex items-center gap-2 px-3.5 py-2 text-ui font-medium border-b-2 transition -mb-px cursor-pointer",
             activeTab === "actions"
-              ? "border-[#E5A93B] text-neutral-900 font-semibold bg-neutral-100/70"
-              : "border-transparent text-neutral-500 hover:text-neutral-900 hover:bg-neutral-50"
+              ? "border-gold text-ink font-semibold"
+              : "border-transparent text-ink-muted hover:text-ink"
           )}
         >
           <CheckSquare className="h-3.5 w-3.5" />
@@ -198,16 +203,16 @@ export default function TasksPage() {
           type="button"
           onClick={() => setActiveTab("suggestions")}
           className={cn(
-            "flex items-center gap-2 px-4 py-2.5 text-xs font-medium border-b-2 transition -mb-px rounded-t-lg cursor-pointer",
+            "flex items-center gap-2 px-3.5 py-2 text-ui font-medium border-b-2 transition -mb-px cursor-pointer",
             activeTab === "suggestions"
-              ? "border-[#E5A93B] text-neutral-900 font-semibold bg-neutral-100/70"
-              : "border-transparent text-neutral-500 hover:text-neutral-900 hover:bg-neutral-50"
+              ? "border-gold text-ink font-semibold"
+              : "border-transparent text-ink-muted hover:text-ink"
           )}
         >
-          <Sparkles className="h-3.5 w-3.5 text-amber-600" />
+          <Sparkles className="h-3.5 w-3.5 text-gold" />
           <span>Candidate Suggestions</span>
           {pendingSuggestions.length > 0 && (
-            <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-800 border border-amber-500/30">
+            <span className="px-1.5 py-0.2 rounded-full text-micro font-mono bg-gold/15 text-gold-fg border border-gold/30">
               {pendingSuggestions.length}
             </span>
           )}
@@ -217,10 +222,10 @@ export default function TasksPage() {
           type="button"
           onClick={() => setActiveTab("reminders")}
           className={cn(
-            "flex items-center gap-2 px-4 py-2.5 text-xs font-medium border-b-2 transition -mb-px rounded-t-lg cursor-pointer",
+            "flex items-center gap-2 px-3.5 py-2 text-ui font-medium border-b-2 transition -mb-px cursor-pointer",
             activeTab === "reminders"
-              ? "border-[#E5A93B] text-neutral-900 font-semibold bg-neutral-100/70"
-              : "border-transparent text-neutral-500 hover:text-neutral-900 hover:bg-neutral-50"
+              ? "border-gold text-ink font-semibold"
+              : "border-transparent text-ink-muted hover:text-ink"
           )}
         >
           <Clock className="h-3.5 w-3.5" />
@@ -228,74 +233,102 @@ export default function TasksPage() {
         </button>
       </div>
 
+      {/* Loading Skeleton matching layout */}
+      {loading ? (
+        <div className="bg-surface border border-border-hairline rounded-lg divide-y divide-border-hairline overflow-hidden">
+          {[1, 2, 3].map((idx) => (
+            <div key={idx} className="p-4 flex items-start gap-3.5 animate-pulse">
+              <div className="h-4 w-4 rounded-sm bg-surface-subtle mt-0.5 shrink-0" />
+              <div className="space-y-2 flex-1">
+                <div className="h-4 bg-surface-subtle rounded-sm w-56" />
+                <div className="h-3 bg-surface-subtle rounded-sm w-80" />
+                <div className="h-3 bg-surface-subtle rounded-sm w-36" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : null}
+
       {/* Tab 1: Action Items */}
-      {activeTab === "actions" && (
+      {!loading && activeTab === "actions" && (
         <div className="space-y-3">
           {actions.length === 0 ? (
-            <div className="p-12 text-center border border-dashed border-black/[0.12] rounded-2xl bg-white space-y-3 shadow-xs">
-              <CheckSquare className="h-8 w-8 text-neutral-400 mx-auto" />
-              <p className="text-[16px] font-semibold text-neutral-900">No action items yet</p>
-              <p className="text-[13px] text-neutral-500 max-w-sm mx-auto">
+            <div className="p-12 text-center border border-dashed border-border-hairline rounded-lg bg-surface space-y-3">
+              <div className="h-10 w-10 rounded-md bg-surface-subtle flex items-center justify-center text-ink-muted mx-auto border border-border-hairline">
+                <CheckSquare className="h-5 w-5" />
+              </div>
+              <h3 className="font-serif text-title font-medium text-ink">No action items yet</h3>
+              <p className="text-caption text-ink-secondary max-w-sm mx-auto">
                 Create tasks manually or approve AI-extracted obligations from your uploaded documents.
               </p>
+              <Button
+                type="button"
+                variant="primary"
+                size="sm"
+                onClick={() => setIsCreateOpen(true)}
+                className="mt-2 gap-1.5"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                <span>New Task</span>
+              </Button>
             </div>
           ) : (
-            <div className="bg-white border border-black/[0.08] rounded-2xl divide-y divide-black/[0.06] overflow-hidden shadow-xs">
+            <div className="bg-surface border border-border-hairline rounded-lg divide-y divide-border-hairline overflow-hidden">
               {actions.map((item) => {
                 const isDone = item.status === "completed";
                 return (
                   <div
                     key={item.id}
-                    className="p-4 flex items-start justify-between gap-3 hover:bg-neutral-50/80 transition group"
+                    className="p-4 flex items-start justify-between gap-3 hover:bg-surface-subtle/50 transition-colors group"
                   >
                     <div className="flex items-start gap-3.5 min-w-0">
                       <button
                         type="button"
                         onClick={() => handleToggleComplete(item)}
                         className={cn(
-                          "mt-0.5 h-4 w-4 rounded-md border flex items-center justify-center shrink-0 transition cursor-pointer",
+                          "mt-0.5 h-4 w-4 rounded-sm border flex items-center justify-center shrink-0 transition-colors cursor-pointer",
                           isDone
-                            ? "bg-emerald-600 border-emerald-600 text-white"
-                            : "border-neutral-300 hover:border-amber-600 bg-white"
+                            ? "bg-verdigris border-verdigris text-white"
+                            : "border-border-hairline hover:border-gold bg-surface"
                         )}
                       >
-                        {isDone && <Check className="h-3 w-3 stroke-[3]" />}
+                        {isDone && <Check className="h-3 w-3 stroke-[2.5]" />}
                       </button>
 
                       <div className="min-w-0 space-y-1">
                         <p
                           className={cn(
-                            "text-[15px] font-semibold text-neutral-900",
-                            isDone && "line-through text-neutral-400 opacity-60"
+                            "text-ui font-medium text-ink",
+                            isDone && "line-through text-ink-muted opacity-60"
                           )}
                         >
                           {item.title}
                         </p>
                         {item.description && (
-                          <p className="text-[13px] text-neutral-600 leading-relaxed">{item.description}</p>
+                          <p className="text-caption text-ink-secondary leading-relaxed">{item.description}</p>
                         )}
                         {item.source_evidence_quote && (
-                          <p className="text-[12px] text-neutral-600 italic border-l-2 border-amber-500/70 pl-2 mt-1">
+                          <p className="text-caption text-ink-muted italic border-l border-gold pl-2 mt-1">
                             "{item.source_evidence_quote}" {item.page_number && `(p. ${item.page_number})`}
                           </p>
                         )}
-                        <div className="flex items-center gap-3 text-[12px] text-neutral-500 pt-1">
+                        <div className="flex items-center gap-3 text-caption text-ink-muted pt-1">
                           {item.due_date && (
-                            <span className="flex items-center gap-1">
-                              <Calendar className="h-3 w-3 text-amber-600" />
+                            <span className="flex items-center gap-1 font-mono text-micro">
+                              <Calendar className="h-3 w-3 text-gold" />
                               {new Date(item.due_date).toLocaleDateString()}
                             </span>
                           )}
                           <span
                             className={cn(
-                              "font-medium capitalize px-2 py-0.5 rounded-md text-[11px]",
-                              item.priority === "critical" && "bg-rose-50 text-rose-700 border border-rose-200",
-                              item.priority === "high" && "bg-amber-50 text-amber-800 border border-amber-200",
-                              item.priority === "medium" && "bg-neutral-100 text-neutral-700 border border-black/[0.08]",
-                              item.priority === "low" && "bg-neutral-50 text-neutral-600"
+                              "font-mono capitalize px-2 py-0.5 rounded-sm text-micro",
+                              item.priority === "critical" && "bg-destructive/10 text-destructive border border-destructive/20",
+                              item.priority === "high" && "bg-gold/10 text-gold-fg border border-gold/25",
+                              item.priority === "medium" && "bg-surface-subtle text-ink-secondary border border-border-hairline",
+                              item.priority === "low" && "bg-surface-subtle text-ink-muted"
                             )}
                           >
-                            {item.priority} priority
+                            {item.priority}
                           </span>
                         </div>
                       </div>
@@ -304,10 +337,10 @@ export default function TasksPage() {
                     <button
                       type="button"
                       onClick={() => handleDeleteAction(item.id)}
-                      className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg hover:bg-rose-50 text-neutral-400 hover:text-rose-600 transition"
+                      className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md hover:bg-surface-subtle text-ink-muted hover:text-destructive transition-all cursor-pointer"
                       title="Delete action item"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-3.5 w-3.5" />
                     </button>
                   </div>
                 );
@@ -318,73 +351,75 @@ export default function TasksPage() {
       )}
 
       {/* Tab 2: Candidate Suggestions */}
-      {activeTab === "suggestions" && (
+      {!loading && activeTab === "suggestions" && (
         <div className="space-y-4">
-          <div className="p-4 bg-white border border-black/[0.08] rounded-2xl flex items-start gap-3 shadow-xs">
-            <Sparkles className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
-            <div className="space-y-1">
-              <span className="text-[14px] font-semibold text-neutral-900">Human-in-the-Loop Extraction</span>
-              <p className="text-[12px] text-neutral-600 leading-relaxed">
-                Docora scans contracts, invoices, and reports to detect commitments and renewal deadlines. Review candidate suggestions below and approve them into actionable items.
+          <div className="p-4 bg-surface border border-border-hairline rounded-lg flex items-start gap-3">
+            <Sparkles className="h-4 w-4 text-gold shrink-0 mt-0.5" />
+            <div className="space-y-0.5">
+              <span className="text-ui font-medium text-ink">Extracted Obligations</span>
+              <p className="text-caption text-ink-secondary leading-relaxed">
+                Docora detects commitments, covenants, and deadlines in uploaded documents. Review candidates and approve them into actionable items.
               </p>
             </div>
           </div>
 
           {pendingSuggestions.length === 0 ? (
-            <div className="p-12 text-center border border-dashed border-black/[0.12] rounded-2xl bg-white space-y-2 shadow-xs">
-              <CheckCircle2 className="h-8 w-8 text-emerald-600 mx-auto" />
-              <p className="text-[16px] font-semibold text-neutral-900">No pending suggestions</p>
-              <p className="text-[13px] text-neutral-500">All discovered obligations have been reviewed.</p>
+            <div className="p-12 text-center border border-dashed border-border-hairline rounded-lg bg-surface space-y-2">
+              <CheckCircle2 className="h-6 w-6 text-verdigris mx-auto" />
+              <p className="font-serif text-title font-medium text-ink">No pending suggestions</p>
+              <p className="text-caption text-ink-secondary">All discovered obligations have been reviewed.</p>
             </div>
           ) : (
             <div className="space-y-3">
               {pendingSuggestions.map((sug) => (
-                <div key={sug.id} className="p-5 bg-white border border-black/[0.08] rounded-2xl space-y-3 shadow-xs">
+                <div key={sug.id} className="p-4 bg-surface border border-border-hairline rounded-lg space-y-3">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <h3 className="text-[15px] font-semibold text-neutral-900">{sug.title}</h3>
+                      <h3 className="text-ui font-medium text-ink">{sug.title}</h3>
                       {sug.description && (
-                        <p className="text-[13px] text-neutral-600 mt-0.5">{sug.description}</p>
+                        <p className="text-caption text-ink-secondary mt-0.5">{sug.description}</p>
                       )}
                     </div>
-                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-amber-500/10 text-amber-800 border border-amber-500/25 capitalize shrink-0">
+                    <span className="px-2 py-0.5 rounded-sm text-micro font-mono bg-surface-subtle text-ink-secondary border border-border-hairline capitalize shrink-0">
                       {sug.category.replace("_", " ")}
                     </span>
                   </div>
 
-                  <div className="p-3 bg-neutral-50 rounded-xl border border-black/[0.06] text-[12px] space-y-1">
-                    <span className="text-neutral-500 font-medium text-[11px] uppercase tracking-wider">
+                  <div className="p-3 bg-surface-subtle rounded-md border border-border-hairline text-caption space-y-1">
+                    <span className="text-ink-muted font-mono text-micro uppercase tracking-wider">
                       Source Evidence (Page {sug.page_number}):
                     </span>
-                    <p className="text-neutral-800 italic">"{sug.evidence_text}"</p>
+                    <p className="text-ink italic">"{sug.evidence_text}"</p>
                   </div>
 
                   <div className="flex items-center justify-between pt-1">
-                    <div className="flex items-center gap-3 text-neutral-500 text-[12px]">
+                    <div className="flex items-center gap-3 text-ink-secondary text-caption">
                       {sug.proposed_due_date && (
-                        <span className="flex items-center gap-1 font-medium text-neutral-800">
-                          <Calendar className="h-3.5 w-3.5 text-amber-600" />
+                        <span className="flex items-center gap-1 font-mono text-micro text-ink">
+                          <Calendar className="h-3 w-3 text-gold" />
                           Target: {new Date(sug.proposed_due_date).toLocaleDateString()}
                         </span>
                       )}
-                      <span>Confidence: {Math.round(sug.confidence_score * 100)}%</span>
+                      <span className="font-mono text-micro text-ink-muted">Confidence: {Math.round(sug.confidence_score * 100)}%</span>
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <button
+                      <Button
                         type="button"
+                        variant="ghost"
+                        size="sm"
                         onClick={() => handleDismissSuggestion(sug.id)}
-                        className="px-3 py-1.5 rounded-xl text-xs font-medium text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 transition"
                       >
                         Dismiss
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         type="button"
+                        variant="primary"
+                        size="sm"
                         onClick={() => handleApproveSuggestion(sug.id)}
-                        className="px-4 py-1.5 rounded-xl text-xs font-semibold bg-[#E5A93B] text-neutral-950 hover:bg-[#D97706] transition shadow-xs cursor-pointer"
                       >
                         Approve Item
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -395,29 +430,29 @@ export default function TasksPage() {
       )}
 
       {/* Tab 3: Reminders */}
-      {activeTab === "reminders" && (
+      {!loading && activeTab === "reminders" && (
         <div className="space-y-3">
           {reminders.length === 0 ? (
-            <div className="p-12 text-center border border-dashed border-black/[0.12] rounded-2xl bg-white space-y-2 shadow-xs">
-              <Clock className="h-8 w-8 text-neutral-400 mx-auto" />
-              <p className="text-[16px] font-semibold text-neutral-900">No active reminders</p>
-              <p className="text-[13px] text-neutral-500">Reminders dispatch notifications on scheduled deadline dates.</p>
+            <div className="p-12 text-center border border-dashed border-border-hairline rounded-lg bg-surface space-y-2">
+              <Clock className="h-6 w-6 text-ink-muted mx-auto" />
+              <p className="font-serif text-title font-medium text-ink">No active reminders</p>
+              <p className="text-caption text-ink-secondary">Reminders notify you when tracked document deadlines approach.</p>
             </div>
           ) : (
-            <div className="bg-white border border-black/[0.08] rounded-2xl divide-y divide-black/[0.06] overflow-hidden shadow-xs">
+            <div className="bg-surface border border-border-hairline rounded-lg divide-y divide-border-hairline overflow-hidden">
               {reminders.map((rem) => (
                 <div key={rem.id} className="p-4 flex items-center justify-between gap-3">
-                  <div className="space-y-1">
-                    <p className="text-[15px] font-semibold text-neutral-900">{rem.title}</p>
-                    <div className="flex items-center gap-3 text-neutral-500 text-[12px]">
-                      <span className="flex items-center gap-1">
-                        <Calendar className="h-3.5 w-3.5 text-amber-600" />
+                  <div className="space-y-0.5">
+                    <p className="text-ui font-medium text-ink">{rem.title}</p>
+                    <div className="flex items-center gap-3 text-caption text-ink-muted">
+                      <span className="flex items-center gap-1 font-mono text-micro">
+                        <Calendar className="h-3 w-3 text-gold" />
                         {new Date(rem.due_date).toLocaleString()}
                       </span>
-                      <span className="capitalize font-medium text-emerald-700">{rem.status}</span>
+                      <span className="capitalize font-mono text-micro text-verdigris">{rem.status}</span>
                     </div>
                   </div>
-                  <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  <span className="px-2 py-0.5 rounded-sm text-micro font-mono bg-surface-subtle text-verdigris border border-border-hairline">
                     Scheduled
                   </span>
                 </div>
@@ -429,38 +464,47 @@ export default function TasksPage() {
 
       {/* Create Task Modal */}
       {isCreateOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
-          <div className="w-full max-w-md bg-white border border-black/[0.08] rounded-2xl shadow-2xl p-6 space-y-4">
-            <h2 className="text-[18px] font-semibold text-neutral-900">Create New Task</h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/40 backdrop-blur-xs">
+          <div className="w-full max-w-md bg-surface border border-border-hairline rounded-lg shadow-xl p-5 space-y-4">
+            <div className="flex items-center justify-between border-b border-border-hairline pb-3">
+              <h2 className="font-serif text-title font-medium text-ink">Create New Task</h2>
+              <button
+                type="button"
+                onClick={() => setIsCreateOpen(false)}
+                className="text-ink-muted hover:text-ink p-1 rounded-md"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
             <form onSubmit={handleCreateAction} className="space-y-3.5">
               <div className="space-y-1">
-                <label className="text-xs font-medium text-neutral-700">Title</label>
-                <input
+                <label className="text-caption font-medium text-ink-secondary">Title</label>
+                <Input
                   type="text"
                   required
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
-                  placeholder="e.g. Follow up on Q4 renewal clause"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-black/[0.08] bg-neutral-50 text-neutral-900 text-xs focus:border-amber-500/70 focus:bg-white outline-hidden transition shadow-xs"
+                  placeholder="e.g. Verify indemnification clause in Q3 contract"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-xs font-medium text-neutral-700">Due Date</label>
+                  <label className="text-caption font-medium text-ink-secondary">Due Date</label>
                   <input
                     type="date"
                     value={newDueDate}
                     onChange={(e) => setNewDueDate(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-black/[0.08] bg-neutral-50 text-neutral-900 text-xs focus:border-amber-500/70 focus:bg-white outline-hidden transition shadow-xs"
+                    className="w-full px-3 py-2 rounded-md border border-border-hairline bg-surface text-ink text-[16px] sm:text-ui focus:outline-hidden focus:border-gold transition-colors"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-medium text-neutral-700">Priority</label>
+                  <label className="text-caption font-medium text-ink-secondary">Priority</label>
                   <select
                     value={newPriority}
                     onChange={(e) => setNewPriority(e.target.value as any)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-black/[0.08] bg-neutral-50 text-neutral-900 text-xs focus:border-amber-500/70 focus:bg-white outline-hidden capitalize transition shadow-xs"
+                    className="w-full px-3 py-2 rounded-md border border-border-hairline bg-surface text-ink text-ui focus:outline-hidden focus:border-gold capitalize transition-colors"
                   >
                     <option value="low">Low</option>
                     <option value="medium">Medium</option>
@@ -470,20 +514,25 @@ export default function TasksPage() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-black/[0.08]">
-                <button
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-border-hairline">
+                <Button
                   type="button"
+                  variant="secondary"
+                  size="sm"
                   onClick={() => setIsCreateOpen(false)}
-                  className="px-4 py-2 rounded-xl border border-black/[0.08] text-xs font-medium text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 transition"
                 >
                   Cancel
-                </button>
-                <button
+                </Button>
+                <Button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-[#E5A93B] text-neutral-950 text-xs font-semibold hover:bg-[#D97706] shadow-xs transition cursor-pointer"
+                  variant="primary"
+                  size="sm"
+                  disabled={isSubmitting}
+                  className="gap-1.5"
                 >
-                  Save Task
-                </button>
+                  {isSubmitting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                  <span>Save Task</span>
+                </Button>
               </div>
             </form>
           </div>

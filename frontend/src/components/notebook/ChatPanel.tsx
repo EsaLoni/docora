@@ -165,7 +165,7 @@ export function ChatPanel({
           <div className="flex items-center gap-2 min-w-0">
             <Info className="w-3.5 h-3.5 text-verdigris shrink-0" />
             <span className="truncate">
-              Operating on standard fallback model. Add your personal Gemini API key for dedicated throughput.
+              Operating on backup model. Your research notes and history are saved. Connect your Gemini API key for dedicated throughput.
             </span>
           </div>
           {onOpenGeminiKey && (
@@ -175,7 +175,7 @@ export function ChatPanel({
               onClick={onOpenGeminiKey}
               className="text-micro font-medium text-ink shrink-0 h-6 px-2"
             >
-              Configure Key
+              Add API Key
             </Button>
           )}
         </div>
@@ -187,7 +187,7 @@ export function ChatPanel({
           <div className="flex items-center gap-2 min-w-0">
             <AlertTriangle className="w-3.5 h-3.5 text-gold shrink-0" />
             <span className="truncate">
-              Rate limit reached on shared tier. Please wait a moment, or configure your free personal Gemini API key for higher capacity.
+              Shared tier rate limit reached. Your prompt and conversation are saved. Retry in 30 seconds or add your free personal Gemini key.
             </span>
           </div>
           {onOpenGeminiKey && (
@@ -197,7 +197,7 @@ export function ChatPanel({
               onClick={onOpenGeminiKey}
               className="text-micro font-medium text-ink shrink-0 h-6 px-2"
             >
-              Configure Key
+              Add API Key
             </Button>
           )}
         </div>

@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { apiClient } from "@/lib/api-client";
 import { Lock, Eye, EyeOff, ArrowRight, Loader2, CheckCircle2 } from "lucide-react";
 import { DocoraSymbol } from "@/components/brand/BrandLogo";
+import { Button, Input } from "@/components/ui";
 
 function ResetPasswordForm() {
   const router = useRouter();
@@ -25,17 +26,17 @@ function ResetPasswordForm() {
     setErrorMessage(null);
 
     if (!token.trim()) {
-      setErrorMessage("Reset token is required.");
+      setErrorMessage("Reset token is required. Check your recovery link.");
       return;
     }
 
     if (newPassword.length < 8) {
-      setErrorMessage("Password must be at least 8 characters long.");
+      setErrorMessage("Password must be at least 8 characters.");
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setErrorMessage("Passwords do not match.");
+      setErrorMessage("Passwords do not match. Verify both fields.");
       return;
     }
 
@@ -45,7 +46,7 @@ function ResetPasswordForm() {
       setSuccess(true);
     } catch (err: any) {
       setErrorMessage(
-        err.message || err.detail || "Failed to reset password. The link or token may be expired."
+        err.message || err.detail || "Unable to reset password. The link or token may be expired."
       );
     } finally {
       setIsLoading(false);
@@ -54,43 +55,43 @@ function ResetPasswordForm() {
 
   if (success) {
     return (
-      <div className="w-full max-w-md p-7 sm:p-9 rounded-3xl bg-[#0F121A]/90 border border-white/[0.08] backdrop-blur-xl shadow-[0_24px_64px_-12px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(255,255,255,0.06)] relative z-10 text-center select-none">
-        <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 mb-4 text-emerald-400">
-          <CheckCircle2 className="w-6 h-6" />
+      <div className="w-full max-w-md p-6 sm:p-8 rounded-lg bg-surface border border-border-hairline shadow-sm relative z-10 text-center select-none">
+        <div className="inline-flex items-center justify-center w-10 h-10 rounded-md bg-surface-subtle border border-border-hairline mb-3 text-verdigris">
+          <CheckCircle2 className="w-5 h-5" />
         </div>
-        <h2 className="text-xl font-semibold text-neutral-900">Password Reset Complete</h2>
-        <p className="text-xs text-neutral-500 mt-2 mb-6">
-          Your password has been successfully updated. You may now log in with your new credentials.
+        <h2 className="font-serif text-title sm:text-display font-medium text-ink">
+          Password Updated
+        </h2>
+        <p className="text-caption text-ink-secondary mt-1.5 mb-6">
+          Your password has been securely updated. You can now sign in with your new credentials.
         </p>
-        <Link
-          href="/login"
-          prefetch={false}
-          className="w-full py-2.5 px-4 rounded-xl bg-[#E5A93B] hover:bg-[#D97706] text-neutral-950 font-bold text-xs inline-flex items-center justify-center gap-2 shadow-xs transition-all"
-        >
-          <span>Continue to Sign In</span>
-          <ArrowRight className="w-3.5 h-3.5" />
+        <Link href="/login" prefetch={false} className="w-full block">
+          <Button variant="primary" size="md" className="w-full gap-2 justify-center">
+            <span>Continue to Sign In</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Button>
         </Link>
       </div>
     );
   }
 
   return (
-    <div className="w-full max-w-md p-7 sm:p-9 rounded-3xl bg-white border border-black/[0.08] shadow-[0_4px_24px_rgba(0,0,0,0.06),0_1px_2px_rgba(0,0,0,0.04)] relative z-10 select-none">
-      <div className="text-center mb-8">
-        <div className="inline-flex items-center justify-center mb-4 transition-transform hover:scale-105 duration-200">
-          <DocoraSymbol size={48} />
+    <div className="w-full max-w-md p-6 sm:p-8 rounded-lg bg-surface border border-border-hairline shadow-sm relative z-10 select-none">
+      <div className="text-center mb-6">
+        <div className="inline-flex items-center justify-center mb-3">
+          <DocoraSymbol size={40} />
         </div>
-        <h1 className="text-2xl sm:text-[26px] font-semibold tracking-tight text-neutral-900">
+        <h1 className="font-serif text-title sm:text-display font-medium tracking-tight text-ink">
           Set New Password
         </h1>
-        <p className="text-xs text-neutral-500 mt-1.5 tracking-normal">
-          Enter your recovery token and choose a secure password
+        <p className="text-caption text-ink-secondary mt-1">
+          Enter your recovery token and select a new password.
         </p>
       </div>
 
       {errorMessage && (
-        <div className="mb-6 p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-start gap-2.5 animate-in fade-in duration-150">
-          <span className="text-rose-500 font-bold shrink-0">•</span>
+        <div className="mb-5 p-3 rounded-md bg-destructive/10 border border-destructive/20 text-destructive text-caption flex items-start gap-2">
+          <span className="font-bold shrink-0">•</span>
           <span className="leading-relaxed">{errorMessage}</span>
         </div>
       )}
@@ -99,45 +100,44 @@ function ResetPasswordForm() {
         <div>
           <label
             htmlFor="token"
-            className="block text-[11px] font-semibold uppercase tracking-wider text-neutral-600 mb-1.5"
+            className="block text-caption font-medium text-ink-secondary mb-1"
           >
             Reset Token
           </label>
-          <input
+          <Input
             id="token"
             type="text"
             required
+            placeholder="Paste your token from recovery link"
             value={token}
             onChange={(e) => setToken(e.target.value)}
-            placeholder="Paste recovery token..."
-            className="w-full px-4 py-2.5 rounded-xl bg-[#F4F5F7] border border-black/[0.08] text-neutral-900 placeholder-neutral-400 text-xs font-mono focus:outline-none focus:border-amber-500 focus:bg-white focus:ring-2 focus:ring-amber-500/20 transition-all"
+            disabled={isLoading}
           />
         </div>
 
         <div>
           <label
-            htmlFor="new_password"
-            className="block text-[11px] font-semibold uppercase tracking-wider text-neutral-600 mb-1.5"
+            htmlFor="newPassword"
+            className="block text-caption font-medium text-ink-secondary mb-1"
           >
-            New Password (min 8 characters)
+            New Password
           </label>
           <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-400">
-              <Lock className="w-4 h-4" />
-            </div>
-            <input
-              id="new_password"
+            <Input
+              id="newPassword"
               type={showPassword ? "text" : "password"}
               required
+              placeholder="Minimum 8 characters"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="••••••••"
-              className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-[#F4F5F7] border border-black/[0.08] text-neutral-900 placeholder-neutral-400 text-xs focus:outline-none focus:border-amber-500 focus:bg-white focus:ring-2 focus:ring-amber-500/20 transition-all"
+              disabled={isLoading}
+              className="pr-10"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-neutral-400 hover:text-neutral-700 transition-colors"
+              className="absolute right-3 top-2.5 text-ink-muted hover:text-ink transition-colors cursor-pointer"
+              tabIndex={-1}
             >
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
@@ -146,67 +146,64 @@ function ResetPasswordForm() {
 
         <div>
           <label
-            htmlFor="confirm_new_password"
-            className="block text-[11px] font-semibold uppercase tracking-wider text-neutral-600 mb-1.5"
+            htmlFor="confirmPassword"
+            className="block text-caption font-medium text-ink-secondary mb-1"
           >
             Confirm New Password
           </label>
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-400">
-              <Lock className="w-4 h-4" />
-            </div>
-            <input
-              id="confirm_new_password"
-              type={showPassword ? "text" : "password"}
-              required
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="••••••••"
-              className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-[#F4F5F7] border border-black/[0.08] text-neutral-900 placeholder-neutral-400 text-xs focus:outline-none focus:border-amber-500 focus:bg-white focus:ring-2 focus:ring-amber-500/20 transition-all"
-            />
-          </div>
+          <Input
+            id="confirmPassword"
+            type={showPassword ? "text" : "password"}
+            required
+            placeholder="Re-enter your password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            disabled={isLoading}
+          />
         </div>
 
-        <button
+        <Button
           type="submit"
+          variant="primary"
+          size="md"
           disabled={isLoading}
-          className="w-full py-2.5 px-4 rounded-xl bg-[#E5A93B] hover:bg-[#D97706] text-neutral-950 font-bold text-xs flex items-center justify-center gap-2 shadow-xs active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+          className="w-full gap-2 justify-center"
         >
           {isLoading ? (
             <>
-              <Loader2 className="w-4 h-4 animate-spin text-neutral-950" />
-              <span>Updating password...</span>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span>Updating Password...</span>
             </>
           ) : (
             <>
-              <span>Update Password</span>
+              <span>Save New Password</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </>
           )}
-        </button>
-      </form>
+        </Button>
 
-      <div className="mt-8 pt-5 border-t border-black/[0.08] text-center text-xs text-neutral-600">
-        <Link
-          href="/login"
-          prefetch={false}
-          className="text-amber-700 font-semibold hover:underline"
-        >
-          Back to Sign In
-        </Link>
-      </div>
+        <div className="pt-2 text-center">
+          <Link
+            href="/login"
+            prefetch={false}
+            className="text-caption text-ink-secondary hover:text-ink transition-colors"
+          >
+            Return to Sign In
+          </Link>
+        </div>
+      </form>
     </div>
   );
 }
 
 export default function ResetPasswordPage() {
   return (
-    <div className="min-h-screen w-full bg-[#F8F9FA] flex flex-col items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen w-full bg-canvas flex flex-col items-center justify-center p-4 relative font-sans">
       <Suspense
         fallback={
-          <div className="text-xs text-neutral-500 flex items-center gap-2">
-            <Loader2 className="w-4 h-4 animate-spin text-amber-600" />
-            Loading reset form...
+          <div className="w-full max-w-md p-8 rounded-lg bg-surface border border-border-hairline shadow-sm text-center">
+            <Loader2 className="w-6 h-6 animate-spin text-ink-muted mx-auto" />
+            <p className="text-caption text-ink-secondary mt-2">Loading reset form...</p>
           </div>
         }
       >

@@ -1,6 +1,8 @@
 "use client";
 
-import { AlertTriangle, RefreshCw } from "lucide-react";
+import React from "react";
+import "./globals.css";
+import { AlertCircle, RefreshCw } from "lucide-react";
 
 export default function GlobalError({
   error,
@@ -11,24 +13,30 @@ export default function GlobalError({
 }) {
   return (
     <html lang="en">
-      <body className="bg-background text-foreground min-h-screen flex items-center justify-center p-6">
-        <div className="flex flex-col items-center justify-center space-y-4 max-w-md mx-auto text-center">
-          <div className="h-14 w-14 rounded-full bg-destructive/10 text-destructive flex items-center justify-center">
-            <AlertTriangle className="h-8 w-8" />
+      <body className="bg-canvas text-ink min-h-screen flex items-center justify-center p-6 font-sans">
+        <div className="w-full max-w-md rounded-lg border border-border-hairline bg-surface p-8 text-center space-y-5 shadow-sm">
+          <div className="h-10 w-10 rounded-md bg-destructive/10 text-destructive border border-destructive/20 flex items-center justify-center mx-auto">
+            <AlertCircle className="h-5 w-5" />
           </div>
-          <div className="space-y-2">
-            <h1 className="text-xl font-bold tracking-tight text-foreground">Critical Application Error</h1>
-            <p className="text-sm text-muted-foreground">
-              A critical client-side error occurred. The system is safeguarded and data remains intact.
+
+          <div className="space-y-1.5">
+            <h1 className="font-serif text-title font-medium text-ink tracking-tight">
+              Application Error
+            </h1>
+            <p className="text-caption text-ink-secondary leading-relaxed">
+              A runtime interface error occurred. Your documents and workspace state remain intact.
             </p>
           </div>
-          <button
-            onClick={() => reset()}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-semibold shadow hover:bg-primary/90 transition-colors"
-          >
-            <RefreshCw className="h-4 w-4" />
-            <span>Try Again</span>
-          </button>
+
+          <div className="pt-2">
+            <button
+              onClick={() => reset()}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-md bg-gold text-gold-fg hover:opacity-90 text-ui font-medium transition-opacity shadow-xs cursor-pointer"
+            >
+              <RefreshCw className="h-4 w-4" />
+              <span>Reload Application</span>
+            </button>
+          </div>
         </div>
       </body>
     </html>

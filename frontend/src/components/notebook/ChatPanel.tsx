@@ -3,24 +3,24 @@
 import React, { useState, useRef, useEffect } from "react";
 import {
   Send,
-  Sparkles,
   SlidersHorizontal,
   Copy,
   Check,
   Bookmark,
-  ThumbsUp,
-  ThumbsDown,
   FileText,
   AlertTriangle,
   Compass,
   GitCompare,
   ArrowRight,
-  Database,
+  Filter,
   Layers,
+  Key,
+  Info,
 } from "lucide-react";
-import { ChatMessage, apiClient } from "@/lib/api-client";
-import { FormattedMessage } from "@/components/chat/FormattedMessage";
-import { DocoraSymbol } from "@/components/brand/BrandLogo";
+import { ChatMessage, SourceItem } from "@/lib/api-client";
+import { FormattedMessage, CitationItem } from "@/components/chat/FormattedMessage";
+import { CitationDrawer } from "@/components/notebook/CitationDrawer";
+import { Button } from "@/components/ui/Button";
 
 const RESPONSE_STYLES = [
   { id: "default", label: "Default Balanced", desc: "Objective, concise synthesis" },
@@ -34,35 +34,31 @@ const RESPONSE_STYLES = [
 const PROMPT_STARTERS = [
   {
     icon: FileText,
-    iconColor: "text-indigo-400 bg-indigo-500/10 border-indigo-500/20",
     title: "Executive Synthesis",
-    desc: "Distill critical findings, metrics, and conclusions across documents.",
+    desc: "Distill critical findings, metrics, and decisive conclusions across documents.",
     prompt: "Provide an executive summary of key findings, core deliverables, and decisive conclusions across the provided sources.",
   },
   {
     icon: AlertTriangle,
-    iconColor: "text-amber-400 bg-amber-500/10 border-amber-500/20",
     title: "Risks & Constraints",
     desc: "Expose operational vulnerabilities, gaps, and hidden caveats.",
     prompt: "Analyze the main operational risks, vulnerabilities, and data gaps highlighted in these materials.",
   },
   {
     icon: Compass,
-    iconColor: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
     title: "Learning Roadmap",
     desc: "Step-by-step conceptual walkthrough with verified citations.",
     prompt: "Generate a step-by-step educational learning guide covering the core foundational concepts in these sources.",
   },
   {
     icon: GitCompare,
-    iconColor: "text-sky-400 bg-sky-500/10 border-sky-500/20",
     title: "Comparative Analysis",
-    desc: "Cross-examine data points, metrics, and conflicting claims.",
+    desc: "Cross-examine metrics, methodology, and conflicting data points.",
     prompt: "Compare the critical metrics, methodology, and data points across these sources, noting any contradictions.",
   },
 ];
 
-interface ChatPanelProps {
+export interface ChatPanelProps {
   messages: ChatMessage[];
   inputQuery: string;
   setInputQuery: (q: string) => void;
@@ -72,8 +68,12 @@ interface ChatPanelProps {
   onSendMessage: () => Promise<void>;
   onSaveAsNote: (msg: ChatMessage) => Promise<void>;
   sourcesCount: number;
+  sources?: SourceItem[];
   notebookTitle?: string;
   onOpenGeminiKey?: () => void;
+  onOpenAddSource?: () => void;
+  isFallbackModel?: boolean;
+  isRateLimited?: boolean;
 }
 
 export function ChatPanel({
@@ -86,28 +86,47 @@ export function ChatPanel({
   onSendMessage,
   onSaveAsNote,
   sourcesCount,
+  sources = [],
   notebookTitle,
   onOpenGeminiKey,
+  onOpenAddSource,
+  isFallbackModel = false,
+  isRateLimited = false,
 }: ChatPanelProps) {
   const [showStyleMenu, setShowStyleMenu] = useState(false);
+  const [showScopeMenu, setShowScopeMenu] = useState(false);
+  const [selectedSourceScope, setSelectedSourceScope] = useState<string>("all");
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [savedNoteId, setSavedNoteId] = useState<string | null>(null);
+
+  // Citation preview drawer state
+  const [selectedCitation, setSelectedCitation] = useState<CitationItem | null>(null);
+  const [selectedCitationIndex, setSelectedCitationIndex] = useState<number>(1);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Auto scroll
+  // Auto-scroll on new messages or streaming tokens
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isGenerating]);
 
-  // Copy handler
+  // Adjust textarea height dynamically
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInputQuery(e.target.value);
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 140)}px`;
+    }
+  };
+
   const handleCopy = (id: string, text: string) => {
     navigator.clipboard.writeText(text);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  // Save note wrapper
   const handleSaveNote = async (msg: ChatMessage) => {
     await onSaveAsNote(msg);
     setSavedNoteId(msg.id);
@@ -117,273 +136,394 @@ export function ChatPanel({
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      onSendMessage();
+      if (inputQuery.trim() && !isGenerating) {
+        onSendMessage();
+        if (textareaRef.current) {
+          textareaRef.current.style.height = "auto";
+        }
+      }
     }
   };
 
-  const activeStyleLabel = RESPONSE_STYLES.find((s) => s.id === responseStyle)?.label || "Balanced";
+  const handleOpenCitation = (citation: CitationItem, index?: number) => {
+    setSelectedCitation(citation);
+    setSelectedCitationIndex(index ?? 1);
+    setIsDrawerOpen(true);
+  };
 
-  const displayTitle = notebookTitle && notebookTitle.trim().length > 2
-    ? notebookTitle
-    : "Research & Intelligence Workspace";
+  const activeStyleLabel = RESPONSE_STYLES.find((s) => s.id === responseStyle)?.label || "Balanced";
+  const activeScopeLabel =
+    selectedSourceScope === "all"
+      ? `All Sources (${sourcesCount})`
+      : sources.find((s) => s.id === selectedSourceScope)?.title || "Selected Source";
 
   return (
-    <div className="h-full flex flex-col min-h-0 bg-[#FAFAFA] text-neutral-900 relative">
-      {/* Executive Grounded Dossier Header */}
-      <div className="h-11 px-4 border-b border-black/[0.06] bg-[#F4F5F7] flex items-center justify-between shrink-0 select-none">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-2 h-2 rounded-full bg-emerald-600 shadow-[0_0_6px_rgba(5,150,105,0.6)] shrink-0" />
-          <span className="text-xs font-semibold text-neutral-900 truncate">
-            {notebookTitle && notebookTitle !== "k" && notebookTitle.trim() ? notebookTitle : "Executive Intelligence Dossier"}
-          </span>
-          <span className="hidden sm:inline-block text-[11px] font-mono text-neutral-500 border-l border-black/[0.08] pl-2.5">
-            {sourcesCount > 0 ? `${sourcesCount} Active Document${sourcesCount > 1 ? "s" : ""} Grounded` : "No Documents Attached"}
-          </span>
+    <div className="h-full flex flex-col min-h-0 bg-surface text-ink relative overflow-hidden font-sans select-none">
+      {/* Fallback Model Alert Banner */}
+      {isFallbackModel && (
+        <div className="px-4 py-2 bg-surface-subtle border-b border-hairline flex items-center justify-between text-caption text-ink-secondary shrink-0">
+          <div className="flex items-center gap-2 min-w-0">
+            <Info className="w-3.5 h-3.5 text-verdigris shrink-0" />
+            <span className="truncate">
+              Operating on standard fallback model. Add your personal Gemini API key for dedicated throughput.
+            </span>
+          </div>
+          {onOpenGeminiKey && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onOpenGeminiKey}
+              className="text-micro font-medium text-ink shrink-0 h-6 px-2"
+            >
+              Configure Key
+            </Button>
+          )}
         </div>
+      )}
 
-        <div className="flex items-center gap-2 shrink-0">
-          <span className="px-2 py-0.5 rounded-md bg-white border border-black/[0.08] text-[10px] font-mono text-neutral-700 shadow-xs">
-            Gemini 2.5 Flash
-          </span>
+      {/* Rate Limit Reached Alert Banner */}
+      {isRateLimited && (
+        <div className="px-4 py-2 bg-surface-subtle border-b border-hairline flex items-center justify-between text-caption text-ink-secondary shrink-0">
+          <div className="flex items-center gap-2 min-w-0">
+            <AlertTriangle className="w-3.5 h-3.5 text-gold shrink-0" />
+            <span className="truncate">
+              Rate limit reached on shared tier. Please wait a moment, or configure your free personal Gemini API key for higher capacity.
+            </span>
+          </div>
+          {onOpenGeminiKey && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onOpenGeminiKey}
+              className="text-micro font-medium text-ink shrink-0 h-6 px-2"
+            >
+              Configure Key
+            </Button>
+          )}
         </div>
-      </div>
+      )}
 
-      {/* Messages Stream */}
-      <div className="flex-1 overflow-y-auto px-4 sm:px-8 py-6 space-y-6 min-h-0">
+      {/* Reading Canvas & Message Stream */}
+      <div className="flex-1 overflow-y-auto px-4 sm:px-8 py-6 space-y-6 min-h-0 relative">
         {messages.length === 0 ? (
-          <div className="h-full flex flex-col justify-center max-w-2xl mx-auto py-6 select-none">
-            {/* Header section */}
-            <div className="mb-6 space-y-2">
-              <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-white border border-black/[0.08] text-[11px] font-mono text-neutral-700 shadow-xs">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 shadow-[0_0_6px_rgba(5,150,105,0.6)]" />
-                <span>RAG Verified Grounding</span>
-              </div>
-              <h2 className="text-2xl sm:text-3xl font-semibold text-neutral-900 tracking-tight">
-                {notebookTitle && notebookTitle !== "k" && notebookTitle.trim() ? notebookTitle : "Research & Intelligence Canvas"}
-              </h2>
-              <p className="text-xs sm:text-sm text-neutral-600 leading-relaxed max-w-xl">
-                {sourcesCount > 0
-                  ? `Grounded in ${sourcesCount} active document${sourcesCount > 1 ? "s" : ""}. Ask complex queries across your ingested data, or select a research angle below:`
-                  : "Upload documents or notes in the left panel to begin grounded synthesis and exploration."}
-              </p>
-            </div>
-
-            {/* Quick Research Angles - Clean Horizontal Editorial Cards */}
-            {sourcesCount > 0 && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
-                {PROMPT_STARTERS.map((starter, idx) => {
-                  const Icon = starter.icon;
-                  return (
-                    <button
-                      key={idx}
-                      onClick={() => {
-                        setInputQuery(starter.prompt);
-                        textareaRef.current?.focus();
-                      }}
-                      className="group p-4 rounded-xl border border-black/[0.08] bg-white hover:bg-neutral-50 hover:border-amber-500/40 text-left transition-all shadow-xs hover:shadow-md active:scale-[0.99] cursor-pointer flex items-start gap-3.5"
+          <div className="h-full flex flex-col justify-center max-w-[65ch] mx-auto py-6">
+            {sourcesCount === 0 ? (
+              /* State: No Sources Yet */
+              <div className="space-y-4 text-left">
+                <div className="space-y-1.5">
+                  <h2 className="text-title font-sans font-semibold text-ink tracking-tight">
+                    No Documents Attached
+                  </h2>
+                  <p className="text-reading font-serif text-ink-secondary leading-relaxed">
+                    Upload a PDF, document, or research note from the Sources panel on the left to begin grounded synthesis.
+                  </p>
+                </div>
+                {onOpenAddSource && (
+                  <div className="pt-2">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={onOpenAddSource}
+                      className="text-ui font-medium"
                     >
-                      <div className={`p-2 rounded-lg border ${starter.iconColor} shrink-0`}>
-                        <Icon className="w-4 h-4" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center justify-between">
-                          <p className="text-xs font-semibold text-neutral-900 group-hover:text-amber-800 transition-colors">
-                            {starter.title}
-                          </p>
-                          <ArrowRight className="w-3.5 h-3.5 text-neutral-400 group-hover:text-amber-700 group-hover:translate-x-0.5 transition-all shrink-0" />
+                      Attach Documents
+                    </Button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              /* State: Active Sources Ready - Clean Paper Prompt Angles */
+              <div className="space-y-6 text-left">
+                <div className="space-y-1.5">
+                  <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-surface-subtle border border-hairline text-micro font-mono text-ink-muted">
+                    <span className="w-1.5 h-1.5 rounded-full bg-verdigris" />
+                    <span>Grounded in {sourcesCount} active {sourcesCount === 1 ? "source" : "sources"}</span>
+                  </div>
+                  <h2 className="text-title font-sans font-semibold text-ink tracking-tight">
+                    {notebookTitle && notebookTitle !== "k" && notebookTitle.trim()
+                      ? notebookTitle
+                      : "Research & Synthesis Canvas"}
+                  </h2>
+                  <p className="text-reading font-serif text-ink-secondary leading-relaxed">
+                    Ask an inquiry across your ingested documents, or select a structured research angle below:
+                  </p>
+                </div>
+
+                {/* Editorial Prompt Starters */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 w-full">
+                  {PROMPT_STARTERS.map((starter, idx) => {
+                    const Icon = starter.icon;
+                    return (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => {
+                          setInputQuery(starter.prompt);
+                          textareaRef.current?.focus();
+                        }}
+                        className="p-3.5 rounded-lg border border-hairline bg-surface-subtle hover:bg-surface hover:border-border-strong text-left transition-colors duration-150 cursor-pointer flex flex-col justify-between group active:scale-[0.99]"
+                      >
+                        <div className="flex items-center justify-between w-full">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <Icon className="w-4 h-4 text-ink-muted group-hover:text-ink transition-colors duration-150 shrink-0" />
+                            <span className="text-ui font-medium text-ink truncate">
+                              {starter.title}
+                            </span>
+                          </div>
+                          <ArrowRight className="w-3.5 h-3.5 text-ink-muted group-hover:text-ink transition-colors duration-150 shrink-0" />
                         </div>
-                        <p className="text-[11px] text-neutral-500 mt-1 leading-relaxed line-clamp-2">
+                        <p className="text-caption font-sans text-ink-muted mt-1.5 leading-snug line-clamp-2">
                           {starter.desc}
                         </p>
-                      </div>
-                    </button>
-                  );
-                })}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             )}
           </div>
         ) : (
-          messages.map((msg) => (
-            <div
-              key={msg.id}
-              className={`flex flex-col ${msg.sender_type === "user" ? "items-end" : "items-start"}`}
-            >
-              {msg.sender_type === "user" ? (
-                <div className="max-w-[85%] rounded-2xl bg-neutral-900 text-white px-4 py-2.5 text-xs sm:text-sm font-medium leading-relaxed shadow-sm">
-                  {msg.content}
-                </div>
-              ) : (
-                <div className="max-w-[95%] sm:max-w-[90%] w-full space-y-3 rounded-2xl border border-black/[0.08] bg-white p-5 shadow-xs">
-                  {/* Assistant Message Header */}
-                  <div className="flex items-center gap-2 text-xs font-semibold text-neutral-500">
-                    <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-                    <span className="text-neutral-900 font-medium">Docora Intelligence</span>
+          /* Conversation Stream */
+          <div className="max-w-[720px] mx-auto w-full space-y-6">
+            {messages.map((msg) => (
+              <div
+                key={msg.id}
+                className={`flex flex-col ${
+                  msg.sender_type === "user" ? "items-end" : "items-start"
+                }`}
+              >
+                {msg.sender_type === "user" ? (
+                  /* User Question: Sans typography, clean bubble */
+                  <div className="max-w-[85%] rounded-xl bg-surface-subtle border border-hairline text-ink px-4 py-2.5 text-ui font-sans font-medium leading-relaxed select-text shadow-2xs">
+                    {msg.content}
                   </div>
+                ) : (
+                  /* Assistant Answer: Serif typography, 65ch measure */
+                  <div className="w-full space-y-2 select-text">
+                    {/* Header mark */}
+                    <div className="flex items-center gap-1.5 text-caption font-sans font-medium text-ink-muted select-none">
+                      <span className="w-1.5 h-1.5 rounded-full bg-verdigris" />
+                      <span>Docora Synthesis</span>
+                    </div>
 
-                  {/* Formatted Markdown Body */}
-                  <div className="text-xs sm:text-sm leading-relaxed text-neutral-800">
+                    {/* Formatted body */}
                     {msg.content ? (
-                      <FormattedMessage content={msg.content} citations={msg.citations} />
+                      <FormattedMessage
+                        content={msg.content}
+                        citations={msg.citations}
+                        onOpenCitation={handleOpenCitation}
+                      />
                     ) : (
-                      <div className="flex items-center gap-2 text-neutral-500 text-xs py-2">
-                        <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
+                      /* State: Streaming synthesis indicator */
+                      <div className="flex items-center gap-2 py-3 text-caption font-sans text-ink-muted select-none">
+                        <span className="w-2 h-2 rounded-full bg-verdigris animate-pulse" />
                         <span>Synthesizing verified source evidence...</span>
                       </div>
                     )}
-                  </div>
 
-                  {/* Message Actions Row */}
-                  {!msg.isStreaming && msg.content && (
-                    <div className="flex items-center gap-1.5 pt-2 border-t border-white/[0.04] text-neutral-400">
-                      <button
-                        onClick={() => handleCopy(msg.id, msg.content)}
-                        className="p-1.5 rounded-lg hover:bg-white/[0.06] hover:text-white transition-colors text-xs flex items-center gap-1"
-                        title="Copy answer"
-                      >
-                        {copiedId === msg.id ? (
-                          <>
-                            <Check className="w-3.5 h-3.5 text-emerald-400" />
-                            <span className="text-[11px] text-emerald-400">Copied</span>
-                          </>
-                        ) : (
-                          <>
-                            <Copy className="w-3.5 h-3.5" />
-                            <span className="text-[11px]">Copy</span>
-                          </>
-                        )}
-                      </button>
-
-                      <button
-                        onClick={() => handleSaveNote(msg)}
-                        className="p-1.5 rounded-lg hover:bg-white/[0.06] hover:text-white transition-colors text-xs flex items-center gap-1"
-                        title="Save to Notes"
-                      >
-                        {savedNoteId === msg.id ? (
-                          <>
-                            <Check className="w-3.5 h-3.5 text-emerald-400" />
-                            <span className="text-[11px] text-emerald-400">Saved</span>
-                          </>
-                        ) : (
-                          <>
-                            <Bookmark className="w-3.5 h-3.5" />
-                            <span className="text-[11px]">Save as Note</span>
-                          </>
-                        )}
-                      </button>
-
-                      <div className="h-3 w-[1px] bg-white/[0.08] mx-1" />
-
-                      <button
-                        className="p-1.5 rounded-lg hover:bg-white/[0.06] hover:text-white transition-colors"
-                        title="Helpful"
-                      >
-                        <ThumbsUp className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        className="p-1.5 rounded-lg hover:bg-white/[0.06] hover:text-white transition-colors"
-                        title="Not helpful"
-                      >
-                        <ThumbsDown className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          ))
-        )}
-        <div ref={messagesEndRef} />
-      </div>
-
-      {/* Luxurious Floating Composer Dock */}
-      <div className="p-3 sm:p-4 bg-transparent shrink-0">
-        <div className="max-w-3xl mx-auto rounded-2xl border border-black/[0.1] bg-white/95 backdrop-blur-xl shadow-[0_12px_32px_rgba(0,0,0,0.08)] p-3 transition-all focus-within:ring-2 focus-within:ring-amber-500/20 focus-within:border-amber-500/60">
-          {/* Text Area */}
-          <textarea
-            ref={textareaRef}
-            rows={1}
-            value={inputQuery}
-            onChange={(e) => setInputQuery(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder={
-              sourcesCount > 0
-                ? "Ask anything grounded in your sources (Enter to send)..."
-                : "Add sources on the left, then ask questions..."
-            }
-            className="w-full bg-transparent border-0 px-3 py-2 text-xs sm:text-sm text-neutral-900 placeholder-neutral-400 outline-none resize-none max-h-32 min-h-[44px]"
-          />
-
-          {/* Bottom Bar inside Composer */}
-          <div className="flex items-center justify-between px-2 pt-2 border-t border-black/[0.06]">
-            {/* Style Selector & Active Source Info */}
-            <div className="flex items-center gap-2">
-              <div className="relative">
-                <button
-                  onClick={() => setShowStyleMenu(!showStyleMenu)}
-                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium text-neutral-700 hover:text-neutral-900 hover:bg-neutral-100 border border-black/[0.08] transition-colors"
-                  title="Response Style"
-                >
-                  <SlidersHorizontal className="w-3 h-3 text-amber-600" />
-                  <span>{activeStyleLabel}</span>
-                </button>
-
-                {/* Dropdown Menu */}
-                {showStyleMenu && (
-                  <div className="absolute bottom-9 left-0 w-64 rounded-xl border border-black/[0.08] bg-white shadow-2xl p-1.5 z-50 space-y-1 text-neutral-800">
-                    <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-neutral-500">
-                      Response Mode
-                    </div>
-                    {RESPONSE_STYLES.map((style) => (
-                      <button
-                        key={style.id}
-                        onClick={() => {
-                          setResponseStyle(style.id);
-                          setShowStyleMenu(false);
-                        }}
-                        className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs transition-colors ${
-                          responseStyle === style.id
-                            ? "bg-neutral-900 text-white font-medium"
-                            : "text-neutral-700 hover:bg-neutral-100"
-                        }`}
-                      >
-                        <div className="font-semibold">{style.label}</div>
-                        <div
-                          className={`text-[10px] ${
-                            responseStyle === style.id ? "text-neutral-300" : "text-neutral-500"
-                          }`}
+                    {/* Action buttons below assistant response */}
+                    {!msg.isStreaming && msg.content && (
+                      <div className="flex items-center gap-1 pt-2 select-none">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleCopy(msg.id, msg.content)}
+                          className="h-7 px-2 text-micro font-medium text-ink-muted hover:text-ink flex items-center gap-1"
                         >
-                          {style.desc}
-                        </div>
-                      </button>
-                    ))}
+                          {copiedId === msg.id ? (
+                            <>
+                              <Check className="w-3 h-3 text-verdigris" />
+                              <span className="text-verdigris">Copied</span>
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-3 h-3" />
+                              <span>Copy</span>
+                            </>
+                          )}
+                        </Button>
+
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleSaveNote(msg)}
+                          className="h-7 px-2 text-micro font-medium text-ink-muted hover:text-ink flex items-center gap-1"
+                        >
+                          {savedNoteId === msg.id ? (
+                            <>
+                              <Check className="w-3 h-3 text-verdigris" />
+                              <span className="text-verdigris">Saved</span>
+                            </>
+                          ) : (
+                            <>
+                              <Bookmark className="w-3 h-3" />
+                              <span>Save as Note</span>
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
+            ))}
+            <div ref={messagesEndRef} />
+          </div>
+        )}
+      </div>
 
-              {sourcesCount > 0 && (
-                <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-[10px] font-medium border border-emerald-200">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
-                  {sourcesCount} active {sourcesCount === 1 ? "source" : "sources"}
-                </span>
-              )}
+      {/* Composer Dock */}
+      <div className="p-3 sm:p-4 bg-surface border-t border-hairline shrink-0">
+        <div className="max-w-[720px] mx-auto space-y-1.5">
+          <div className="rounded-xl border border-hairline bg-surface-subtle p-2.5 transition-colors focus-within:border-border-strong focus-within:ring-1 focus-within:ring-border-strong">
+            {/* Auto-expanding Input Field */}
+            <textarea
+              ref={textareaRef}
+              rows={1}
+              value={inputQuery}
+              onChange={handleInputChange}
+              onKeyDown={handleKeyDown}
+              placeholder={
+                sourcesCount > 0
+                  ? "Inquire across your grounded sources..."
+                  : "Add sources on the left, then ask questions..."
+              }
+              className="w-full bg-transparent border-0 px-2 py-1 text-[16px] sm:text-ui font-sans text-ink placeholder:text-ink-muted outline-none resize-none min-h-[44px] max-h-36 leading-relaxed select-text"
+            />
+
+            {/* Bottom Bar: Scope Selector, Response Style, Single Gold Send Action */}
+            <div className="flex items-center justify-between px-1 pt-2 border-t border-hairline/60">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {/* Source Scope Selector */}
+                {sourcesCount > 0 && (
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowScopeMenu(!showScopeMenu);
+                        setShowStyleMenu(false);
+                      }}
+                      className="flex items-center gap-1 px-2 py-1 rounded text-micro font-mono text-ink-secondary hover:text-ink hover:bg-surface border border-hairline transition-colors duration-150"
+                      title="Filter source scope"
+                    >
+                      <Filter className="w-3 h-3 text-verdigris" />
+                      <span className="truncate max-w-[140px]">{activeScopeLabel}</span>
+                    </button>
+
+                    {showScopeMenu && (
+                      <div className="absolute bottom-8 left-0 w-56 rounded-lg border border-hairline bg-surface shadow-md p-1.5 z-40 space-y-0.5 text-ink">
+                        <div className="px-2 py-1 text-micro font-mono uppercase tracking-wider text-ink-muted">
+                          Source Scope
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedSourceScope("all");
+                            setShowScopeMenu(false);
+                          }}
+                          className={`w-full text-left px-2 py-1.5 rounded text-ui transition-colors duration-150 ${
+                            selectedSourceScope === "all"
+                              ? "bg-surface-subtle text-ink font-medium"
+                              : "text-ink-secondary hover:bg-surface-subtle"
+                          }`}
+                        >
+                          All Active Sources ({sourcesCount})
+                        </button>
+                        {sources.map((s) => (
+                          <button
+                            key={s.id}
+                            type="button"
+                            onClick={() => {
+                              setSelectedSourceScope(s.id);
+                              setShowScopeMenu(false);
+                            }}
+                            className={`w-full text-left px-2 py-1.5 rounded text-ui truncate transition-colors duration-150 ${
+                              selectedSourceScope === s.id
+                                ? "bg-surface-subtle text-ink font-medium"
+                                : "text-ink-secondary hover:bg-surface-subtle"
+                            }`}
+                          >
+                            {s.title}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Response Style Selector */}
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowStyleMenu(!showStyleMenu);
+                      setShowScopeMenu(false);
+                    }}
+                    className="flex items-center gap-1 px-2 py-1 rounded text-micro font-mono text-ink-secondary hover:text-ink hover:bg-surface border border-hairline transition-colors duration-150"
+                    title="Response synthesis mode"
+                  >
+                    <SlidersHorizontal className="w-3 h-3 text-ink-muted" />
+                    <span>{activeStyleLabel}</span>
+                  </button>
+
+                  {showStyleMenu && (
+                    <div className="absolute bottom-8 left-0 w-60 rounded-lg border border-hairline bg-surface shadow-md p-1.5 z-40 space-y-0.5 text-ink">
+                      <div className="px-2 py-1 text-micro font-mono uppercase tracking-wider text-ink-muted">
+                        Synthesis Mode
+                      </div>
+                      {RESPONSE_STYLES.map((style) => (
+                        <button
+                          key={style.id}
+                          type="button"
+                          onClick={() => {
+                            setResponseStyle(style.id);
+                            setShowStyleMenu(false);
+                          }}
+                          className={`w-full text-left px-2 py-1.5 rounded text-ui transition-colors duration-150 ${
+                            responseStyle === style.id
+                              ? "bg-surface-subtle text-ink font-medium"
+                              : "text-ink-secondary hover:bg-surface-subtle"
+                          }`}
+                        >
+                          <div className="font-medium text-ink">{style.label}</div>
+                          <div className="text-micro text-ink-muted">{style.desc}</div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Single Primary Gold Send Action */}
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => onSendMessage()}
+                disabled={!inputQuery.trim() || isGenerating}
+                className="h-8 w-8 p-0 rounded-lg flex items-center justify-center shrink-0"
+                aria-label="Send message"
+              >
+                <Send className="w-3.5 h-3.5" />
+              </Button>
             </div>
+          </div>
 
-            {/* Send Button */}
-            <button
-              onClick={() => onSendMessage()}
-              disabled={!inputQuery.trim() || isGenerating}
-              className={`h-8 w-8 rounded-xl flex items-center justify-center transition-all ${
-                inputQuery.trim() && !isGenerating
-                  ? "bg-[#E5A93B] text-neutral-950 font-bold shadow-sm hover:bg-[#D97706] active:scale-95 cursor-pointer"
-                  : "bg-neutral-100 text-neutral-400 cursor-not-allowed"
-              }`}
-              title="Send message"
-            >
-              <Send className="w-3.5 h-3.5" />
-            </button>
+          {/* Visible Keyboard Hint */}
+          <div className="text-center">
+            <span className="text-micro font-mono text-ink-muted">
+              Press Enter to send, Shift + Enter for new line
+            </span>
           </div>
         </div>
       </div>
+
+      {/* Citation Preview Drawer */}
+      <CitationDrawer
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        citation={selectedCitation}
+        citationIndex={selectedCitationIndex}
+      />
     </div>
   );
 }

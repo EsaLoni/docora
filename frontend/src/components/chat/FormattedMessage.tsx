@@ -3,24 +3,16 @@
 import React, { useMemo } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { FileText } from "lucide-react";
+import { CitationChip } from "@/components/ui/CitationChip";
+import { CitationItem } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
 
-export interface CitationItem {
-  id?: string;
-  document_id: string;
-  document_filename: string;
-  chunk_id?: string;
-  page_number: number;
-  quote?: string;
-  relevance_score?: number;
-  citation_index?: number;
-}
+export type { CitationItem };
 
-interface FormattedMessageProps {
+export interface FormattedMessageProps {
   content: string;
   citations?: CitationItem[];
-  onOpenCitation?: (citation: CitationItem) => void;
+  onOpenCitation?: (citation: CitationItem, index?: number) => void;
   className?: string;
 }
 
@@ -30,7 +22,7 @@ export function FormattedMessage({
   onOpenCitation,
   className,
 }: FormattedMessageProps) {
-  // Pre-process content: clean up any duplicate bold markers inside headers
+  // Pre-process content: clean up any duplicate bold markers inside headers or triple line breaks
   const cleanedContent = useMemo(() => {
     if (!content) return "";
     return content
@@ -40,52 +32,43 @@ export function FormattedMessage({
       .replace(/\n{3,}/g, "\n\n");
   }, [content]);
 
-  // Transform text containing [Source N] into interactive buttons
+  // Transform inline citation markers like [Source 1], [Source 1, Page 2], or [1] into CitationChip
   const renderTextWithCitations = (text: string) => {
     if (typeof text !== "string") return text;
 
     const parts: React.ReactNode[] = [];
-    const sourceRegex = /\[Source\s*(\d+)\]/gi;
+    // Matches [Source N], [Source N, Page P], or [N] (1-2 digits, not followed by markdown URL parenthetical)
+    const citationRegex = /(?:\[Source\s*(\d+)(?:,\s*[Pp]age\s*\d+)?\]|\[(\d{1,2})\](?!\())/gi;
     let lastIndex = 0;
     let match: RegExpExecArray | null;
 
-    while ((match = sourceRegex.exec(text)) !== null) {
+    while ((match = citationRegex.exec(text)) !== null) {
       const matchIndex = match.index;
       if (matchIndex > lastIndex) {
         parts.push(text.substring(lastIndex, matchIndex));
       }
 
-      const sourceNum = parseInt(match[1], 10);
+      const sourceNum = parseInt(match[1] || match[2], 10);
       const matchedCitation =
         citations && citations.length >= sourceNum
           ? citations[sourceNum - 1]
-          : citations && citations[0];
+          : citations && citations.length > 0
+          ? citations[0]
+          : undefined;
 
       parts.push(
-        <button
+        <CitationChip
           key={`cite-${matchIndex}-${sourceNum}`}
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
+          index={sourceNum}
+          sourceTitle={matchedCitation?.document_filename}
+          pageNumber={matchedCitation?.page_number}
+          snippet={matchedCitation?.quote}
+          onClick={() => {
             if (matchedCitation && onOpenCitation) {
-              onOpenCitation(matchedCitation);
+              onOpenCitation(matchedCitation, sourceNum);
             }
           }}
-          className={cn(
-            "inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[11px] font-semibold tracking-tight",
-            "bg-emerald-500/10 text-emerald-400 border border-emerald-500/25",
-            "hover:bg-emerald-500 hover:text-black hover:border-transparent",
-            "transition-all duration-150 cursor-pointer mx-0.5 align-baseline select-none active:scale-95 shadow-2xs"
-          )}
-          title={
-            matchedCitation
-              ? `${matchedCitation.document_filename} (p. ${matchedCitation.page_number})`
-              : `Source ${sourceNum}`
-          }
-        >
-          <FileText className="w-2.5 h-2.5 inline-block opacity-80" />
-          <span>[{sourceNum}]</span>
-        </button>
+        />
       );
 
       lastIndex = matchIndex + match[0].length;
@@ -101,7 +84,7 @@ export function FormattedMessage({
   return (
     <div
       className={cn(
-        "prose prose-sm max-w-none text-white text-[15px] leading-[1.6]",
+        "w-full max-w-[65ch] font-serif text-reading leading-relaxed text-ink select-text",
         className
       )}
     >
@@ -109,27 +92,27 @@ export function FormattedMessage({
         remarkPlugins={[remarkGfm]}
         components={{
           h1: ({ children }) => (
-            <h1 className="text-[20px] font-semibold tracking-tight text-white mt-4 mb-2 pb-1 border-b border-white/[0.08] flex items-center gap-1.5">
+            <h1 className="font-sans font-semibold text-title tracking-tight text-ink mt-6 mb-2.5 pb-1 border-b border-hairline">
               {children}
             </h1>
           ),
           h2: ({ children }) => (
-            <h2 className="text-[17px] font-semibold tracking-tight text-white mt-3.5 mb-1.5">
+            <h2 className="font-sans font-semibold text-section tracking-tight text-ink mt-5 mb-2">
               {children}
             </h2>
           ),
           h3: ({ children }) => (
-            <h3 className="text-[15px] font-semibold text-white mt-3 mb-1">
+            <h3 className="font-sans font-semibold text-ui text-ink mt-4 mb-1.5">
               {children}
             </h3>
           ),
           h4: ({ children }) => (
-            <h4 className="text-[12px] font-semibold uppercase tracking-wider text-neutral-400 mt-2.5 mb-1">
+            <h4 className="font-sans font-semibold text-caption uppercase tracking-wider text-ink-muted mt-3 mb-1">
               {children}
             </h4>
           ),
           p: ({ children }) => (
-            <p className="my-2 text-[15px] text-neutral-200 leading-[1.6] font-normal">
+            <p className="my-2.5 font-serif text-reading text-ink leading-relaxed font-normal">
               {React.Children.map(children, (child) =>
                 typeof child === "string"
                   ? renderTextWithCitations(child)
@@ -138,16 +121,18 @@ export function FormattedMessage({
             </p>
           ),
           ul: ({ children }) => (
-            <ul className="my-2 space-y-1 pl-1 list-none">{children}</ul>
+            <ul className="my-2.5 space-y-1.5 pl-1 list-none font-serif text-reading text-ink">
+              {children}
+            </ul>
           ),
           ol: ({ children }) => (
-            <ol className="my-2 space-y-1 pl-4 list-decimal marker:text-indigo-400 marker:font-semibold marker:text-[12px]">
+            <ol className="my-2.5 space-y-1.5 pl-5 list-decimal font-serif text-reading text-ink marker:font-mono marker:text-caption marker:text-ink-muted">
               {children}
             </ol>
           ),
           li: ({ children }) => (
-            <li className="text-[15px] leading-[1.6] text-neutral-200 flex items-start gap-2">
-              <span className="inline-block w-1.5 h-1.5 rounded-full bg-indigo-400 mt-2 shrink-0" />
+            <li className="font-serif text-reading leading-relaxed text-ink flex items-start gap-2.5">
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-border-strong mt-2.5 shrink-0" />
               <div className="flex-1">
                 {React.Children.map(children, (child) =>
                   typeof child === "string"
@@ -158,18 +143,18 @@ export function FormattedMessage({
             </li>
           ),
           strong: ({ children }) => (
-            <strong className="font-semibold text-white">
+            <strong className="font-semibold text-ink">
               {children}
             </strong>
           ),
           em: ({ children }) => (
-            <em className="italic text-neutral-300">{children}</em>
+            <em className="italic text-ink-secondary">{children}</em>
           ),
           hr: () => (
-            <hr className="border-0 h-px bg-white/[0.08] my-4" />
+            <hr className="border-0 h-px bg-border-hairline my-5" />
           ),
           blockquote: ({ children }) => (
-            <blockquote className="border-l-2 border-indigo-500 pl-3.5 py-1.5 my-2.5 bg-white/[0.02] rounded-r-xl text-[13px] text-neutral-300 italic border-y-0 border-r-0">
+            <blockquote className="border-l-2 border-verdigris pl-4 py-2 my-3 bg-surface-subtle rounded-r text-ui text-ink-secondary italic font-serif">
               {children}
             </blockquote>
           ),
@@ -177,7 +162,7 @@ export function FormattedMessage({
             if (inline) {
               return (
                 <code
-                  className="px-1.5 py-0.5 rounded-md bg-white/[0.04] font-mono text-[13px] text-indigo-300 border border-white/[0.08]"
+                  className="px-1.5 py-0.5 rounded bg-surface-subtle font-mono text-caption text-ink border border-hairline"
                   {...props}
                 >
                   {children}
@@ -185,33 +170,33 @@ export function FormattedMessage({
               );
             }
             return (
-              <pre className="rounded-2xl bg-black/50 text-neutral-200 p-4 text-[13px] font-mono overflow-x-auto my-3 border border-white/[0.08] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.03)]">
+              <pre className="rounded-lg bg-surface-subtle text-ink p-4 text-caption font-mono overflow-x-auto my-3 border border-hairline">
                 <code {...props}>{children}</code>
               </pre>
             );
           },
           table: ({ children }) => (
-            <div className="overflow-x-auto my-3 rounded-2xl border border-black/[0.08] bg-white shadow-xs">
-              <table className="w-full text-xs text-left border-collapse">
+            <div className="overflow-x-auto my-4 rounded-lg border border-hairline bg-surface shadow-xs">
+              <table className="w-full text-ui text-left border-collapse">
                 {children}
               </table>
             </div>
           ),
           thead: ({ children }) => (
-            <thead className="bg-[#F4F5F7] text-neutral-900 font-semibold border-b border-black/[0.08]">
+            <thead className="bg-surface-subtle text-ink font-sans font-semibold border-b border-hairline">
               {children}
             </thead>
           ),
           tbody: ({ children }) => (
-            <tbody className="divide-y divide-black/[0.06]">{children}</tbody>
+            <tbody className="divide-y divide-hairline font-sans text-ui">{children}</tbody>
           ),
           th: ({ children }) => (
-            <th className="px-3.5 py-2 text-neutral-900 font-semibold text-[12px]">
+            <th className="px-3.5 py-2.5 text-ink font-sans font-semibold text-caption uppercase tracking-wider">
               {children}
             </th>
           ),
           td: ({ children }) => (
-            <td className="px-3.5 py-2 text-neutral-800 text-[13px]">
+            <td className="px-3.5 py-2 text-ink-secondary font-sans text-ui">
               {React.Children.map(children, (child) =>
                 typeof child === "string"
                   ? renderTextWithCitations(child)

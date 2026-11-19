@@ -176,8 +176,10 @@ function NotebookWorkspaceContent() {
             onSendMessage={handleSendMessage}
             onSaveAsNote={handleSaveAsNote}
             sourcesCount={sources.filter((s) => s.is_active_for_queries).length}
+            sources={sources}
             notebookTitle={notebook?.title}
             onOpenGeminiKey={() => setIsGeminiModalOpen(true)}
+            onOpenAddSource={() => setIsAddSourceOpen(true)}
           />
         }
         studioPanel={

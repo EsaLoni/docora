@@ -23,6 +23,9 @@ export function CitationChip({
 }: CitationChipProps) {
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
+    if (props.onClick) {
+      props.onClick(e);
+    }
     if (onOpenCitation) {
       onOpenCitation(sourceTitle, pageNumber, snippet);
     }

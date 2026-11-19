@@ -23,6 +23,7 @@ import {
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { apiClient } from "@/lib/api-client";
 import { ShortcutsModal } from "./ShortcutsModal";
+import { ShareNotebookModal } from "./ShareNotebookModal";
 
 export interface WorkspaceHeaderProps {
   title: string;
@@ -54,6 +55,7 @@ export function WorkspaceHeader({
   const [copiedShare, setCopiedShare] = useState(false);
   const [hasGeminiKey, setHasGeminiKey] = useState(false);
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
+  const [isShareOpen, setIsShareOpen] = useState(false);
 
   useEffect(() => {
     setHasGeminiKey(Boolean(apiClient.getGeminiApiKey()));
@@ -198,21 +200,12 @@ export function WorkspaceHeader({
 
           {/* Share Button */}
           <button
-            onClick={handleShare}
-            className="h-8 px-2.5 rounded-lg flex items-center gap-1.5 text-ui font-medium text-ink hover:bg-surface-subtle transition-colors duration-150 border border-hairline shadow-xs"
-            title="Copy link to notebook"
+            onClick={() => setIsShareOpen(true)}
+            className="h-8 px-2.5 rounded-lg flex items-center gap-1.5 text-ui font-medium text-ink hover:bg-surface-subtle transition-colors duration-150 border border-hairline shadow-xs cursor-pointer"
+            title="Share & Export Research Dossier"
           >
-            {copiedShare ? (
-              <>
-                <Check className="w-3.5 h-3.5 text-verdigris" />
-                <span className="text-verdigris text-caption font-semibold">Copied</span>
-              </>
-            ) : (
-              <>
-                <Share2 className="w-3.5 h-3.5 text-ink-secondary" />
-                <span className="hidden sm:inline text-caption">Share</span>
-              </>
-            )}
+            <Share2 className="w-3.5 h-3.5 text-ink-secondary" />
+            <span className="hidden sm:inline text-caption">Share</span>
           </button>
 
           <div className="h-4 w-[1px] bg-border-hairline mx-1 hidden sm:block" />
@@ -321,6 +314,13 @@ export function WorkspaceHeader({
       <ShortcutsModal
         isOpen={isShortcutsOpen}
         onClose={() => setIsShortcutsOpen(false)}
+      />
+
+      {/* Share & Export Research Dossier Modal */}
+      <ShareNotebookModal
+        isOpen={isShareOpen}
+        onClose={() => setIsShareOpen(false)}
+        notebookTitle={title}
       />
     </>
   );

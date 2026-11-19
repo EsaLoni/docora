@@ -18,6 +18,10 @@ import {
   FileText,
   GitFork,
   Check,
+  Edit3,
+  Eye,
+  Copy,
+  Sparkles,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -45,6 +49,17 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
   // Slide deck state
   const [slideIndex, setSlideIndex] = useState(0);
 
+  // Report Editor state
+  const [reportMode, setReportMode] = useState<"view" | "edit">("view");
+  const [editedReportText, setEditedReportText] = useState("");
+  const [copiedReport, setCopiedReport] = useState(false);
+
+  // Flashcards mastery state
+  const [masteredCards, setMasteredCards] = useState<Set<number>>(new Set());
+
+  // Audio dialogue active speaker
+  const [activeSpeechIndex, setActiveSpeechIndex] = useState<number | null>(null);
+
   const modalRef = useRef<HTMLDivElement>(null);
   const previouslyFocusedRef = useRef<HTMLElement | null>(null);
 
@@ -57,7 +72,7 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
     };
   }, [artifact]);
 
-  // Keyboard accessibility: Escape to close, trap focus
+  // Keyboard accessibility: Escape to close, trap focus, Space/Arrows for flashcards
   useEffect(() => {
     if (artifact) {
       previouslyFocusedRef.current = document.activeElement as HTMLElement;
@@ -68,6 +83,16 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
       setIsQuizSubmitted(false);
       setSlideIndex(0);
       setIsPlayingAudio(false);
+      setReportMode("view");
+      setMasteredCards(new Set());
+      setActiveSpeechIndex(null);
+
+      const raw: any = artifact.data || {};
+      const initialMarkdown =
+        typeof raw === "string"
+          ? raw
+          : raw.content_markdown || raw.data?.content_markdown || "";
+      setEditedReportText(initialMarkdown);
     } else {
       if (previouslyFocusedRef.current?.focus) {
         previouslyFocusedRef.current.focus();
@@ -168,12 +193,13 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
     playSpeechFallback();
   };
 
-  const playSpeechFallback = () => {
+  const playSpeechFromTurn = (startIdx: number = 0) => {
     if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
 
-    if (isPlayingAudio) {
+    if (isPlayingAudio && activeSpeechIndex === startIdx) {
       window.speechSynthesis.cancel();
       setIsPlayingAudio(false);
+      setActiveSpeechIndex(null);
       return;
     }
 
@@ -181,13 +207,16 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
 
     window.speechSynthesis.cancel();
     setIsPlayingAudio(true);
+    setActiveSpeechIndex(startIdx);
 
-    let currentIndex = 0;
+    let currentIndex = startIdx;
     const playNextLine = () => {
       if (currentIndex >= dialogueList.length) {
         setIsPlayingAudio(false);
+        setActiveSpeechIndex(null);
         return;
       }
+      setActiveSpeechIndex(currentIndex);
       const line = dialogueList[currentIndex];
       const textToSpeak = line.text || line.dialogue || "";
       if (!textToSpeak.trim()) {
@@ -206,12 +235,17 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
       };
       utterance.onerror = () => {
         setIsPlayingAudio(false);
+        setActiveSpeechIndex(null);
       };
 
       window.speechSynthesis.speak(utterance);
     };
 
     playNextLine();
+  };
+
+  const playSpeechFallback = () => {
+    playSpeechFromTurn(0);
   };
 
   const handleSpeedChange = () => {
@@ -345,33 +379,105 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
         <div className="flex-1 overflow-y-auto p-5 sm:p-8 min-h-0 text-ink bg-surface select-text">
           {/* 1. Study Report / Guide: Newsreader serif at 15/26 with 65ch measure */}
           {isReport && (
-            <div className="w-full max-w-[65ch] mx-auto font-serif text-reading leading-relaxed text-ink space-y-4">
-              {data.table_of_contents && Array.isArray(data.table_of_contents) && (
-                <div className="p-4 rounded-lg bg-surface-subtle border border-hairline font-sans text-ui mb-6 select-none">
-                  <h4 className="text-caption font-semibold uppercase tracking-wider text-ink-muted mb-2">
-                    Table of Contents
-                  </h4>
-                  <ul className="space-y-1 text-ui text-ink">
-                    {data.table_of_contents.map((item: any, idx: number) => (
-                      <li key={idx} className="flex items-center gap-2">
-                        <span className="font-mono text-micro text-ink-muted">{idx + 1}.</span>
-                        <span>{typeof item === "string" ? item : item.title}</span>
-                      </li>
-                    ))}
-                  </ul>
+            <div className="w-full max-w-[65ch] mx-auto space-y-4">
+              {/* Report Mode Switcher Header */}
+              <div className="flex items-center justify-between pb-3 border-b border-hairline font-sans text-caption text-ink-muted">
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setReportMode("view")}
+                    className={`px-2.5 py-1 rounded-md text-caption font-medium transition-colors cursor-pointer ${
+                      reportMode === "view"
+                        ? "bg-surface-subtle text-ink font-semibold border border-hairline"
+                        : "hover:text-ink"
+                    }`}
+                  >
+                    Reading View
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setReportMode("edit")}
+                    className={`px-2.5 py-1 rounded-md text-caption font-medium transition-colors cursor-pointer flex items-center gap-1 ${
+                      reportMode === "edit"
+                        ? "bg-surface-subtle text-ink font-semibold border border-hairline"
+                        : "hover:text-ink"
+                    }`}
+                  >
+                    <Edit3 className="w-3 h-3" />
+                    <span>Edit Markdown</span>
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(editedReportText);
+                      setCopiedReport(true);
+                      setTimeout(() => setCopiedReport(false), 2000);
+                    }}
+                    className="flex items-center gap-1 text-micro text-ink-secondary hover:text-ink transition-colors cursor-pointer"
+                  >
+                    {copiedReport ? (
+                      <>
+                        <Check className="w-3 h-3 text-verdigris" />
+                        <span className="text-verdigris">Copied</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3 h-3" />
+                        <span>Copy Markdown</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* View Mode */}
+              {reportMode === "view" && (
+                <div className="font-serif text-reading leading-relaxed text-ink space-y-4">
+                  {data.table_of_contents && Array.isArray(data.table_of_contents) && (
+                    <div className="p-4 rounded-lg bg-surface-subtle border border-hairline font-sans text-ui mb-6 select-none">
+                      <h4 className="text-caption font-semibold uppercase tracking-wider text-ink-muted mb-2">
+                        Table of Contents
+                      </h4>
+                      <ul className="space-y-1 text-ui text-ink">
+                        {data.table_of_contents.map((item: any, idx: number) => (
+                          <li key={idx} className="flex items-center gap-2">
+                            <span className="font-mono text-micro text-ink-muted">{idx + 1}.</span>
+                            <span>{typeof item === "string" ? item : item.title}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  <div className="prose-reading">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {editedReportText || data.content_markdown || (typeof data === "string" ? data : "")}
+                    </ReactMarkdown>
+                  </div>
                 </div>
               )}
 
-              {data.content_markdown ? (
-                <div className="prose-reading">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {data.content_markdown}
-                  </ReactMarkdown>
+              {/* Edit Mode */}
+              {reportMode === "edit" && (
+                <div className="space-y-2 font-sans">
+                  <div className="flex items-center justify-between text-micro text-ink-muted font-mono">
+                    <span>Markdown Source Editor</span>
+                    <span>{editedReportText.length} characters • {editedReportText.split(/\s+/).filter(Boolean).length} words</span>
+                  </div>
+                  <textarea
+                    value={editedReportText}
+                    onChange={(e) => setEditedReportText(e.target.value)}
+                    rows={18}
+                    className="w-full p-4 rounded-md border border-hairline bg-surface text-ink font-mono text-ui leading-relaxed focus:outline-hidden focus:border-gold resize-y"
+                    placeholder="Enter or edit report markdown..."
+                  />
+                  <p className="text-micro text-ink-muted">
+                    Edits are preserved in your active reading session. Switch to "Reading View" to see formatted typography.
+                  </p>
                 </div>
-              ) : (
-                <p className="text-reading font-serif text-ink leading-relaxed">
-                  {typeof data === "string" ? data : JSON.stringify(data, null, 2)}
-                </p>
               )}
             </div>
           )}
@@ -538,39 +644,66 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
                   </div>
 
                   {/* Navigation Bar */}
-                  <div className="flex items-center gap-3">
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      disabled={cardIndex === 0}
+                  <div className="flex flex-col sm:flex-row items-center gap-3">
+                    <button
+                      type="button"
                       onClick={() => {
-                        setCardIndex((prev) => Math.max(0, prev - 1));
-                        setIsFlipped(false);
+                        setMasteredCards((prev) => {
+                          const next = new Set(prev);
+                          if (next.has(cardIndex)) next.delete(cardIndex);
+                          else next.add(cardIndex);
+                          return next;
+                        });
                       }}
-                      className="text-ui flex items-center gap-1"
+                      className={`px-3 py-1.5 rounded-md border text-caption font-medium transition-colors flex items-center gap-1.5 cursor-pointer ${
+                        masteredCards.has(cardIndex)
+                          ? "bg-verdigris/10 border-verdigris text-verdigris font-semibold"
+                          : "border-hairline text-ink-secondary hover:text-ink hover:bg-surface-subtle"
+                      }`}
                     >
-                      <ChevronLeft className="w-4 h-4" />
-                      <span>Previous</span>
-                    </Button>
+                      <Check className="w-3.5 h-3.5" />
+                      <span>{masteredCards.has(cardIndex) ? "Mastered" : "Mark as Mastered"}</span>
+                    </button>
 
-                    <span className="font-mono text-caption text-ink-muted px-2">
-                      Card {cardIndex + 1} of {data.cards.length}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        disabled={cardIndex === 0}
+                        onClick={() => {
+                          setCardIndex((prev) => Math.max(0, prev - 1));
+                          setIsFlipped(false);
+                        }}
+                        className="text-ui flex items-center gap-1"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                        <span>Previous</span>
+                      </Button>
 
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      disabled={cardIndex === data.cards.length - 1}
-                      onClick={() => {
-                        setCardIndex((prev) => Math.min(data.cards.length - 1, prev + 1));
-                        setIsFlipped(false);
-                      }}
-                      className="text-ui flex items-center gap-1"
-                    >
-                      <span>Next</span>
-                      <ChevronRight className="w-4 h-4" />
-                    </Button>
+                      <span className="font-mono text-caption text-ink-muted px-2">
+                        Card {cardIndex + 1} of {data.cards.length}
+                        {masteredCards.size > 0 && ` • ${masteredCards.size} mastered`}
+                      </span>
+
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        disabled={cardIndex === data.cards.length - 1}
+                        onClick={() => {
+                          setCardIndex((prev) => Math.min(data.cards.length - 1, prev + 1));
+                          setIsFlipped(false);
+                        }}
+                        className="text-ui flex items-center gap-1"
+                      >
+                        <span>Next</span>
+                        <ChevronRight className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </div>
+
+                  <p className="text-micro font-mono text-ink-muted">
+                    Keyboard: Press <kbd className="text-ink">Space</kbd> to flip, <kbd className="text-ink">←</kbd> <kbd className="text-ink">→</kbd> to navigate
+                  </p>
                 </div>
               ) : (
                 <p className="text-caption text-ink-muted">No flashcards generated.</p>
@@ -715,25 +848,39 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
                   <h5 className="text-caption font-semibold uppercase tracking-wider text-ink-muted">
                     Dialogue Transcript ({dialogueList.length} turns)
                   </h5>
-                  <div className="space-y-3">
+                    <div className="space-y-3">
                     {dialogueList.map((line, idx) => {
                       const speaker = line.speaker || (idx % 2 === 0 ? "Alex" : "Sam");
+                      const isTurnActive = activeSpeechIndex === idx;
                       return (
                         <div
                           key={idx}
-                          className="p-3.5 rounded-lg border border-hairline bg-surface space-y-1"
+                          onClick={() => playSpeechFromTurn(idx)}
+                          className={`p-3.5 rounded-lg border transition-all cursor-pointer ${
+                            isTurnActive
+                              ? "bg-surface-subtle border-gold ring-1 ring-gold/40 shadow-xs"
+                              : "bg-surface border-hairline hover:border-border-strong hover:bg-surface-subtle/50"
+                          }`}
+                          title="Click to play speech from this turn"
                         >
                           <div className="flex items-center justify-between">
-                            <span className="font-mono text-micro font-semibold text-ink">
-                              {speaker}
-                            </span>
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono text-micro font-semibold text-ink">
+                                {speaker}
+                              </span>
+                              {isTurnActive && (
+                                <span className="font-mono text-micro text-gold animate-pulse">
+                                  ● Speaking
+                                </span>
+                              )}
+                            </div>
                             {line.source_refs && line.source_refs.length > 0 && (
                               <span className="font-mono text-micro text-verdigris">
                                 Ref: {line.source_refs.join(", ")}
                               </span>
                             )}
                           </div>
-                          <p className="text-ui font-serif text-ink-secondary leading-relaxed">
+                          <p className="text-ui font-serif text-ink-secondary leading-relaxed mt-1">
                             {line.text || line.dialogue}
                           </p>
                         </div>

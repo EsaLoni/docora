@@ -43,6 +43,7 @@ function NotebookWorkspaceContent() {
     handleAddSource,
     handleCreateNote,
     handleDeleteNote,
+    handleDeleteArtifact,
     handleSaveAsNote,
     // Chat
     messages,
@@ -191,6 +192,7 @@ function NotebookWorkspaceContent() {
             artifacts={artifacts}
             onOpenTool={(toolId) => setActiveStudioTool(toolId)}
             onViewArtifact={(art) => setViewingArtifact(art)}
+            onDeleteArtifact={handleDeleteArtifact}
             sourcesCount={sources.length}
           />
         }

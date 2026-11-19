@@ -211,6 +211,17 @@ export function useNotebook(notebookId: string) {
     }
   };
 
+  // Delete Artifact
+  const handleDeleteArtifact = async (artifactId: string) => {
+    try {
+      await apiClient.deleteArtifact(notebookId, artifactId);
+      setArtifacts((prev) => prev.filter((a) => a.id !== artifactId));
+      showToast("success", "Output Removed", "The saved output was deleted.");
+    } catch (err: any) {
+      showToast("error", "Failed to Delete Output", err.message || "Could not delete artifact");
+    }
+  };
+
   // Save Message as Note
   const handleSaveAsNote = async (msg: ChatMessage) => {
     try {
@@ -316,6 +327,7 @@ export function useNotebook(notebookId: string) {
     handleAddSource,
     handleCreateNote,
     handleDeleteNote,
+    handleDeleteArtifact,
     handleSaveAsNote,
     // Chat
     messages,

@@ -1,310 +1,370 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import {
   Headphones,
-  Video,
-  FileSpreadsheet,
+  Presentation,
+  FileText,
+  GitFork,
   HelpCircle,
   Layers,
-  GitFork,
-  Presentation as PresentationIcon,
-  LayoutGrid,
-  FileText,
-  Sparkles,
+  FileSpreadsheet,
+  Download,
+  Trash2,
   ExternalLink,
-  CheckCircle2,
-  Clock,
+  RefreshCw,
+  Sparkles,
   AlertCircle,
-  GraduationCap,
-  Clapperboard,
-  Database,
-  ArrowRight,
+  Clock,
+  Eye,
 } from "lucide-react";
 import { ArtifactItem } from "@/lib/api-client";
-import { cn } from "@/lib/utils";
+import { StatusBadge, StatusType } from "@/components/ui/StatusBadge";
+import { Button } from "@/components/ui/Button";
 
-interface StudioPanelProps {
+export interface StudioToolConfig {
+  id: string;
+  typeKey: string;
+  name: string;
+  description: string;
+  icon: React.ComponentType<{ className?: string }>;
+}
+
+export const STUDIO_TOOLS: StudioToolConfig[] = [
+  {
+    id: "audio",
+    typeKey: "audio_overview",
+    name: "Audio Overview",
+    description: "Two-host conversational podcast dialogue discussing key findings",
+    icon: Headphones,
+  },
+  {
+    id: "slides",
+    typeKey: "slides",
+    name: "Slide Deck",
+    description: "Executive presentation slides structured for briefing",
+    icon: Presentation,
+  },
+  {
+    id: "report",
+    typeKey: "report",
+    name: "Study Report",
+    description: "Comprehensive multi-section synthesis brief with citations",
+    icon: FileText,
+  },
+  {
+    id: "mindmap",
+    typeKey: "mind_map",
+    name: "Mind Map",
+    description: "Hierarchical concept graph and knowledge ontology",
+    icon: GitFork,
+  },
+  {
+    id: "quiz",
+    typeKey: "quiz",
+    name: "Interactive Quiz",
+    description: "Comprehension assessment with scored multiple choice questions",
+    icon: HelpCircle,
+  },
+  {
+    id: "flashcards",
+    typeKey: "flashcards",
+    name: "Flashcards",
+    description: "Active recall study deck with spaced repetition",
+    icon: Layers,
+  },
+  {
+    id: "data_table",
+    typeKey: "data_table",
+    name: "Data Table",
+    description: "Structured schema and entity extractions across sources",
+    icon: FileSpreadsheet,
+  },
+];
+
+export interface StudioPanelProps {
   artifacts: ArtifactItem[];
   onOpenTool: (toolId: string) => void;
   onViewArtifact: (artifact: ArtifactItem) => void;
+  onDeleteArtifact?: (artifactId: string) => Promise<void> | void;
   sourcesCount: number;
 }
-
-const STUDIO_CATEGORIES = [
-  {
-    id: "learning",
-    name: "Interactive Learning",
-    description: "Assessment quizzes, flashcards & study guides",
-    icon: GraduationCap,
-    tools: [
-      {
-        id: "quiz",
-        title: "Interactive Quiz",
-        desc: "Knowledge check with True/False and MCQ scoring",
-        icon: HelpCircle,
-      },
-      {
-        id: "flashcards",
-        title: "Flashcards",
-        desc: "Spaced-repetition revision cards",
-        icon: Layers,
-      },
-      {
-        id: "report",
-        title: "Study Guide",
-        desc: "Exhaustive multi-section synthesis brief",
-        icon: FileText,
-      },
-    ],
-  },
-  {
-    id: "media",
-    name: "Audio & Visual Media",
-    description: "Podcasts, slide decks & storyboards",
-    icon: Clapperboard,
-    tools: [
-      {
-        id: "audio",
-        title: "Audio Overview",
-        desc: "Two-host AI discussion podcast dialogue",
-        icon: Headphones,
-      },
-      {
-        id: "slides",
-        title: "Slide Deck",
-        desc: "Executive presentation deck",
-        icon: PresentationIcon,
-      },
-      {
-        id: "video",
-        title: "Video Summary",
-        desc: "Scene-by-scene storyboard narrative",
-        icon: Video,
-      },
-    ],
-  },
-  {
-    id: "synthesis",
-    name: "Structured Synthesis",
-    description: "Hierarchical mind maps & extracted data tables",
-    icon: Database,
-    tools: [
-      {
-        id: "mindmap",
-        title: "Mind Map",
-        desc: "Visual knowledge ontology and concept graph",
-        icon: GitFork,
-      },
-      {
-        id: "infographic",
-        title: "Infographic",
-        desc: "Bento-grid data statistics and metrics",
-        icon: LayoutGrid,
-      },
-      {
-        id: "data_table",
-        title: "Data Tables",
-        desc: "Structured schema and entity extractions",
-        icon: FileSpreadsheet,
-      },
-    ],
-  },
-];
 
 export function StudioPanel({
   artifacts,
   onOpenTool,
   onViewArtifact,
+  onDeleteArtifact,
   sourcesCount,
 }: StudioPanelProps) {
-  const [activeCategory, setActiveCategory] = useState<string>("all");
+  // Normalize artifact type strings for robust matching
+  const normalizeType = (t: string) =>
+    (t || "").toLowerCase().replace(/[-_\s]/g, "");
 
-  const getToolIcon = (type: string) => {
-    switch (type) {
-      case "audio":
-        return <Headphones className="w-4 h-4 text-amber-400" />;
-      case "video":
-        return <Video className="w-4 h-4 text-rose-400" />;
-      case "quiz":
-        return <HelpCircle className="w-4 h-4 text-indigo-400" />;
-      case "flashcards":
-        return <Layers className="w-4 h-4 text-purple-400" />;
-      case "mindmap":
-        return <GitFork className="w-4 h-4 text-emerald-400" />;
-      case "slides":
-        return <PresentationIcon className="w-4 h-4 text-sky-400" />;
-      case "infographic":
-        return <LayoutGrid className="w-4 h-4 text-teal-400" />;
-      case "data_table":
-        return <FileSpreadsheet className="w-4 h-4 text-orange-400" />;
-      case "report":
-      default:
-        return <FileText className="w-4 h-4 text-indigo-400" />;
+  // Determine status of an output type
+  const getToolStatus = (toolId: string): { status: StatusType; count: number; failedReason?: string } => {
+    const matchedArtifacts = artifacts.filter(
+      (a) => normalizeType(a.artifact_type) === normalizeType(toolId)
+    );
+
+    if (matchedArtifacts.length === 0) {
+      return { status: "idle", count: 0 };
+    }
+
+    const generating = matchedArtifacts.find(
+      (a) => a.status === "processing" || a.status === "generating"
+    );
+    if (generating) {
+      return { status: "generating", count: matchedArtifacts.length };
+    }
+
+    const failed = matchedArtifacts.find(
+      (a) => a.status === "failed" || a.status === "error"
+    );
+    if (failed) {
+      const reason =
+        typeof failed.data === "object" && failed.data?.error
+          ? failed.data.error
+          : "Generation failed. Retry available.";
+      return { status: "failed", count: matchedArtifacts.length, failedReason: reason };
+    }
+
+    return { status: "ready", count: matchedArtifacts.length };
+  };
+
+  const getToolIcon = (toolId: string) => {
+    const tool = STUDIO_TOOLS.find((t) => normalizeType(t.id) === normalizeType(toolId));
+    if (tool) {
+      const Icon = tool.icon;
+      return <Icon className="w-4 h-4 text-ink-secondary" />;
+    }
+    return <FileText className="w-4 h-4 text-ink-secondary" />;
+  };
+
+  // Download artifact as JSON or Text
+  const handleDownload = (art: ArtifactItem, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      const content =
+        typeof art.data === "string" ? art.data : JSON.stringify(art.data, null, 2);
+      const blob = new Blob([content], { type: "application/json;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${art.title || "artifact"}-${art.artifact_type}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Failed to download artifact:", err);
     }
   };
 
-  const displayedCategories =
-    activeCategory === "all"
-      ? STUDIO_CATEGORIES
-      : STUDIO_CATEGORIES.filter((c) => c.id === activeCategory);
+  const formatTimestamp = (dateStr?: string) => {
+    if (!dateStr) return "";
+    try {
+      const date = new Date(dateStr);
+      return date.toLocaleDateString(undefined, {
+        month: "short",
+        day: "numeric",
+      });
+    } catch {
+      return "";
+    }
+  };
 
   return (
-    <div className="h-full flex flex-col bg-white text-neutral-900 select-none">
+    <div className="h-full flex flex-col bg-surface text-ink font-sans select-none overflow-hidden">
       {/* Studio Header */}
-      <div className="h-11 px-4 border-b border-black/[0.08] flex items-center justify-between shrink-0 bg-[#F4F5F7]">
+      <div className="h-11 px-4 border-b border-hairline flex items-center justify-between shrink-0 bg-surface">
         <div className="flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-amber-600" />
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-neutral-900">
+          <Sparkles className="w-3.5 h-3.5 text-gold" />
+          <h3 className="text-caption font-semibold uppercase tracking-wider text-ink">
             Studio Workshop
           </h3>
         </div>
-        <span className="text-[11px] font-medium text-neutral-500">
-          {artifacts.length} {artifacts.length === 1 ? "Artifact" : "Artifacts"}
+        <span className="text-micro font-mono text-ink-muted">
+          {artifacts.length} {artifacts.length === 1 ? "Output" : "Outputs"}
         </span>
-      </div>
-
-      {/* Category Filter Pills */}
-      <div className="px-3 py-2 bg-white border-b border-black/[0.06] flex items-center gap-1.5 overflow-x-auto shrink-0">
-        <button
-          type="button"
-          onClick={() => setActiveCategory("all")}
-          className={cn(
-            "px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors shrink-0",
-            activeCategory === "all"
-              ? "bg-neutral-900 text-white font-semibold shadow-xs"
-              : "text-neutral-500 hover:text-neutral-900"
-          )}
-        >
-          All (9)
-        </button>
-        {STUDIO_CATEGORIES.map((cat) => (
-          <button
-            key={cat.id}
-            type="button"
-            onClick={() => setActiveCategory(cat.id)}
-            className={cn(
-              "px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors shrink-0",
-              activeCategory === cat.id
-                ? "bg-neutral-900 text-white font-semibold shadow-xs"
-                : "text-neutral-500 hover:text-neutral-900"
-            )}
-          >
-            {cat.name}
-          </button>
-        ))}
       </div>
 
       {/* Scrollable Container */}
       <div className="flex-1 overflow-y-auto p-3 space-y-5 min-h-0">
-        {/* Categorized Creation Engines */}
-        <div className="space-y-4">
-          {displayedCategories.map((cat) => {
-            const CatIcon = cat.icon;
-            return (
-              <div key={cat.id} className="space-y-2">
-                <div className="flex items-center justify-between px-1">
-                  <div className="flex items-center gap-1.5 text-neutral-500">
-                    <CatIcon className="w-3.5 h-3.5 text-neutral-500" />
-                    <span className="text-[11px] font-semibold uppercase tracking-wider text-neutral-700">
-                      {cat.name}
-                    </span>
-                  </div>
-                  <span className="text-[10px] text-neutral-400 font-mono">{cat.tools.length}</span>
-                </div>
+        {/* Compact List of Output Types */}
+        <div className="space-y-1.5">
+          <div className="px-1 flex items-center justify-between">
+            <span className="text-micro font-mono uppercase tracking-wider text-ink-muted">
+              Synthesis Engines
+            </span>
+            <span className="text-micro font-mono text-ink-muted">{STUDIO_TOOLS.length} Types</span>
+          </div>
 
-                <div className="grid grid-cols-1 gap-2">
-                  {cat.tools.map((tool) => {
-                    const ToolIcon = tool.icon;
-                    return (
-                      <button
-                        key={tool.id}
-                        type="button"
-                        onClick={() => onOpenTool(tool.id)}
-                        className="flex items-center gap-3 p-3 rounded-xl border border-black/[0.08] bg-[#F8F9FA] hover:bg-white hover:border-amber-500/40 hover:shadow-md transition-all text-left group cursor-pointer active:scale-[0.99] shadow-xs"
+          <div className="space-y-1.5">
+            {STUDIO_TOOLS.map((tool) => {
+              const { status, count, failedReason } = getToolStatus(tool.id);
+              const Icon = tool.icon;
+
+              return (
+                <div
+                  key={tool.id}
+                  onClick={() => onOpenTool(tool.id)}
+                  className="group flex flex-col p-2.5 rounded-lg border border-hairline bg-surface hover:bg-surface-subtle transition-colors duration-150 cursor-pointer"
+                >
+                  <div className="flex items-center justify-between gap-2.5">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="p-1.5 rounded bg-surface-subtle border border-hairline shrink-0">
+                        <Icon className="w-3.5 h-3.5 text-ink-secondary" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-ui font-medium text-ink truncate leading-tight">
+                            {tool.name}
+                          </span>
+                          {count > 0 && (
+                            <span className="text-micro font-mono text-ink-muted">
+                              ({count})
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-micro text-ink-muted truncate mt-0.5">
+                          {tool.description}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="shrink-0 flex items-center gap-1.5">
+                      <StatusBadge status={status} />
+                    </div>
+                  </div>
+
+                  {/* Inline generation feedback */}
+                  {status === "generating" && (
+                    <div className="mt-2 flex items-center gap-1.5 text-micro text-amber-800 dark:text-amber-300">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-600 animate-pulse" />
+                      <span>Synthesizing output grounded in sources...</span>
+                    </div>
+                  )}
+
+                  {/* Inline failure feedback with Retry action */}
+                  {status === "failed" && (
+                    <div className="mt-2 p-1.5 rounded bg-destructive-subtle border border-destructive-border flex items-center justify-between gap-2">
+                      <span className="text-micro text-destructive truncate">
+                        {failedReason || "Generation error. Click to retry."}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onOpenTool(tool.id);
+                        }}
+                        className="h-5 px-1.5 text-micro text-destructive hover:text-destructive flex items-center gap-1"
                       >
-                        <div className="p-2 rounded-xl bg-white text-neutral-700 group-hover:text-amber-700 group-hover:bg-amber-50 border border-black/[0.06] shrink-0 transition-colors shadow-xs">
-                          <ToolIcon className="w-4 h-4" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <span className="text-xs font-semibold text-neutral-900 group-hover:text-amber-800 transition-colors block truncate">
-                            {tool.title}
-                          </span>
-                          <span className="text-[11px] text-neutral-500 line-clamp-1 mt-0.5 leading-snug">
-                            {tool.desc}
-                          </span>
-                        </div>
-                        <ArrowRight className="w-3.5 h-3.5 text-neutral-400 group-hover:text-amber-700 group-hover:translate-x-0.5 transition-all shrink-0 opacity-0 group-hover:opacity-100" />
-                      </button>
-                    );
-                  })}
+                        <RefreshCw className="w-3 h-3" />
+                        <span>Retry</span>
+                      </Button>
+                    </div>
+                  )}
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
 
-        {/* Generated Artifacts Section */}
-        <div className="pt-3 border-t border-black/[0.06] space-y-2.5">
-          <div className="flex items-center justify-between px-1">
-            <h4 className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider">
-              Output Library ({artifacts.length})
-            </h4>
+        {/* Saved Outputs Section */}
+        <div className="pt-3 border-t border-hairline space-y-2">
+          <div className="px-1 flex items-center justify-between">
+            <span className="text-micro font-mono uppercase tracking-wider text-ink-muted">
+              Saved Outputs
+            </span>
+            <span className="text-micro font-mono text-ink-muted">
+              {artifacts.length}
+            </span>
           </div>
 
           {artifacts.length > 0 ? (
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               {artifacts.map((art) => (
                 <div
                   key={art.id}
                   onClick={() => onViewArtifact(art)}
-                  className="group flex items-center justify-between p-3 rounded-xl border border-black/[0.08] bg-[#F8F9FA] hover:bg-white hover:border-black/[0.16] cursor-pointer transition-all shadow-xs hover:shadow-md active:scale-[0.99]"
+                  className="group flex items-center justify-between p-2.5 rounded-lg border border-hairline bg-surface hover:bg-surface-subtle transition-colors duration-150 cursor-pointer"
                 >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="p-2 rounded-xl bg-white border border-black/[0.06] shrink-0 group-hover:bg-amber-50 transition-colors shadow-xs">
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                    <div className="p-1.5 rounded bg-surface-subtle border border-hairline shrink-0">
                       {getToolIcon(art.artifact_type)}
                     </div>
-                    <div className="min-w-0">
-                      <p className="text-xs font-semibold text-neutral-900 truncate group-hover:text-amber-800 transition-colors">
-                        {art.title}
+                    <div className="min-w-0 flex-1">
+                      <p className="text-ui font-medium text-ink truncate leading-tight">
+                        {art.title || "Untitled Artifact"}
                       </p>
-                      <div className="flex items-center gap-2 text-[10px] text-neutral-500 mt-0.5">
-                        <span className="capitalize font-mono px-1.5 py-0.5 rounded-md bg-white border border-black/[0.06] text-neutral-700">
-                          {art.artifact_type.replace("_", " ")}
+                      <div className="flex items-center gap-1.5 text-micro text-ink-muted mt-0.5">
+                        <span className="font-mono uppercase text-micro">
+                          {art.artifact_type.replace(/[-_]/g, " ")}
                         </span>
+                        {art.created_at && (
+                          <>
+                            <span>•</span>
+                            <span className="font-mono text-micro">
+                              {formatTimestamp(art.created_at)}
+                            </span>
+                          </>
+                        )}
                         {art.status === "completed" && (
-                          <span className="flex items-center gap-1 text-emerald-700 font-medium">
-                            <CheckCircle2 className="w-3 h-3" /> Ready
-                          </span>
-                        )}
-                        {art.status === "processing" && (
-                          <span className="flex items-center gap-1 text-amber-700 font-medium">
-                            <Clock className="w-3 h-3 animate-spin" /> Generating
-                          </span>
-                        )}
-                        {art.status === "failed" && (
-                          <span className="flex items-center gap-1 text-rose-600 font-medium">
-                            <AlertCircle className="w-3 h-3" /> Error
-                          </span>
+                          <span className="text-verdigris font-medium ml-1">Ready</span>
                         )}
                       </div>
                     </div>
                   </div>
 
-                  <div className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg bg-white border border-black/[0.06] text-neutral-600 hover:text-neutral-900 transition-all shrink-0 shadow-xs">
-                    <ExternalLink className="w-3.5 h-3.5" />
+                  {/* Quick Actions: Open, Download, Delete */}
+                  <div className="flex items-center gap-0.5 shrink-0 ml-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onViewArtifact(art);
+                      }}
+                      className="h-7 w-7 p-0 text-ink-muted hover:text-ink"
+                      title="Open in viewer"
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                    </Button>
+
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => handleDownload(art, e)}
+                      className="h-7 w-7 p-0 text-ink-muted hover:text-ink"
+                      title="Download output file"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                    </Button>
+
+                    {onDeleteArtifact && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDeleteArtifact(art.id);
+                        }}
+                        className="h-7 w-7 p-0 text-ink-muted hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                        title="Delete output"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    )}
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="rounded-xl border border-dashed border-black/[0.12] p-6 text-center text-neutral-500 bg-neutral-50/50">
-              <div className="w-8 h-8 rounded-xl bg-white border border-black/[0.08] flex items-center justify-center mx-auto mb-2 text-amber-600 shadow-xs">
-                <Sparkles className="w-4 h-4" />
-              </div>
-              <p className="text-xs font-semibold text-neutral-800">No artifacts generated yet</p>
-              <p className="text-[11px] mt-1 text-neutral-500 leading-relaxed max-w-xs mx-auto">
-                Select an engine above to transform your source knowledge into briefs, podcasts, slides, or quizzes.
+            /* Empty State for Saved Outputs */
+            <div className="rounded-lg border border-dashed border-hairline p-5 text-center text-ink-muted bg-surface-subtle/30 space-y-1.5">
+              <p className="text-ui font-medium text-ink">No saved outputs yet</p>
+              <p className="text-caption text-ink-muted max-w-xs mx-auto leading-relaxed">
+                Select an engine above to distill your documents into structured reports, quizzes, slide decks, or mind maps.
               </p>
             </div>
           )}

@@ -1,8 +1,8 @@
 "use client";
 
-import React from "react";
-import { X, Sparkles, Check, ChevronDown } from "lucide-react";
-import { cn } from "@/lib/utils";
+import React, { useEffect, useRef, useCallback } from "react";
+import { X, Sparkles, Check, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/Button";
 
 export interface SourceItemOption {
   id: string;
@@ -17,9 +17,7 @@ export interface GenerationModalProps {
   title: string;
   subtitle?: string;
   icon: React.ComponentType<{ className?: string }>;
-  iconColor?: string;
   onGenerate: () => void;
-  onGenerateLater?: () => void;
   isGenerating?: boolean;
   generateButtonText?: string;
   children: React.ReactNode;
@@ -31,96 +29,149 @@ export function GenerationModal({
   title,
   subtitle = "Synthesized from active notebook sources using Google Gemini.",
   icon: Icon,
-  iconColor = "text-indigo-400 bg-indigo-500/10",
   onGenerate,
-  onGenerateLater,
   isGenerating = false,
-  generateButtonText = "Generate now",
+  generateButtonText = "Generate Output",
   children,
 }: GenerationModalProps) {
+  const modalRef = useRef<HTMLDivElement>(null);
+  const previouslyFocusedRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      previouslyFocusedRef.current = document.activeElement as HTMLElement;
+      const timer = setTimeout(() => {
+        const firstInput = modalRef.current?.querySelector<HTMLElement>(
+          'input, textarea, button:not([aria-label*="Close"])'
+        );
+        firstInput?.focus();
+      }, 50);
+      return () => clearTimeout(timer);
+    } else {
+      if (previouslyFocusedRef.current?.focus) {
+        previouslyFocusedRef.current.focus();
+      }
+    }
+  }, [isOpen]);
+
+  // Trap focus and listen for Escape key
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (!isOpen) return;
+
+      if (e.key === "Escape") {
+        e.preventDefault();
+        onClose();
+        return;
+      }
+
+      if (e.key === "Tab" && modalRef.current) {
+        const focusable = modalRef.current.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        if (focusable.length === 0) return;
+
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+
+        if (e.shiftKey) {
+          if (document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+          }
+        } else {
+          if (document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+      }
+    },
+    [isOpen, onClose]
+  );
+
+  useEffect(() => {
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleKeyDown]);
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/40 backdrop-blur-xs animate-in fade-in duration-150">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="gen-modal-title"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/40 backdrop-blur-xs animate-in fade-in duration-150 select-none"
+    >
       <div
-        className="relative w-full max-w-3xl max-h-[90vh] rounded-2xl border border-black/[0.08] bg-white text-neutral-900 flex flex-col shadow-2xl overflow-hidden select-none animate-in fade-in zoom-in-95"
+        ref={modalRef}
         onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-lg rounded-xl border border-hairline bg-surface text-ink flex flex-col shadow-xl overflow-hidden font-sans animate-in zoom-in-95 duration-150"
       >
         {/* Top Header */}
-        <div className="h-16 border-b border-black/[0.08] px-6 flex items-center justify-between bg-[#F4F5F7] shrink-0">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className={cn("h-9 w-9 rounded-xl flex items-center justify-center shrink-0 border border-black/[0.08]", iconColor)}>
-              <Icon className="h-4.5 w-4.5" />
+        <div className="h-14 border-b border-hairline px-5 flex items-center justify-between bg-surface shrink-0">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="h-8 w-8 rounded-lg bg-surface-subtle border border-hairline flex items-center justify-center shrink-0 text-ink">
+              <Icon className="h-4 w-4" />
             </div>
             <div className="min-w-0">
-              <h3 className="text-sm sm:text-base font-semibold text-neutral-900 truncate tracking-tight">{title}</h3>
-              <p className="text-[11px] text-neutral-500 truncate">{subtitle}</p>
+              <h3 id="gen-modal-title" className="text-section font-semibold text-ink truncate leading-tight">
+                {title}
+              </h3>
+              <p className="text-micro text-ink-muted truncate">{subtitle}</p>
             </div>
           </div>
 
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-700 hover:bg-neutral-200 transition-colors cursor-pointer shrink-0"
-            title="Close"
+            className="h-8 w-8 p-0 text-ink-muted hover:text-ink shrink-0"
+            aria-label="Close dialog (Esc)"
           >
             <X className="h-4 w-4" />
-          </button>
+          </Button>
         </div>
 
-        {/* Modal Scrollable Body */}
-        <div className="flex-1 overflow-y-auto p-6 sm:p-7 space-y-6 text-xs text-neutral-700 bg-white">
+        {/* Modal Body */}
+        <div className="p-5 space-y-4 text-ui text-ink bg-surface max-h-[70vh] overflow-y-auto">
           {children}
         </div>
 
-        {/* Fixed Bottom Footer */}
-        <div className="border-t border-black/[0.08] px-6 py-4 bg-[#F4F5F7] flex flex-col sm:flex-row items-center justify-between gap-4 shrink-0">
-          {/* AI Status Indicator */}
-          <div className="flex items-center gap-2.5 text-[11px] text-neutral-500 w-full sm:w-auto">
-            <div className="h-5 w-5 rounded-md bg-white border border-black/[0.08] flex items-center justify-center shrink-0 shadow-xs">
-              <Sparkles className="h-3 w-3 text-amber-600" />
-            </div>
-            <div>
-              <span className="text-neutral-700 font-semibold">Model: </span>
-              <span>Google Gemini 2.5 Flash</span>
-              <span className="hidden md:inline text-neutral-500"> • Grounded inference</span>
-            </div>
+        {/* Modal Footer: One single primary action */}
+        <div className="border-t border-hairline px-5 py-3.5 bg-surface-subtle/50 flex items-center justify-between gap-3 shrink-0">
+          <div className="flex items-center gap-1.5 text-micro text-ink-muted">
+            <span className="w-1.5 h-1.5 rounded-full bg-verdigris" />
+            <span>Grounded synthesis</span>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
-            {onGenerateLater && (
-              <button
-                type="button"
-                onClick={onGenerateLater}
-                className="px-4 py-2 rounded-xl border border-black/[0.08] text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 text-xs font-medium transition-all cursor-pointer"
-              >
-                Generate later
-              </button>
-            )}
-
-            <button
-              type="button"
+          <div className="flex items-center gap-2">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={onClose}
+              disabled={isGenerating}
+              className="text-ui"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
               onClick={onGenerate}
               disabled={isGenerating}
-              className={cn(
-                "px-5 py-2.5 rounded-xl text-xs font-bold text-neutral-950 transition-all shadow-xs flex items-center gap-2 cursor-pointer active:scale-[0.98]",
-                isGenerating
-                  ? "bg-[#E5A93B]/60 cursor-not-allowed opacity-80"
-                  : "bg-[#E5A93B] hover:bg-[#D97706]"
-              )}
+              className="text-ui flex items-center gap-1.5"
             >
               {isGenerating ? (
                 <>
-                  <span className="h-3.5 w-3.5 border-2 border-neutral-950/30 border-t-neutral-950 rounded-full animate-spin shrink-0" />
-                  <span>Synthesizing with Gemini...</span>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <span>Synthesizing...</span>
                 </>
               ) : (
-                <>
-                  <Sparkles className="h-3.5 w-3.5" />
-                  <span>{generateButtonText}</span>
-                </>
+                <span>{generateButtonText}</span>
               )}
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -128,217 +179,69 @@ export function GenerationModal({
   );
 }
 
-// ── Reusable Form Controls for Modals ──
-
+// Option Segmented Control (Length / Focus / Depth)
 export function ModalSegmentedControl({
   label,
-  options,
   value,
   onChange,
-}: {
-  label: string;
-  options: { id: string; label: string }[];
-  value: string;
-  onChange: (id: string) => void;
-}) {
-  return (
-    <div className="space-y-2">
-      <label className="block text-[11px] font-semibold uppercase tracking-wider text-neutral-400">{label}</label>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:flex p-1 rounded-xl bg-white/[0.03] border border-white/[0.06] gap-1">
-        {options.map((opt) => {
-          const isSelected = value === opt.id;
-          return (
-            <button
-              key={opt.id}
-              type="button"
-              onClick={() => onChange(opt.id)}
-              className={cn(
-                "flex-1 py-1.5 px-3 rounded-lg text-xs font-medium transition-all text-center cursor-pointer",
-                isSelected
-                  ? "bg-white/[0.1] text-white font-semibold border border-white/[0.12] shadow-xs"
-                  : "text-neutral-400 hover:text-white hover:bg-white/[0.04]"
-              )}
-            >
-              {opt.label}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-export function ModalMultiSelectTypes({
-  label,
   options,
-  selectedValues,
-  onToggle,
 }: {
   label: string;
-  options: { id: string; label: string }[];
-  selectedValues: string[];
-  onToggle: (id: string) => void;
-}) {
-  return (
-    <div className="space-y-2">
-      <label className="block text-[11px] font-semibold uppercase tracking-wider text-neutral-400">{label}</label>
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        {options.map((opt) => {
-          const isChecked = selectedValues.includes(opt.id);
-          return (
-            <button
-              key={opt.id}
-              type="button"
-              onClick={() => onToggle(opt.id)}
-              className={cn(
-                "p-2.5 rounded-xl border text-xs font-medium flex items-center justify-between transition-all cursor-pointer",
-                isChecked
-                  ? "bg-indigo-500/15 border-indigo-500/60 text-white shadow-xs"
-                  : "bg-white/[0.02] border-white/[0.06] text-neutral-400 hover:text-white hover:border-white/[0.1]"
-              )}
-            >
-              <span>{opt.label}</span>
-              {isChecked && <Check className="h-3.5 w-3.5 text-indigo-400" />}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-export function ModalLanguageSelector({
-  value,
-  onChange,
-}: {
   value: string;
   onChange: (val: string) => void;
+  options: { id: string; label: string; desc?: string }[];
 }) {
   return (
-    <div className="space-y-2">
-      <label className="block text-[11px] font-semibold uppercase tracking-wider text-neutral-400">Choose language</label>
-      <div className="relative">
-        <select
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="w-full px-3.5 py-2.5 rounded-xl bg-[#F4F5F7] border border-black/[0.08] text-xs text-neutral-900 outline-none focus:border-amber-500 focus:bg-white transition-all cursor-pointer appearance-none"
-        >
-          <option value="en" className="bg-white">English (US)</option>
-          <option value="es" className="bg-white">Spanish (Español)</option>
-          <option value="fr" className="bg-white">French (Français)</option>
-          <option value="de" className="bg-white">German (Deutsch)</option>
-          <option value="hi" className="bg-white">Hindi (हिन्दी)</option>
-          <option value="zh" className="bg-white">Chinese (中文)</option>
-          <option value="ja" className="bg-white">Japanese (日本語)</option>
-          <option value="ar" className="bg-white">Arabic (العربية)</option>
-          <option value="pt" className="bg-white">Portuguese (Português)</option>
-        </select>
-        <ChevronDown className="h-3.5 w-3.5 text-neutral-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+    <div className="space-y-1.5">
+      <label className="text-caption font-medium text-ink block">{label}</label>
+      <div className="grid grid-cols-3 gap-1 p-1 rounded-lg bg-surface-subtle border border-hairline">
+        {options.map((opt) => (
+          <button
+            key={opt.id}
+            type="button"
+            onClick={() => onChange(opt.id)}
+            className={`py-1.5 px-2 rounded text-caption font-medium transition-colors duration-150 cursor-pointer text-center ${
+              value === opt.id
+                ? "bg-surface text-ink shadow-xs font-semibold"
+                : "text-ink-secondary hover:text-ink"
+            }`}
+          >
+            <div>{opt.label}</div>
+            {opt.desc && (
+              <div className="text-micro font-normal text-ink-muted mt-0.5">{opt.desc}</div>
+            )}
+          </button>
+        ))}
       </div>
     </div>
   );
 }
 
-export function ModalSourceSelector({
-  sources,
-  selectedIds,
-  onToggleSource,
-  onSelectAll,
-}: {
-  sources: SourceItemOption[];
-  selectedIds: string[];
-  onToggleSource: (id: string) => void;
-  onSelectAll: (all: boolean) => void;
-}) {
-  const allSelected = sources.length > 0 && sources.every((s) => selectedIds.includes(s.id));
-
-  return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between text-xs">
-        <label className="text-[11px] font-semibold uppercase tracking-wider text-neutral-400">Knowledge sources for grounding</label>
-        <button
-          type="button"
-          onClick={() => onSelectAll(!allSelected)}
-          className="text-indigo-400 hover:text-indigo-300 font-medium cursor-pointer text-[11px]"
-        >
-          {allSelected ? "Deselect all" : `Select all (${sources.length})`}
-        </button>
-      </div>
-
-      <div className="max-h-36 overflow-y-auto rounded-xl border border-white/[0.08] bg-white/[0.02] p-2 space-y-1">
-        {sources.map((src) => {
-          const isSelected = selectedIds.includes(src.id);
-          return (
-            <label
-              key={src.id}
-              className={cn(
-                "flex items-center gap-2.5 p-2 rounded-lg text-xs cursor-pointer transition-colors",
-                isSelected ? "bg-white/[0.06] text-white" : "text-neutral-400 hover:bg-white/[0.03]"
-              )}
-            >
-              <input
-                type="checkbox"
-                checked={isSelected}
-                onChange={() => onToggleSource(src.id)}
-                className="h-3.5 w-3.5 rounded border-white/[0.1] bg-white/[0.05] text-indigo-500 focus:ring-0 cursor-pointer"
-              />
-              <span className="truncate flex-1">{src.title}</span>
-              <span className="text-[10px] uppercase text-neutral-400 px-1.5 py-0.5 rounded bg-white/[0.04] border border-white/[0.06]">
-                {src.source_type}
-              </span>
-            </label>
-          );
-        })}
-
-        {sources.length === 0 && (
-          <p className="text-center py-4 text-neutral-500 text-xs">No sources available in notebook.</p>
-        )}
-      </div>
-    </div>
-  );
-}
-
+// Focus Topic Input
 export function ModalTopicPrompt({
-  value,
-  onChange,
-  label = "Topic focus",
-  placeholder = "e.g. Focus on candidate qualifications, project deliverables, and specific metrics...",
-  suggestionChips = [],
-  onSelectChip,
+  topic,
+  setTopic,
+  placeholder = "e.g., Executive summary of key findings, risks, or specific chapter",
 }: {
-  value: string;
-  onChange: (val: string) => void;
-  label?: string;
+  topic: string;
+  setTopic: (t: string) => void;
   placeholder?: string;
-  suggestionChips?: string[];
-  onSelectChip?: (chip: string) => void;
 }) {
   return (
-    <div className="space-y-2">
-      <label className="block text-[11px] font-semibold uppercase tracking-wider text-neutral-400">{label}</label>
-      <textarea
-        rows={3}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
+    <div className="space-y-1">
+      <label className="text-caption font-medium text-ink block">
+        Focus Topic (Optional)
+      </label>
+      <input
+        type="text"
+        value={topic}
+        onChange={(e) => setTopic(e.target.value)}
         placeholder={placeholder}
-        className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.08] text-xs text-white placeholder:text-neutral-500 outline-none focus:border-indigo-500/70 focus:ring-1 focus:ring-indigo-500/30 transition-all resize-none leading-relaxed"
+        className="w-full px-3 py-2 rounded-lg border border-hairline bg-surface text-[16px] sm:text-ui text-ink placeholder:text-ink-muted outline-none focus:ring-1 focus:ring-border-strong"
       />
-
-      {suggestionChips.length > 0 && (
-        <div className="flex flex-wrap items-center gap-1.5 pt-1">
-          <span className="text-[10px] text-neutral-500 mr-1">Suggestions:</span>
-          {suggestionChips.map((chip, idx) => (
-            <button
-              key={idx}
-              type="button"
-              onClick={() => onSelectChip?.(chip)}
-              className="text-[11px] px-2.5 py-1 rounded-full bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.08] hover:border-white/[0.15] text-neutral-300 hover:text-white transition-all cursor-pointer"
-            >
-              + {chip}
-            </button>
-          ))}
-        </div>
-      )}
+      <p className="text-micro text-ink-muted">
+        Leave blank to synthesize across all active documents, or specify a particular angle.
+      </p>
     </div>
   );
 }

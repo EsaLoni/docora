@@ -560,6 +560,10 @@ export class ApiClient {
     return this.post<ArtifactItem>(`/api/v1/notebooks/${notebookId}/studio/${tool}`, payload);
   }
 
+  async deleteArtifact(notebookId: string, artifactId: string): Promise<{ success: boolean }> {
+    return this.delete<{ success: boolean }>(`/api/v1/notebooks/${notebookId}/studio/artifacts/${artifactId}`);
+  }
+
   // ---------------------------------------------------------------------------
   // Documents & Folders
   // ---------------------------------------------------------------------------

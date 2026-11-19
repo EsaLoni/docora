@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import {
   X,
   Download,
@@ -13,19 +13,16 @@ import {
   Layers,
   ChevronLeft,
   ChevronRight,
-  ExternalLink,
   Presentation,
   FileSpreadsheet,
   FileText,
-  Video,
   GitFork,
-  LayoutGrid,
-  Sparkles,
-  Clapperboard,
+  Check,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { apiClient, ArtifactItem } from "@/lib/api-client";
+import { Button } from "@/components/ui/Button";
 
 interface ArtifactViewerModalProps {
   artifact: ArtifactItem | null;
@@ -48,6 +45,9 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
   // Slide deck state
   const [slideIndex, setSlideIndex] = useState(0);
 
+  const modalRef = useRef<HTMLDivElement>(null);
+  const previouslyFocusedRef = useRef<HTMLElement | null>(null);
+
   // Stop audio on unmount or artifact change
   useEffect(() => {
     return () => {
@@ -57,9 +57,45 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
     };
   }, [artifact]);
 
+  // Keyboard accessibility: Escape to close, trap focus
+  useEffect(() => {
+    if (artifact) {
+      previouslyFocusedRef.current = document.activeElement as HTMLElement;
+      // Reset internal viewer states
+      setCardIndex(0);
+      setIsFlipped(false);
+      setQuizAnswers({});
+      setIsQuizSubmitted(false);
+      setSlideIndex(0);
+      setIsPlayingAudio(false);
+    } else {
+      if (previouslyFocusedRef.current?.focus) {
+        previouslyFocusedRef.current.focus();
+      }
+    }
+  }, [artifact]);
+
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (!artifact) return;
+      if (e.key === "Escape") {
+        if (typeof window !== "undefined" && "speechSynthesis" in window) {
+          window.speechSynthesis.cancel();
+        }
+        onClose();
+      }
+    },
+    [artifact, onClose]
+  );
+
+  useEffect(() => {
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleKeyDown]);
+
   if (!artifact) return null;
 
-  // Safe data extraction & parsing (handles JSON string, double-serialized JSON, or wrapped objects)
+  // Safe data extraction & parsing
   let data: any = artifact.data || {};
   if (typeof data === "string") {
     try {
@@ -68,7 +104,7 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
         data = JSON.parse(data);
       }
     } catch {
-      // Keep as string fallback
+      // String fallback
     }
   }
   if (
@@ -89,16 +125,14 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
 
   let rawType = (artifact.artifact_type || "").toLowerCase().replace(/[-_\s]/g, "");
 
-  // Defensive type inference if artifact_type is missing or generic "artifact"
+  // Defensive type inference
   if (!rawType || rawType === "artifact") {
     if (data.nodes || data.edges || data.root_title) rawType = "mindmap";
-    else if (data.scenes || data.video_title || data.target_duration_seconds) rawType = "videooverview";
     else if (data.dialogue || (Array.isArray(data.transcript) && data.transcript.length > 0)) rawType = "audiooverview";
     else if (data.questions || data.quiz_count) rawType = "quiz";
     else if (data.cards || data.card_count) rawType = "flashcards";
     else if (data.slides || data.slide_count) rawType = "presentation";
     else if (data.columns && data.rows) rawType = "datatable";
-    else if (data.hero_metric || (data.sections && Array.isArray(data.sections))) rawType = "infographic";
     else if (data.content_markdown || data.table_of_contents) rawType = "report";
   }
 
@@ -109,8 +143,6 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
   const isReport = rawType === "report";
   const isDataTable = rawType === "datatable" || rawType === "data_table";
   const isMindMap = rawType === "mindmap" || rawType === "mind_map";
-  const isInfographic = rawType === "infographic";
-  const isVideo = rawType === "video" || rawType === "videooverview";
 
   // Audio Playback
   const dialogueList: Array<{ speaker?: string; text?: string; dialogue?: string; source_refs?: string[] }> =
@@ -190,7 +222,7 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
     if (audioRef.current) audioRef.current.playbackRate = nextSpeed;
   };
 
-  // Robust Quiz helper resolving options, correct index, and true/false format
+  // Quiz helper
   const resolveQuestionDetails = (q: any) => {
     let options: string[] = [];
     if (Array.isArray(q.options) && q.options.length > 0) {
@@ -220,194 +252,148 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
     } else if (typeof q.correct_answer === "boolean") {
       correctIdx = q.correct_answer ? 0 : 1;
     } else if (typeof q.correct_answer === "string") {
-      const ca = q.correct_answer.trim().toLowerCase();
-      if (isTF) {
-        if (ca === "true" || ca === "t" || ca === "1") correctIdx = 0;
-        else if (ca === "false" || ca === "f" || ca === "0") correctIdx = 1;
+      correctIdx = options.findIndex((o) => o.toLowerCase().trim() === q.correct_answer.toLowerCase().trim());
+      if (correctIdx === -1 && /^[a-d]$/i.test(q.correct_answer.trim())) {
+        correctIdx = q.correct_answer.trim().toLowerCase().charCodeAt(0) - 97;
       }
-      if (correctIdx === -1) {
-        const found = options.findIndex((o) => o.trim().toLowerCase() === ca);
-        if (found !== -1) correctIdx = found;
-      }
-      if (correctIdx === -1) {
-        const letterMatch = ca.match(/^[a-d]/);
-        if (letterMatch) {
-          correctIdx = letterMatch[0].charCodeAt(0) - 97;
-        }
-      }
-    }
-
-    if (correctIdx < 0 || correctIdx >= options.length) {
-      correctIdx = 0;
     }
 
     return { options, correctIdx, isTF };
   };
 
-  // Score Calculator for submitted quiz
   const calculateScore = () => {
-    if (!data.questions || !Array.isArray(data.questions)) return { correct: 0, total: 0, pct: 0 };
+    if (!data.questions) return { correct: 0, total: 0, pct: 0 };
     let correct = 0;
     data.questions.forEach((q: any, idx: number) => {
       const { correctIdx } = resolveQuestionDetails(q);
-      if (quizAnswers[idx] === correctIdx) {
-        correct++;
-      }
+      if (quizAnswers[idx] === correctIdx) correct++;
     });
     const total = data.questions.length;
     const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
     return { correct, total, pct };
   };
 
+  const handleDownloadJson = () => {
+    try {
+      const content =
+        typeof artifact.data === "string" ? artifact.data : JSON.stringify(artifact.data, null, 2);
+      const blob = new Blob([content], { type: "application/json;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${artifact.title || "artifact"}-${artifact.artifact_type}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Failed to download artifact:", err);
+    }
+  };
+
   return (
-    <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="w-full max-w-4xl min-h-[420px] max-h-[88vh] rounded-2xl border border-black/[0.08] bg-white shadow-2xl flex flex-col overflow-hidden select-none animate-in fade-in zoom-in-95">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="artifact-viewer-title"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/40 backdrop-blur-xs select-none animate-in fade-in duration-150"
+    >
+      <div
+        ref={modalRef}
+        onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-4xl max-h-[90vh] rounded-xl border border-hairline bg-surface text-ink flex flex-col shadow-2xl overflow-hidden font-sans animate-in zoom-in-95 duration-150"
+      >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-black/[0.08] bg-[#F4F5F7]">
-          <div className="min-w-0 pr-4">
-            <h3 className="text-base font-semibold text-neutral-900 truncate tracking-tight">
-              {artifact.title || data.title || data.deck_title || data.report_title || data.video_title || "Studio Artifact"}
+        <div className="h-14 px-5 border-b border-hairline flex items-center justify-between shrink-0 bg-surface">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <span className="font-mono text-micro uppercase px-2 py-0.5 rounded bg-surface-subtle text-ink-muted border border-hairline">
+              {artifact.artifact_type.replace(/[-_]/g, " ")}
+            </span>
+            <h3 id="artifact-viewer-title" className="text-section font-semibold text-ink truncate leading-tight">
+              {artifact.title || "Studio Output"}
             </h3>
-            <p className="text-[11px] text-neutral-500 capitalize flex items-center gap-1.5 mt-0.5">
-              <span className="w-2 h-2 rounded-full bg-amber-600" />
-              {(rawType || artifact.artifact_type || "artifact").replace("_", " ")} • Generated with Gemini
-            </p>
           </div>
 
-          <div className="flex items-center gap-2">
-            {downloadUrl && (
-              <a
-                href={downloadUrl}
-                download
-                className="p-2 rounded-xl border border-white/[0.08] text-neutral-400 hover:text-white hover:bg-white/[0.06] transition-colors"
-                title="Download Artifact File"
-              >
-                <Download className="w-4 h-4" />
-              </a>
-            )}
-            <button
+          <div className="flex items-center gap-1.5 shrink-0">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleDownloadJson}
+              className="h-8 px-2.5 text-ui text-ink-muted hover:text-ink flex items-center gap-1.5"
+              title="Download JSON data"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Export</span>
+            </Button>
+
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => {
                 if (typeof window !== "undefined" && "speechSynthesis" in window) {
                   window.speechSynthesis.cancel();
                 }
                 onClose();
               }}
-              className="p-2 rounded-xl text-neutral-400 hover:text-white hover:bg-white/[0.06] transition-colors"
+              className="h-8 w-8 p-0 text-ink-muted hover:text-ink"
+              aria-label="Close viewer (Esc)"
             >
               <X className="w-4 h-4" />
-            </button>
+            </Button>
           </div>
         </div>
 
-        {/* Content Viewer Body */}
-        <div className="flex-1 overflow-y-auto p-6 min-h-0 text-neutral-100">
-          {/* 1. Audio Overview Viewer */}
-          {isAudio && (
-            <div className="space-y-6">
-              <div className="p-8 rounded-2xl bg-white/[0.02] border border-white/[0.08] flex flex-col items-center text-center">
-                <div className="w-14 h-14 rounded-2xl bg-indigo-600 text-white flex items-center justify-center mb-4 shadow-lg shadow-indigo-600/20">
-                  <Volume2 className="w-7 h-7" />
+        {/* Reading Room Body */}
+        <div className="flex-1 overflow-y-auto p-5 sm:p-8 min-h-0 text-ink bg-surface select-text">
+          {/* 1. Study Report / Guide: Newsreader serif at 15/26 with 65ch measure */}
+          {isReport && (
+            <div className="w-full max-w-[65ch] mx-auto font-serif text-reading leading-relaxed text-ink space-y-4">
+              {data.table_of_contents && Array.isArray(data.table_of_contents) && (
+                <div className="p-4 rounded-lg bg-surface-subtle border border-hairline font-sans text-ui mb-6 select-none">
+                  <h4 className="text-caption font-semibold uppercase tracking-wider text-ink-muted mb-2">
+                    Table of Contents
+                  </h4>
+                  <ul className="space-y-1 text-ui text-ink">
+                    {data.table_of_contents.map((item: any, idx: number) => (
+                      <li key={idx} className="flex items-center gap-2">
+                        <span className="font-mono text-micro text-ink-muted">{idx + 1}.</span>
+                        <span>{typeof item === "string" ? item : item.title}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-                <h4 className="text-lg font-semibold text-white tracking-tight">{artifact.title || data.title}</h4>
-                <p className="text-xs text-neutral-400 mt-1">
-                  Format: Two-host conversational podcast (Alex & Sam)
+              )}
+
+              {data.content_markdown ? (
+                <div className="prose-reading">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {data.content_markdown}
+                  </ReactMarkdown>
+                </div>
+              ) : (
+                <p className="text-reading font-serif text-ink leading-relaxed">
+                  {typeof data === "string" ? data : JSON.stringify(data, null, 2)}
                 </p>
-
-                {data.summary && (
-                  <p className="text-xs text-neutral-300 max-w-xl mt-3 leading-relaxed">
-                    {data.summary}
-                  </p>
-                )}
-
-                {downloadUrl && (
-                  <audio
-                    ref={audioRef}
-                    src={downloadUrl}
-                    onEnded={() => setIsPlayingAudio(false)}
-                    className="hidden"
-                  />
-                )}
-
-                <div className="flex items-center gap-4 mt-6">
-                  <button
-                    onClick={handleToggleAudio}
-                    className="px-6 py-2.5 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs flex items-center gap-2 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2)] active:scale-[0.98] transition-all"
-                  >
-                    {isPlayingAudio ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                    <span>{isPlayingAudio ? "Pause Podcast" : "Play Podcast"}</span>
-                  </button>
-
-                  <button
-                    onClick={handleSpeedChange}
-                    className="px-3 py-1.5 rounded-full border border-white/[0.08] text-xs font-mono font-medium hover:bg-white/[0.06] transition-colors text-neutral-400"
-                  >
-                    {playbackSpeed}x
-                  </button>
-                </div>
-              </div>
-
-              {/* Dialogue Transcript */}
-              {dialogueList.length > 0 && (
-                <div className="space-y-3">
-                  <h5 className="text-[11px] font-semibold uppercase tracking-wider text-neutral-400">
-                    Dialogue Transcript ({dialogueList.length} turns)
-                  </h5>
-                  <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.08] text-xs leading-relaxed space-y-3.5 font-sans">
-                    {dialogueList.map((line, idx) => {
-                      const speakerName = line.speaker || (idx % 2 === 0 ? "Alex" : "Sam");
-                      const isAlex = speakerName.toLowerCase().includes("alex");
-                      return (
-                        <div key={idx} className="flex gap-3 items-start">
-                          <span
-                            className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider shrink-0 ${
-                              isAlex
-                                ? "bg-indigo-500/15 text-indigo-400 border border-indigo-500/30"
-                                : "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
-                            }`}
-                          >
-                            {speakerName}
-                          </span>
-                          <div className="space-y-1">
-                            <span className="text-neutral-200 leading-relaxed">{line.text || line.dialogue}</span>
-                            {line.source_refs && line.source_refs.length > 0 && (
-                              <div className="flex gap-1 pt-1">
-                                {line.source_refs.map((ref, rIdx) => (
-                                  <span
-                                    key={rIdx}
-                                    className="text-[10px] text-emerald-400 font-mono px-1.5 py-0.5 rounded-sm bg-white/[0.04] border border-white/[0.06]"
-                                  >
-                                    {ref}
-                                  </span>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
               )}
             </div>
           )}
 
-          {/* 2. Interactive Quiz Viewer */}
+          {/* 2. Interactive Quiz: Reading room styled card questions */}
           {isQuiz && (
-            <div className="space-y-6">
+            <div className="max-w-2xl mx-auto space-y-5 select-none">
               {data.questions && data.questions.length > 0 ? (
-                <div className="space-y-5">
-                  {/* Score Banner when submitted */}
+                <>
                   {isQuizSubmitted && (() => {
                     const score = calculateScore();
                     return (
-                      <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between">
+                      <div className="p-4 rounded-lg bg-verdigris-subtle border border-verdigris flex items-center justify-between text-ink">
                         <div>
-                          <p className="text-xs font-bold text-emerald-400">Quiz Completed</p>
-                          <p className="text-lg font-bold text-white">
+                          <p className="text-caption font-semibold text-verdigris uppercase tracking-wider">
+                            Quiz Results
+                          </p>
+                          <p className="text-title font-semibold text-ink mt-0.5">
                             Score: {score.correct} / {score.total} ({score.pct}%)
                           </p>
                         </div>
-                        <CheckCircle2 className="w-8 h-8 text-emerald-400" />
+                        <CheckCircle2 className="w-8 h-8 text-verdigris" />
                       </div>
                     );
                   })()}
@@ -419,25 +405,25 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
                     return (
                       <div
                         key={qIdx}
-                        className="p-5 rounded-2xl border border-white/[0.08] bg-white/[0.02] space-y-3.5 shadow-xs"
+                        className="p-5 rounded-lg border border-hairline bg-surface-subtle space-y-3.5"
                       >
                         <div className="flex items-start justify-between gap-3">
-                          <div className="space-y-1">
-                            <span className="inline-block text-[10px] font-bold px-2 py-0.5 rounded-md bg-white/[0.04] text-indigo-400 border border-white/[0.08] uppercase tracking-wider">
-                              {isTF ? "True / False" : "Multiple Choice"}
+                          <div>
+                            <span className="font-mono text-micro uppercase text-ink-muted block mb-1">
+                              Question {qIdx + 1} • {isTF ? "True / False" : "Multiple Choice"}
                             </span>
-                            <p className="text-xs font-semibold text-white leading-relaxed">
-                              {qIdx + 1}. {q.question}
-                            </p>
+                            <h4 className="text-ui font-medium text-ink leading-relaxed">
+                              {q.question}
+                            </h4>
                           </div>
                           {q.citation && (
-                            <span className="shrink-0 text-[10px] px-2 py-0.5 rounded-full bg-white/[0.04] text-emerald-400 border border-white/[0.08] font-mono">
+                            <span className="font-mono text-micro text-verdigris bg-verdigris-subtle border border-verdigris rounded px-2 py-0.5 shrink-0">
                               {q.citation}
                             </span>
                           )}
                         </div>
 
-                        <div className={`gap-2.5 ${isTF ? "grid grid-cols-2" : "space-y-2"}`}>
+                        <div className={`gap-2 ${isTF ? "grid grid-cols-2" : "space-y-1.5"}`}>
                           {options.map((opt: string, optIdx: number) => {
                             const isSelected = selectedIdx === optIdx;
                             const isCorrect = isQuizSubmitted && optIdx === correctIdx;
@@ -446,27 +432,28 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
                             return (
                               <button
                                 key={optIdx}
+                                type="button"
                                 disabled={isQuizSubmitted}
                                 onClick={() => setQuizAnswers({ ...quizAnswers, [qIdx]: optIdx })}
-                                className={`w-full text-left p-3 rounded-xl border text-xs font-medium transition-all ${
+                                className={`w-full text-left p-3 rounded-lg border text-ui font-sans transition-colors duration-150 cursor-pointer ${
                                   isCorrect
-                                    ? "bg-emerald-500/20 border-emerald-500 text-emerald-300 font-semibold shadow-xs"
+                                    ? "bg-verdigris-subtle border-verdigris text-ink font-semibold"
                                     : isWrong
-                                    ? "bg-rose-500/20 border-rose-500 text-rose-300"
+                                    ? "bg-destructive-subtle border-destructive-border text-destructive font-medium"
                                     : isSelected
-                                    ? "bg-indigo-600 text-white font-semibold border-transparent shadow-xs"
-                                    : "bg-white/[0.02] border-white/[0.06] text-neutral-200 hover:bg-white/[0.05]"
+                                    ? "bg-surface border-border-strong text-ink font-semibold ring-1 ring-border-strong"
+                                    : "bg-surface border-hairline text-ink hover:bg-surface-subtle"
                                 }`}
                               >
                                 <div className="flex items-center justify-between">
                                   <span>{opt}</span>
                                   {isQuizSubmitted && isCorrect && (
-                                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/30 text-emerald-300 font-bold">
+                                    <span className="text-micro font-mono text-verdigris font-semibold">
                                       ✓ Correct
                                     </span>
                                   )}
                                   {isQuizSubmitted && isWrong && (
-                                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/30 text-rose-300 font-bold">
+                                    <span className="text-micro font-mono text-destructive font-semibold">
                                       ✗ Incorrect
                                     </span>
                                   )}
@@ -477,8 +464,8 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
                         </div>
 
                         {isQuizSubmitted && q.explanation && (
-                          <div className="p-3.5 rounded-xl bg-white/[0.03] text-[11px] text-neutral-400 leading-relaxed border border-white/[0.06]">
-                            <span className="font-bold text-indigo-400">Rationale: </span>
+                          <div className="p-3 rounded bg-surface border border-hairline text-caption font-serif text-ink-secondary italic">
+                            <span className="font-sans font-medium text-ink not-italic">Rationale: </span>
                             {q.explanation}
                           </div>
                         )}
@@ -488,236 +475,181 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
 
                   <div className="pt-2 flex justify-end">
                     {!isQuizSubmitted ? (
-                      <button
+                      <Button
+                        variant="primary"
+                        size="sm"
                         onClick={() => setIsQuizSubmitted(true)}
-                        className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2)] active:scale-[0.98] transition-all"
+                        className="text-ui px-5"
                       >
                         Submit Answers
-                      </button>
+                      </Button>
                     ) : (
-                      <button
+                      <Button
+                        variant="secondary"
+                        size="sm"
                         onClick={() => {
                           setIsQuizSubmitted(false);
                           setQuizAnswers({});
                         }}
-                        className="px-5 py-2.5 rounded-xl border border-white/[0.08] text-xs font-semibold hover:bg-white/[0.06] text-white transition-colors"
+                        className="text-ui"
                       >
                         Retake Quiz
-                      </button>
+                      </Button>
                     )}
                   </div>
-                </div>
+                </>
               ) : (
-                <p className="text-xs text-neutral-400">No quiz questions generated.</p>
+                <p className="text-caption text-ink-muted">No quiz questions generated.</p>
               )}
             </div>
           )}
 
-          {/* 3. Flashcards Viewer */}
+          {/* 3. Flashcards: Spaced repetition paper cards */}
           {isFlashcards && (
-            <div className="space-y-6">
+            <div className="max-w-xl mx-auto space-y-6 select-none">
               {data.cards && data.cards.length > 0 ? (
-                <div className="flex flex-col items-center space-y-5">
+                <div className="flex flex-col items-center space-y-4">
                   {/* Active Card */}
                   <div
                     onClick={() => setIsFlipped(!isFlipped)}
-                    className="w-full max-w-lg min-h-[220px] rounded-2xl border border-white/[0.08] bg-white/[0.02] hover:border-indigo-500/40 cursor-pointer p-8 flex flex-col items-center justify-between text-center shadow-lg transition-all"
+                    className="w-full min-h-[220px] rounded-xl border border-hairline bg-surface-subtle hover:border-border-strong cursor-pointer p-8 flex flex-col justify-between text-center transition-colors shadow-xs"
                   >
-                    <div className="w-full flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                    <div className="flex items-center justify-between text-micro font-mono uppercase tracking-wider text-ink-muted">
                       <span>{isFlipped ? "Answer / Definition" : "Prompt / Concept"}</span>
                       {data.cards[cardIndex]?.difficulty && (
-                        <span className="px-2 py-0.5 rounded-full bg-white/[0.04] text-indigo-400 border border-white/[0.08]">
+                        <span className="px-1.5 py-0.5 rounded bg-surface border border-hairline">
                           {data.cards[cardIndex].difficulty}
                         </span>
                       )}
                     </div>
 
-                    <p className="text-base font-semibold text-white leading-relaxed my-4">
+                    <p className="font-serif text-section text-ink leading-relaxed my-6">
                       {isFlipped
                         ? data.cards[cardIndex]?.back || data.cards[cardIndex]?.answer
                         : data.cards[cardIndex]?.front || data.cards[cardIndex]?.question}
                     </p>
 
-                    <div className="w-full flex items-center justify-between text-[10px] text-neutral-400">
-                      <span className="text-emerald-400 font-mono">{data.cards[cardIndex]?.source_ref || "Grounding Ref"}</span>
-                      <span className="opacity-70">(Click card to flip)</span>
+                    <div className="flex items-center justify-between text-micro text-ink-muted">
+                      <span className="font-mono text-verdigris">
+                        {data.cards[cardIndex]?.source_ref || "Verified Source"}
+                      </span>
+                      <span>(Click card to flip)</span>
                     </div>
                   </div>
 
-                  {/* Navigation Controls */}
-                  <div className="flex items-center gap-4">
-                    <button
+                  {/* Navigation Bar */}
+                  <div className="flex items-center gap-3">
+                    <Button
+                      variant="secondary"
+                      size="sm"
                       disabled={cardIndex === 0}
                       onClick={() => {
-                        setCardIndex(cardIndex - 1);
+                        setCardIndex((prev) => Math.max(0, prev - 1));
                         setIsFlipped(false);
                       }}
-                      className="p-2.5 rounded-xl border border-white/[0.08] hover:bg-white/[0.06] disabled:opacity-40 transition-colors text-white"
+                      className="text-ui flex items-center gap-1"
                     >
                       <ChevronLeft className="w-4 h-4" />
-                    </button>
-                    <span className="text-xs font-mono font-medium text-neutral-400">
-                      {cardIndex + 1} / {data.cards.length}
+                      <span>Previous</span>
+                    </Button>
+
+                    <span className="font-mono text-caption text-ink-muted px-2">
+                      Card {cardIndex + 1} of {data.cards.length}
                     </span>
-                    <button
+
+                    <Button
+                      variant="secondary"
+                      size="sm"
                       disabled={cardIndex === data.cards.length - 1}
                       onClick={() => {
-                        setCardIndex(cardIndex + 1);
+                        setCardIndex((prev) => Math.min(data.cards.length - 1, prev + 1));
                         setIsFlipped(false);
                       }}
-                      className="p-2.5 rounded-xl border border-white/[0.08] hover:bg-white/[0.06] disabled:opacity-40 transition-colors text-white"
+                      className="text-ui flex items-center gap-1"
                     >
+                      <span>Next</span>
                       <ChevronRight className="w-4 h-4" />
-                    </button>
+                    </Button>
                   </div>
                 </div>
               ) : (
-                <p className="text-xs text-neutral-400">No flashcards available.</p>
+                <p className="text-caption text-ink-muted">No flashcards generated.</p>
               )}
             </div>
           )}
 
-          {/* 4. Slide Deck (Presentation) Viewer */}
-          {isSlides && (
-            <div className="space-y-6">
-              {data.slides && data.slides.length > 0 ? (
-                <div className="flex flex-col items-center space-y-4">
-                  {/* Slide Canvas */}
-                  {(() => {
-                    const slide = data.slides[slideIndex] || {};
-                    return (
-                      <div className="w-full max-w-2xl min-h-[320px] rounded-2xl border border-white/[0.08] bg-white/[0.02] p-8 flex flex-col justify-between shadow-xl">
-                        <div>
-                          <div className="flex items-center justify-between mb-4">
-                            <span className="text-[10px] font-mono text-neutral-400 uppercase tracking-wider">
-                              Slide {slideIndex + 1} of {data.slides.length}
-                            </span>
-                            {slide.layout && (
-                              <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/[0.04] text-indigo-400 border border-white/[0.08]">
-                                {slide.layout}
-                              </span>
-                            )}
-                          </div>
-                          <h4 className="text-xl font-semibold text-white tracking-tight mb-2">{slide.title}</h4>
-                          {slide.subtitle && (
-                            <p className="text-xs text-indigo-400 mb-4 font-medium">{slide.subtitle}</p>
-                          )}
+          {/* 4. Mind Map: Hierarchical concept graph */}
+          {isMindMap && (
+            <div className="max-w-2xl mx-auto space-y-5">
+              {data.root_title && (
+                <div className="p-4 rounded-lg bg-surface-subtle border border-hairline text-center">
+                  <span className="text-micro font-mono uppercase tracking-wider text-ink-muted">
+                    Central Concept
+                  </span>
+                  <h4 className="text-section font-semibold text-ink mt-0.5">
+                    {data.root_title}
+                  </h4>
+                </div>
+              )}
 
-                          {slide.bullets && slide.bullets.length > 0 && (
-                            <ul className="space-y-2.5 mt-4 text-xs text-neutral-200 list-disc list-inside">
-                              {slide.bullets.map((b: string, bIdx: number) => (
-                                <li key={bIdx} className="leading-relaxed">
-                                  {b}
-                                </li>
-                              ))}
-                            </ul>
-                          )}
-                        </div>
-
-                        {/* Speaker Notes */}
-                        {slide.speaker_notes && (
-                          <div className="mt-6 pt-4 border-t border-white/[0.06] text-[11px] text-neutral-400 italic">
-                            <span className="font-semibold not-italic text-white">Speaker Notes: </span>
-                            {slide.speaker_notes}
-                          </div>
+              {data.nodes && data.nodes.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {data.nodes.map((node: any, idx: number) => (
+                    <div
+                      key={idx}
+                      className="p-4 rounded-lg border border-hairline bg-surface hover:bg-surface-subtle transition-colors space-y-1.5"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-ui font-semibold text-ink">{node.label}</span>
+                        {node.category && (
+                          <span className="font-mono text-micro px-1.5 py-0.5 rounded bg-surface-subtle text-ink-muted border border-hairline">
+                            {node.category}
+                          </span>
                         )}
                       </div>
-                    );
-                  })()}
-
-                  {/* Slide Controls */}
-                  <div className="flex items-center gap-4">
-                    <button
-                      disabled={slideIndex === 0}
-                      onClick={() => setSlideIndex(slideIndex - 1)}
-                      className="p-2.5 rounded-xl border border-white/[0.08] hover:bg-white/[0.06] disabled:opacity-40 transition-colors text-white"
-                    >
-                      <ChevronLeft className="w-4 h-4" />
-                    </button>
-                    <span className="text-xs font-mono font-medium text-neutral-400">
-                      {slideIndex + 1} / {data.slides.length}
-                    </span>
-                    <button
-                      disabled={slideIndex === data.slides.length - 1}
-                      onClick={() => setSlideIndex(slideIndex + 1)}
-                      className="p-2.5 rounded-xl border border-white/[0.08] hover:bg-white/[0.06] disabled:opacity-40 transition-colors text-white"
-                    >
-                      <ChevronRight className="w-4 h-4" />
-                    </button>
-                  </div>
+                      {node.description && (
+                        <p className="text-caption font-serif text-ink-secondary leading-relaxed">
+                          {node.description}
+                        </p>
+                      )}
+                      {node.citation && (
+                        <p className="font-mono text-micro text-verdigris">
+                          Ref: {node.citation}
+                        </p>
+                      )}
+                    </div>
+                  ))}
                 </div>
               ) : (
-                <p className="text-xs text-neutral-400">No slides available.</p>
+                <pre className="p-4 rounded-lg bg-surface-subtle border border-hairline text-caption font-mono overflow-x-auto text-ink">
+                  {typeof data === "string" ? data : JSON.stringify(data, null, 2)}
+                </pre>
               )}
             </div>
           )}
 
-          {/* 5. Report Viewer with Rich Formatted Markdown */}
-          {isReport && (
-            <div className="space-y-6">
-              {data.table_of_contents && data.table_of_contents.length > 0 && (
-                <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.08]">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 mb-2">
-                    Table of Contents
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {data.table_of_contents.map((item: string, idx: number) => (
-                      <span
-                        key={idx}
-                        className="text-xs px-2.5 py-1 rounded-lg bg-white/[0.04] text-neutral-200 border border-white/[0.06]"
-                      >
-                        {item}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              <div className="p-8 rounded-2xl bg-white/[0.02] border border-white/[0.08] text-xs text-neutral-200 leading-relaxed font-sans prose prose-invert max-w-none">
-                <ReactMarkdown
-                  remarkPlugins={[remarkGfm]}
-                  components={{
-                    h1: ({ children }) => <h1 className="text-xl font-semibold text-white mb-4 pb-2 border-b border-white/[0.08] tracking-tight">{children}</h1>,
-                    h2: ({ children }) => <h2 className="text-base font-semibold text-indigo-400 mt-6 mb-3">{children}</h2>,
-                    h3: ({ children }) => <h3 className="text-sm font-semibold text-white mt-4 mb-2">{children}</h3>,
-                    p: ({ children }) => <p className="text-xs text-neutral-300 leading-relaxed mb-4">{children}</p>,
-                    ul: ({ children }) => <ul className="list-disc list-inside space-y-1.5 mb-4 text-neutral-300">{children}</ul>,
-                    li: ({ children }) => <li className="text-xs leading-relaxed">{children}</li>,
-                    strong: ({ children }) => <strong className="font-semibold text-white">{children}</strong>,
-                    blockquote: ({ children }) => <blockquote className="border-l-2 border-indigo-500 pl-4 italic text-neutral-400 my-3">{children}</blockquote>,
-                  }}
-                >
-                  {data.content_markdown || data.content || (typeof data === "string" ? data : JSON.stringify(data, null, 2))}
-                </ReactMarkdown>
-              </div>
-            </div>
-          )}
-
-          {/* 6. Data Table Viewer */}
+          {/* 5. Data Table: Paper styled tables */}
           {isDataTable && (
             <div className="space-y-4">
-              {data.description && (
-                <p className="text-xs text-neutral-400">{data.description}</p>
-              )}
               {data.columns && data.rows ? (
-                <div className="overflow-x-auto rounded-2xl border border-black/[0.08] bg-white shadow-xs">
-                  <table className="w-full text-left text-xs border-collapse">
-                    <thead className="bg-[#F4F5F7] text-neutral-900 font-semibold border-b border-black/[0.08]">
+                <div className="overflow-x-auto rounded-lg border border-hairline bg-surface">
+                  <table className="w-full text-left text-ui border-collapse">
+                    <thead className="bg-surface-subtle text-ink font-semibold border-b border-hairline">
                       <tr>
-                        <th className="p-3 w-10 text-neutral-500">#</th>
+                        <th className="p-3 w-10 font-mono text-caption text-ink-muted">#</th>
                         {data.columns.map((col: any, cIdx: number) => (
-                          <th key={cIdx} className="p-3 text-neutral-900">
+                          <th key={cIdx} className="p-3 text-caption font-semibold uppercase tracking-wider text-ink">
                             {col.label || col.key}
                           </th>
                         ))}
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-black/[0.06]">
+                    <tbody className="divide-y divide-hairline">
                       {data.rows.map((row: any, rIdx: number) => (
-                        <tr key={rIdx} className="hover:bg-neutral-50 transition-colors">
-                          <td className="p-3 font-mono text-[10px] text-neutral-500">{rIdx + 1}</td>
+                        <tr key={rIdx} className="hover:bg-surface-subtle/50 transition-colors">
+                          <td className="p-3 font-mono text-caption text-ink-muted">{rIdx + 1}</td>
                           {data.columns.map((col: any, cIdx: number) => (
-                            <td key={cIdx} className="p-3 text-neutral-800">
+                            <td key={cIdx} className="p-3 text-ink-secondary">
                               {row[col.key] !== undefined ? String(row[col.key]) : "-"}
                             </td>
                           ))}
@@ -727,77 +659,83 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
                   </table>
                 </div>
               ) : (
-                <p className="text-xs text-neutral-400">No tabular rows found.</p>
+                <p className="text-caption text-ink-muted">No tabular data found.</p>
               )}
             </div>
           )}
 
-          {/* 7. Mind Map Viewer */}
-          {isMindMap && (
-            <div className="space-y-6">
-              {data.root_title && (
-                <div className="p-5 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-center shadow-xs">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-400">
-                    Central Theme
-                  </span>
-                  <h4 className="text-lg font-semibold text-white mt-1 tracking-tight">{data.root_title}</h4>
+          {/* 6. Audio Overview: Dialogue & Player */}
+          {isAudio && (
+            <div className="max-w-2xl mx-auto space-y-6">
+              <div className="p-6 rounded-xl border border-hairline bg-surface-subtle flex flex-col items-center text-center space-y-3">
+                <div className="p-3 rounded-full bg-surface border border-hairline text-ink">
+                  <Volume2 className="w-6 h-6" />
                 </div>
-              )}
+                <h4 className="text-section font-semibold text-ink">
+                  {artifact.title || data.title || "Conversational Overview"}
+                </h4>
+                <p className="text-caption text-ink-muted max-w-md">
+                  Two-host discussion summarizing core takeaways from your grounded sources.
+                </p>
 
-              {data.nodes && data.nodes.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-                  {data.nodes.map((node: any, idx: number) => (
-                    <div
-                      key={idx}
-                      className="p-4 rounded-2xl border border-white/[0.08] bg-white/[0.02] space-y-2 hover:border-indigo-500/40 transition-colors shadow-xs"
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-semibold text-white">{node.label}</span>
-                        {node.category && (
-                          <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-white/[0.04] text-indigo-400 border border-white/[0.08]">
-                            {node.category}
-                          </span>
-                        )}
-                      </div>
-                      {node.description && (
-                        <p className="text-[12px] text-neutral-400 leading-relaxed">
-                          {node.description}
-                        </p>
-                      )}
-                      {node.citation && (
-                        <p className="text-[10px] text-emerald-400 flex items-center gap-1 font-mono">
-                          <span>Ref:</span> {node.citation}
-                        </p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.08] space-y-3">
-                  <p className="text-xs text-neutral-400">Central concept structure & summary:</p>
-                  <pre className="overflow-x-auto p-4 rounded-xl bg-black/40 border border-white/[0.06] text-xs font-mono text-neutral-200 whitespace-pre-wrap">
-                    {typeof data === "string" ? data : JSON.stringify(data, null, 2)}
-                  </pre>
-                </div>
-              )}
+                {downloadUrl && (
+                  <audio
+                    ref={audioRef}
+                    src={downloadUrl}
+                    onEnded={() => setIsPlayingAudio(false)}
+                    className="hidden"
+                  />
+                )}
 
-              {data.edges && data.edges.length > 0 && (
-                <div className="mt-4 p-4 rounded-2xl border border-white/[0.08] bg-white/[0.02]">
-                  <h5 className="text-[11px] font-semibold uppercase tracking-wider text-neutral-400 mb-2.5">
-                    Concept Relationships & Graph Edges
+                <div className="flex items-center gap-3 pt-2">
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={handleToggleAudio}
+                    className="flex items-center gap-2 px-5"
+                  >
+                    {isPlayingAudio ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                    <span>{isPlayingAudio ? "Pause Podcast" : "Play Podcast"}</span>
+                  </Button>
+
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={handleSpeedChange}
+                    className="font-mono text-caption"
+                  >
+                    {playbackSpeed}x
+                  </Button>
+                </div>
+              </div>
+
+              {/* Dialogue Transcript */}
+              {dialogueList.length > 0 && (
+                <div className="space-y-3">
+                  <h5 className="text-caption font-semibold uppercase tracking-wider text-ink-muted">
+                    Dialogue Transcript ({dialogueList.length} turns)
                   </h5>
-                  <div className="flex flex-wrap gap-2">
-                    {data.edges.map((edge: any, eIdx: number) => {
-                      const sourceNode = data.nodes?.find((n: any) => n.id === edge.source);
-                      const targetNode = data.nodes?.find((n: any) => n.id === edge.target);
+                  <div className="space-y-3">
+                    {dialogueList.map((line, idx) => {
+                      const speaker = line.speaker || (idx % 2 === 0 ? "Alex" : "Sam");
                       return (
                         <div
-                          key={eIdx}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.04] border border-white/[0.06] text-[11px]"
+                          key={idx}
+                          className="p-3.5 rounded-lg border border-hairline bg-surface space-y-1"
                         >
-                          <span className="font-semibold text-white">{sourceNode?.label || edge.source}</span>
-                          <span className="text-indigo-400 font-mono text-[10px]">→ {edge.label || "relates to"} →</span>
-                          <span className="font-semibold text-white">{targetNode?.label || edge.target}</span>
+                          <div className="flex items-center justify-between">
+                            <span className="font-mono text-micro font-semibold text-ink">
+                              {speaker}
+                            </span>
+                            {line.source_refs && line.source_refs.length > 0 && (
+                              <span className="font-mono text-micro text-verdigris">
+                                Ref: {line.source_refs.join(", ")}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-ui font-serif text-ink-secondary leading-relaxed">
+                            {line.text || line.dialogue}
+                          </p>
                         </div>
                       );
                     })}
@@ -807,138 +745,74 @@ export function ArtifactViewerModal({ artifact, onClose }: ArtifactViewerModalPr
             </div>
           )}
 
-          {/* 8. Infographic Viewer */}
-          {isInfographic && (
-            <div className="space-y-6">
-              {data.hero_metric && (
-                <div className="p-6 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-center">
-                  <p className="text-3xl font-extrabold text-indigo-400">{data.hero_metric.value}</p>
-                  <p className="text-xs font-semibold text-white mt-1">
-                    {data.hero_metric.label}
-                  </p>
-                  {data.hero_metric.citation && (
-                    <p className="text-[10px] text-emerald-400 font-mono mt-1">
-                      {data.hero_metric.citation}
-                    </p>
-                  )}
-                </div>
-              )}
-
-              {data.sections && data.sections.length > 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {data.sections.map((sec: any, idx: number) => (
-                    <div
-                      key={idx}
-                      className="p-5 rounded-2xl border border-white/[0.08] bg-white/[0.02] space-y-2"
-                    >
-                      <div className="flex items-center justify-between">
-                        <h5 className="text-xs font-semibold text-white">{sec.title}</h5>
-                        {sec.badge && (
-                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/[0.04] text-indigo-400 border border-white/[0.08]">
-                            {sec.badge}
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-xs text-neutral-400 leading-relaxed">{sec.content}</p>
-                      {sec.metric && (
-                        <p className="text-sm font-bold text-indigo-400">{sec.metric}</p>
-                      )}
-                      {sec.citation && (
-                        <p className="text-[10px] text-emerald-400 font-mono">{sec.citation}</p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* 9. Video Storyboard Viewer */}
-          {isVideo && (
-            <div className="space-y-6">
-              <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.08] flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-indigo-500/15 text-indigo-400 flex items-center justify-center border border-indigo-500/30">
-                    <Clapperboard className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold text-white">{data.title || data.video_title || artifact.title}</p>
-                    <p className="text-[11px] text-neutral-400 mt-0.5">
-                      Scene-by-scene production storyboard and voiceover script
-                    </p>
-                  </div>
-                </div>
-                {data.target_duration_seconds && (
-                  <span className="text-xs px-3 py-1 rounded-full bg-white/[0.04] text-indigo-400 font-mono font-semibold border border-white/[0.08]">
-                    {data.target_duration_seconds}s Total Runtime
-                  </span>
-                )}
-              </div>
-
-              {data.scenes && data.scenes.length > 0 ? (
+          {/* 7. Slide Deck: 16:9 Presentation frame */}
+          {isSlides && (
+            <div className="max-w-2xl mx-auto space-y-5 select-none">
+              {data.slides && data.slides.length > 0 ? (
                 <div className="space-y-4">
-                  {data.scenes.map((scene: any, idx: number) => (
-                    <div
-                      key={idx}
-                      className="p-5 rounded-2xl border border-white/[0.08] bg-white/[0.02] space-y-3 shadow-xs"
-                    >
-                      <div className="flex items-center justify-between border-b border-white/[0.06] pb-2.5">
-                        <span className="text-xs font-semibold text-white">
-                          Scene {scene.scene_number || idx + 1}: {scene.title}
-                        </span>
-                        <div className="flex items-center gap-2">
-                          {scene.citation && (
-                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/[0.04] text-emerald-400 border border-white/[0.08] font-mono">
-                              {scene.citation}
-                            </span>
-                          )}
-                          {scene.duration_seconds && (
-                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/[0.04] text-neutral-400 border border-white/[0.08] font-mono">
-                              {scene.duration_seconds}s
-                            </span>
-                          )}
-                        </div>
-                      </div>
+                  <div className="aspect-[16/9] w-full rounded-xl border border-hairline bg-surface-subtle p-8 flex flex-col justify-between shadow-xs">
+                    <div>
+                      <span className="font-mono text-micro uppercase text-ink-muted block mb-2">
+                        Slide {slideIndex + 1} of {data.slides.length}
+                      </span>
+                      <h4 className="text-title font-semibold text-ink leading-tight">
+                        {data.slides[slideIndex]?.title}
+                      </h4>
+                    </div>
 
-                      {scene.visual_description && (
-                        <div className="text-[12px] text-neutral-400 leading-relaxed">
-                          <span className="font-semibold text-white">Visual Direction: </span>
-                          {scene.visual_description}
-                        </div>
-                      )}
-
-                      {scene.on_screen_text && (
-                        <div className="text-[11px] text-indigo-400 px-3 py-1.5 rounded-xl bg-white/[0.04] border border-white/[0.06] inline-block font-mono">
-                          <span className="text-neutral-400 font-sans">On-Screen Text: </span>
-                          "{scene.on_screen_text}"
-                        </div>
-                      )}
-
-                      {scene.narration_script && (
-                        <div className="p-3.5 rounded-xl bg-white/[0.03] text-xs text-neutral-200 leading-relaxed border border-white/[0.06]">
-                          <span className="font-bold text-indigo-400">Voiceover Script: </span>
-                          "{scene.narration_script}"
-                        </div>
+                    <div className="space-y-2 my-auto">
+                      {data.slides[slideIndex]?.bullets && Array.isArray(data.slides[slideIndex].bullets) ? (
+                        <ul className="space-y-2 font-serif text-reading text-ink-secondary">
+                          {data.slides[slideIndex].bullets.map((b: string, bIdx: number) => (
+                            <li key={bIdx} className="flex items-start gap-2">
+                              <span className="w-1.5 h-1.5 rounded-full bg-border-strong mt-2.5 shrink-0" />
+                              <span>{b}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="font-serif text-reading text-ink-secondary">
+                          {data.slides[slideIndex]?.content || data.slides[slideIndex]?.speaker_notes}
+                        </p>
                       )}
                     </div>
-                  ))}
+
+                    <div className="flex items-center justify-between text-micro font-mono text-ink-muted border-t border-hairline pt-3">
+                      <span>Docora Intelligence</span>
+                      {data.slides[slideIndex]?.citation && (
+                        <span className="text-verdigris">Ref: {data.slides[slideIndex].citation}</span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Slide controls */}
+                  <div className="flex items-center justify-center gap-3">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      disabled={slideIndex === 0}
+                      onClick={() => setSlideIndex((prev) => Math.max(0, prev - 1))}
+                    >
+                      <ChevronLeft className="w-4 h-4 mr-1" />
+                      <span>Previous</span>
+                    </Button>
+                    <span className="font-mono text-caption text-ink-muted px-2">
+                      {slideIndex + 1} / {data.slides.length}
+                    </span>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      disabled={slideIndex === data.slides.length - 1}
+                      onClick={() => setSlideIndex((prev) => Math.min(data.slides.length - 1, prev + 1))}
+                    >
+                      <span>Next</span>
+                      <ChevronRight className="w-4 h-4 ml-1" />
+                    </Button>
+                  </div>
                 </div>
               ) : (
-                <p className="text-xs text-neutral-400">No storyboard scenes generated.</p>
+                <p className="text-caption text-ink-muted">No presentation slides found.</p>
               )}
-            </div>
-          )}
-
-          {/* 10. Fallback Viewer for Unknown Artifact Types */}
-          {!isAudio && !isQuiz && !isFlashcards && !isSlides && !isReport && !isDataTable && !isMindMap && !isInfographic && !isVideo && (
-            <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.08] space-y-3">
-              <div className="flex items-center gap-2 text-amber-400">
-                <Sparkles className="w-4 h-4" />
-                <span className="text-xs font-semibold uppercase tracking-wider">Studio Artifact Output</span>
-              </div>
-              <pre className="overflow-x-auto p-4 rounded-xl bg-black/40 border border-white/[0.06] text-xs font-mono text-neutral-200 whitespace-pre-wrap">
-                {typeof data === "string" ? data : JSON.stringify(data, null, 2)}
-              </pre>
             </div>
           )}
         </div>

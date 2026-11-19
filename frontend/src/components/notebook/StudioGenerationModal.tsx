@@ -4,23 +4,16 @@ import React, { useState, useEffect } from "react";
 import {
   GenerationModal,
   ModalSegmentedControl,
-  ModalMultiSelectTypes,
-  ModalLanguageSelector,
-  ModalSourceSelector,
   ModalTopicPrompt,
-  SourceItemOption,
 } from "@/components/studio/GenerationModalFramework";
 import {
   Headphones,
-  Video,
+  Presentation,
+  FileText,
+  GitFork,
   HelpCircle,
   Layers,
-  GitFork,
-  Presentation,
-  LayoutGrid,
   FileSpreadsheet,
-  FileText,
-  Sparkles,
 } from "lucide-react";
 import { SourceItem, ArtifactItem, apiClient } from "@/lib/api-client";
 
@@ -44,28 +37,16 @@ export function StudioGenerationModal({
   onOpenGeminiKey,
 }: StudioGenerationModalProps) {
   const [topic, setTopic] = useState("");
-  const [language, setLanguage] = useState("en");
-  const [selectedSourceIds, setSelectedSourceIds] = useState<string[]>(
-    sources.filter((s) => s.is_active_for_queries).map((s) => s.id)
-  );
+  const [lengthMode, setLengthMode] = useState("standard");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (activeTool && sources.length > 0) {
-      setSelectedSourceIds(sources.filter((s) => s.is_active_for_queries).map((s) => s.id));
+    if (activeTool) {
+      setTopic("");
+      setLengthMode("standard");
+      setIsSubmitting(false);
     }
-  }, [activeTool, sources]);
-
-  // Tool Specific Controls
-  const [quizQuestionCount, setQuizQuestionCount] = useState("standard");
-  const [quizDifficulty, setQuizDifficulty] = useState("medium");
-  const [quizQuestionTypes, setQuizQuestionTypes] = useState<string[]>(["multiple_choice"]);
-  const [flashcardCount, setFlashcardCount] = useState("standard");
-  const [audioFormat, setAudioFormat] = useState("two_host");
-  const [slideTheme, setSlideTheme] = useState("modern_dark");
-  const [reportArchetype, setReportArchetype] = useState("executive_summary");
-  const [infographicStyle, setInfographicStyle] = useState("bento_grid");
-  const [videoStyle, setVideoStyle] = useState("explainer");
+  }, [activeTool]);
 
   if (!activeTool) return null;
 
@@ -73,276 +54,175 @@ export function StudioGenerationModal({
     switch (tool) {
       case "audio":
         return {
-          title: "Audio Overview",
-          subtitle: "Generate conversational podcast dialogue",
+          title: "Generate Audio Overview",
+          subtitle: "Two-host conversational podcast discussing core document takeaways.",
           icon: Headphones,
-          color: "text-amber-400 bg-amber-500/10",
-        };
-      case "video":
-        return {
-          title: "Video Summary",
-          subtitle: "Synthesize visual explainer storyboard",
-          icon: Video,
-          color: "text-rose-400 bg-rose-500/10",
-        };
-      case "quiz":
-        return {
-          title: "Interactive Quiz",
-          subtitle: "Test comprehension with scored questions",
-          icon: HelpCircle,
-          color: "text-blue-400 bg-blue-500/10",
-        };
-      case "flashcards":
-        return {
-          title: "Flashcards",
-          subtitle: "Active recall study deck with spaced repetition",
-          icon: Layers,
-          color: "text-purple-400 bg-purple-500/10",
-        };
-      case "mindmap":
-        return {
-          title: "Mind Map",
-          subtitle: "Structured hierarchy of concepts and connections",
-          icon: GitFork,
-          color: "text-emerald-400 bg-emerald-500/10",
+          endpoint: "audio",
+          lengthLabel: "Episode Duration",
+          lengthOptions: [
+            { id: "concise", label: "Quick", desc: "3 minutes" },
+            { id: "standard", label: "Standard", desc: "5-7 minutes" },
+            { id: "comprehensive", label: "Deep Dive", desc: "10+ minutes" },
+          ],
         };
       case "slides":
         return {
-          title: "Slide Deck",
-          subtitle: "Executive slide presentation",
+          title: "Generate Slide Deck",
+          subtitle: "Executive presentation slides structured for clean briefings.",
           icon: Presentation,
-          color: "text-indigo-400 bg-indigo-500/10",
+          endpoint: "presentation",
+          lengthLabel: "Deck Length",
+          lengthOptions: [
+            { id: "concise", label: "Brief", desc: "4-5 slides" },
+            { id: "standard", label: "Standard", desc: "7-9 slides" },
+            { id: "comprehensive", label: "Detailed", desc: "12+ slides" },
+          ],
         };
-      case "infographic":
+      case "mindmap":
         return {
-          title: "Infographic",
-          subtitle: "Data-dense bento grid statistics",
-          icon: LayoutGrid,
-          color: "text-teal-400 bg-teal-500/10",
+          title: "Generate Mind Map",
+          subtitle: "Hierarchical concept tree and knowledge ontology.",
+          icon: GitFork,
+          endpoint: "mindmap",
+          lengthLabel: "Graph Depth",
+          lengthOptions: [
+            { id: "concise", label: "Core", desc: "Main ideas" },
+            { id: "standard", label: "Standard", desc: "2-3 tiers" },
+            { id: "comprehensive", label: "Exhaustive", desc: "Full ontology" },
+          ],
+        };
+      case "quiz":
+        return {
+          title: "Generate Interactive Quiz",
+          subtitle: "Comprehension test with scored multiple choice questions.",
+          icon: HelpCircle,
+          endpoint: "quiz",
+          lengthLabel: "Question Count",
+          lengthOptions: [
+            { id: "concise", label: "Quick", desc: "5 questions" },
+            { id: "standard", label: "Standard", desc: "10 questions" },
+            { id: "comprehensive", label: "Thorough", desc: "15 questions" },
+          ],
+        };
+      case "flashcards":
+        return {
+          title: "Generate Flashcards",
+          subtitle: "Active recall study deck with spaced repetition principles.",
+          icon: Layers,
+          endpoint: "flashcards",
+          lengthLabel: "Deck Size",
+          lengthOptions: [
+            { id: "concise", label: "Core", desc: "10 cards" },
+            { id: "standard", label: "Standard", desc: "20 cards" },
+            { id: "comprehensive", label: "Thorough", desc: "30 cards" },
+          ],
         };
       case "data_table":
         return {
-          title: "Data Tables",
-          subtitle: "Structured entity and metric extraction",
+          title: "Generate Data Table",
+          subtitle: "Structured schema and entity extractions formatted into tables.",
           icon: FileSpreadsheet,
-          color: "text-orange-400 bg-orange-500/10",
+          endpoint: "datatable",
+          lengthLabel: "Extraction Scope",
+          lengthOptions: [
+            { id: "concise", label: "Key Metrics", desc: "Core figures" },
+            { id: "standard", label: "Standard", desc: "Primary tables" },
+            { id: "comprehensive", label: "Exhaustive", desc: "All data points" },
+          ],
         };
+      case "report":
       default:
         return {
-          title: "Study Guide",
-          subtitle: "Exhaustive multi-section study brief",
+          title: "Generate Study Report",
+          subtitle: "Exhaustive multi-section synthesis brief with verified citations.",
           icon: FileText,
-          color: "text-cyan-400 bg-cyan-500/10",
+          endpoint: "report",
+          lengthLabel: "Report Length",
+          lengthOptions: [
+            { id: "concise", label: "Summary", desc: "1-2 pages" },
+            { id: "standard", label: "Standard", desc: "3-5 pages" },
+            { id: "comprehensive", label: "Deep Dive", desc: "Full dossier" },
+          ],
         };
-    }
-  };
-
-  const handleGenerate = async () => {
-    setIsSubmitting(true);
-    try {
-      // Map frontend tool names to primary backend endpoint routes
-      let toolEndpoint = activeTool;
-      if (activeTool === "slides") toolEndpoint = "presentation";
-      if (activeTool === "data_table") toolEndpoint = "datatable";
-
-      const commonOptions = {
-        question_count: quizQuestionCount,
-        quiz_count: quizQuestionCount,
-        difficulty: quizDifficulty,
-        question_types: quizQuestionTypes,
-        card_count: flashcardCount,
-        format: audioFormat,
-        theme: slideTheme,
-        archetype: reportArchetype,
-        style: infographicStyle || videoStyle,
-      };
-
-      const payload: any = {
-        artifact_type: activeTool,
-        source_ids: selectedSourceIds.length > 0 ? selectedSourceIds : undefined,
-        topic: topic.trim() || undefined,
-        topic_focus: topic.trim() || undefined,
-        language: language || "en",
-        options: commonOptions,
-        settings: commonOptions,
-      };
-
-      const result = await apiClient.generateStudioArtifact(notebookId, toolEndpoint, payload);
-      const rawRes = result as any;
-      const formattedArtifact: ArtifactItem = {
-        ...result,
-        id: rawRes.id || rawRes.artifact_id || `art-${Date.now()}`,
-        artifact_type: rawRes.artifact_type || (activeTool === "mindmap" ? "mind_map" : activeTool || "mind_map"),
-        notebook_id: notebookId,
-        title: rawRes.title || "Studio Artifact",
-        status: rawRes.status || "completed",
-        data: rawRes.data || rawRes,
-      };
-      onArtifactCreated(formattedArtifact);
-      showToast("success", "Generation Completed", `Created "${result.title}". Ready for review.`);
-      onClose();
-    } catch (err: any) {
-      console.error("Studio generation failed:", err);
-      if (err.message && (err.message.includes("API key") || err.message.includes("401"))) {
-        if (onOpenGeminiKey) {
-          onOpenGeminiKey();
-        }
-      }
-      showToast("error", "Generation Failed", err.message || "Could not generate artifact.", {
-        endpoint: `/notebooks/${notebookId}/studio/${activeTool}`,
-        detail: err.message,
-      });
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
   const meta = getToolMetadata(activeTool);
 
-  const sourceOptions: SourceItemOption[] = sources.map((s) => ({
-    id: s.id,
-    title: s.title,
-    source_type: s.source_type,
-    is_active: s.is_active_for_queries,
-  }));
+  const handleGenerate = async () => {
+    setIsSubmitting(true);
+    try {
+      const activeSourceIds = sources
+        .filter((s) => s.is_active_for_queries)
+        .map((s) => s.id);
 
-  const handleToggleQuestionType = (typeId: string) => {
-    setQuizQuestionTypes((prev) =>
-      prev.includes(typeId)
-        ? prev.length > 1
-          ? prev.filter((t) => t !== typeId)
-          : prev
-        : [...prev, typeId]
-    );
-  };
+      const options = {
+        length: lengthMode,
+        question_count: lengthMode === "concise" ? 5 : lengthMode === "comprehensive" ? 15 : 10,
+        quiz_count: lengthMode === "concise" ? 5 : lengthMode === "comprehensive" ? 15 : 10,
+        card_count: lengthMode === "concise" ? 10 : lengthMode === "comprehensive" ? 30 : 20,
+        slide_count: lengthMode === "concise" ? 5 : lengthMode === "comprehensive" ? 12 : 8,
+        archetype: lengthMode === "concise" ? "executive_summary" : "comprehensive_review",
+      };
 
-  const handleToggleSource = (id: string) => {
-    setSelectedSourceIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-    );
-  };
+      const payload: any = {
+        artifact_type: activeTool,
+        source_ids: activeSourceIds.length > 0 ? activeSourceIds : undefined,
+        topic: topic.trim() || undefined,
+        topic_focus: topic.trim() || undefined,
+        options,
+        settings: options,
+      };
 
-  const handleSelectAllSources = (all: boolean) => {
-    setSelectedSourceIds(all ? sources.map((s) => s.id) : []);
+      const result = await apiClient.generateStudioArtifact(notebookId, meta.endpoint, payload);
+      const rawRes = result as any;
+      const formattedArtifact: ArtifactItem = {
+        ...result,
+        id: rawRes.id || rawRes.artifact_id || `art-${Date.now()}`,
+        artifact_type: rawRes.artifact_type || (activeTool === "mindmap" ? "mind_map" : activeTool),
+        notebook_id: notebookId,
+        title: rawRes.title || meta.title.replace("Generate ", ""),
+        status: rawRes.status || "completed",
+        data: rawRes.data || rawRes,
+      };
+
+      onArtifactCreated(formattedArtifact);
+      showToast("success", "Synthesis Completed", `Generated "${formattedArtifact.title}".`);
+      onClose();
+    } catch (err: any) {
+      console.error("Studio generation failed:", err);
+      if (err.message && (err.message.includes("API key") || err.message.includes("401"))) {
+        if (onOpenGeminiKey) onOpenGeminiKey();
+      }
+      showToast("error", "Generation Failed", err.message || "Could not synthesize output.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <GenerationModal
-      isOpen={Boolean(activeTool)}
+      isOpen={!!activeTool}
       onClose={onClose}
       title={meta.title}
       subtitle={meta.subtitle}
       icon={meta.icon}
-      iconColor={meta.color}
       onGenerate={handleGenerate}
       isGenerating={isSubmitting}
-      generateButtonText="Generate Now"
+      generateButtonText="Synthesize Output"
     >
-      <div className="space-y-4">
-        {/* Source Selector */}
-        <ModalSourceSelector
-          sources={sourceOptions}
-          selectedIds={selectedSourceIds}
-          onToggleSource={handleToggleSource}
-          onSelectAll={handleSelectAllSources}
-        />
+      <ModalTopicPrompt
+        topic={topic}
+        setTopic={setTopic}
+        placeholder="e.g., Key operational risks, financial figures, or executive summary"
+      />
 
-        {/* Focus Topic */}
-        <ModalTopicPrompt
-          value={topic}
-          onChange={setTopic}
-          placeholder="E.g. Focus on financial risk factors, or technical architecture..."
-        />
-
-        {/* Language Selector */}
-        <ModalLanguageSelector value={language} onChange={setLanguage} />
-
-        {/* Tool-specific controls */}
-        {activeTool === "quiz" && (
-          <>
-            <ModalSegmentedControl
-              label="Question Count"
-              value={quizQuestionCount}
-              onChange={setQuizQuestionCount}
-              options={[
-                { id: "fewer", label: "Fewer (3)" },
-                { id: "standard", label: "Standard (5)" },
-                { id: "more", label: "More (8)" },
-              ]}
-            />
-            <ModalSegmentedControl
-              label="Difficulty Level"
-              value={quizDifficulty}
-              onChange={setQuizDifficulty}
-              options={[
-                { id: "easy", label: "Foundational" },
-                { id: "medium", label: "Applied" },
-                { id: "hard", label: "Advanced" },
-              ]}
-            />
-            <ModalMultiSelectTypes
-              label="Question Format"
-              selectedValues={quizQuestionTypes}
-              onToggle={handleToggleQuestionType}
-              options={[
-                { id: "multiple_choice", label: "Multiple Choice" },
-                { id: "true_false", label: "True / False" },
-              ]}
-            />
-          </>
-        )}
-
-        {activeTool === "flashcards" && (
-          <ModalSegmentedControl
-            label="Card Deck Size"
-            value={flashcardCount}
-            onChange={setFlashcardCount}
-            options={[
-              { id: "fewer", label: "Quick (4)" },
-              { id: "standard", label: "Standard (6)" },
-              { id: "more", label: "Comprehensive (10)" },
-            ]}
-          />
-        )}
-
-        {activeTool === "audio" && (
-          <ModalSegmentedControl
-            label="Podcast Dialogue Style"
-            value={audioFormat}
-            onChange={setAudioFormat}
-            options={[
-              { id: "two_host", label: "Two Hosts (Deep Dive)" },
-              { id: "solo_host", label: "Solo Briefing" },
-            ]}
-          />
-        )}
-
-        {activeTool === "slides" && (
-          <ModalSegmentedControl
-            label="Presentation Theme"
-            value={slideTheme}
-            onChange={setSlideTheme}
-            options={[
-              { id: "modern_dark", label: "Modern Dark" },
-              { id: "clean_light", label: "Minimalist Light" },
-              { id: "bold_executive", label: "Bold Executive" },
-            ]}
-          />
-        )}
-
-        {activeTool === "report" && (
-          <ModalSegmentedControl
-            label="Report Structure"
-            value={reportArchetype}
-            onChange={setReportArchetype}
-            options={[
-              { id: "executive_summary", label: "Executive Summary" },
-              { id: "study_guide", label: "Study Guide" },
-              { id: "research_memo", label: "Research Memo" },
-            ]}
-          />
-        )}
-      </div>
+      <ModalSegmentedControl
+        label={meta.lengthLabel}
+        value={lengthMode}
+        onChange={setLengthMode}
+        options={meta.lengthOptions}
+      />
     </GenerationModal>
   );
 }

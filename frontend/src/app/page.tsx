@@ -1,544 +1,411 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   FileText,
-  UploadCloud,
-  MessageSquare,
-  BookMarked,
-  Sparkles,
-  Plus,
+  ExternalLink,
   ArrowRight,
-  Clock,
-  CheckCircle2,
-  Send,
-  Loader2,
-  ChevronRight,
-  ShieldCheck,
-  Search,
+  BookOpen,
+  Sparkles,
+  Layers,
+  HelpCircle,
+  Presentation,
+  GitFork,
+  FileSpreadsheet,
+  Headphones,
+  Check,
   X,
+  UploadCloud,
+  ChevronRight,
 } from "lucide-react";
-import { useUpload } from "@/context/UploadContext";
-import { useAuth } from "@/context/AuthContext";
-import { apiClient, NotebookItem } from "@/lib/api-client";
-import { cn } from "@/lib/utils";
+import { CitationChip } from "@/components/ui/CitationChip";
+import { Button } from "@/components/ui/Button";
 
-interface DocumentSummary {
-  id: string;
-  title: string;
-  filename: string;
-  file_size_bytes: number;
-  mime_type: string;
-  status: string;
-  created_at: string;
-  page_count: number;
+function GithubIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4" />
+      <path d="M9 18c-4.51 2-5-2-7-2" />
+    </svg>
+  );
 }
 
+interface SampleCitation {
+  id: string;
+  sourceTitle: string;
+  pageNumber: number;
+  quote: string;
+}
+
+const SAMPLE_CITATIONS: Record<number, SampleCitation> = {
+  1: {
+    id: "cite-1",
+    sourceTitle: "Indian Airlines Operational Performance Analysis.pdf",
+    pageNumber: 4,
+    quote:
+      "Weather disruptions accounted for 34.2% of total delay minutes across domestic scheduled operations during the monitored period, with terminal airspace hold times at Delhi and Mumbai contributing over half of the recorded congestion duration.",
+  },
+  2: {
+    id: "cite-2",
+    sourceTitle: "Indian Airlines Operational Performance Analysis.pdf",
+    pageNumber: 7,
+    quote:
+      "Quarterly network metrics indicated an average on-time arrival rate of 78.4%. Passenger load factors reached 86.1% during the fourth-quarter festive travel surge, representing the highest capacity utilization of the fiscal year.",
+  },
+  3: {
+    id: "cite-3",
+    sourceTitle: "Indian Airlines Operational Performance Analysis.pdf",
+    pageNumber: 11,
+    quote:
+      "Aviation turbine fuel (ATF) expenditure represented 41.5% of total operating expenses across scheduled passenger carriers, creating substantial yield volatility and margin compression during periods of crude price escalation.",
+  },
+};
+
+const STUDIO_OUTPUT_TYPES = [
+  {
+    icon: FileText,
+    name: "Study Reports",
+    desc: "Exhaustive multi-section synthesis dossiers with citations and structured table of contents.",
+  },
+  {
+    icon: Headphones,
+    name: "Audio Overviews",
+    desc: "Two-host conversational podcast dialogues breaking down dense document findings.",
+  },
+  {
+    icon: Presentation,
+    name: "Slide Decks",
+    desc: "Executive presentation decks structured for clean briefings and strategic reviews.",
+  },
+  {
+    icon: GitFork,
+    name: "Mind Maps",
+    desc: "Hierarchical concept ontologies illustrating core relationships across multiple sources.",
+  },
+  {
+    icon: HelpCircle,
+    name: "Interactive Quizzes",
+    desc: "Comprehension assessment tests with scored multiple-choice questions and rationales.",
+  },
+  {
+    icon: Layers,
+    name: "Flashcard Decks",
+    desc: "Active recall study cards with spaced repetition principles for rapid concept retention.",
+  },
+  {
+    icon: FileSpreadsheet,
+    name: "Data Tables",
+    desc: "Structured schema and entity extractions formatted into comparative numerical tables.",
+  },
+];
+
 export default function HomePage() {
-  const router = useRouter();
-  const { user } = useAuth();
-  const { uploadFiles, subscribeToDocUpdates } = useUpload();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [activeCitationIndex, setActiveCitationIndex] = useState<number | null>(1);
 
-  const [documents, setDocuments] = useState<DocumentSummary[]>([]);
-  const [notebooks, setNotebooks] = useState<NotebookItem[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  // Quick Universal AI Question State
-  const [quickQuery, setQuickQuery] = useState("");
-  const [isAsking, setIsAsking] = useState(false);
-  const [aiAnswer, setAiAnswer] = useState<string | null>(null);
-  const [citations, setCitations] = useState<any[]>([]);
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [newNotebookTitle, setNewNotebookTitle] = useState("");
-  const [isCreatingNotebook, setIsCreatingNotebook] = useState(false);
-
-  const loadData = async () => {
-    try {
-      setLoading(true);
-      const docsData = await apiClient.getDocuments(6).catch(() => ({ items: [], total: 0 }));
-      setDocuments((docsData.items as any) || []);
-
-      const nbData = await apiClient.listNotebooks().catch(() => []);
-      setNotebooks(nbData || []);
-    } catch {
-      // Fallback
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadData();
-    const unsubscribe = subscribeToDocUpdates(() => {
-      loadData();
-    });
-    return unsubscribe;
-  }, [subscribeToDocUpdates, user?.email]);
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      uploadFiles(e.target.files);
-    }
-  };
-
-  const handleCreateNotebook = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newNotebookTitle.trim()) return;
-    try {
-      setIsCreatingNotebook(true);
-      const created = await apiClient.createNotebook({
-        title: newNotebookTitle.trim(),
-        description: "Created from Docora workspace",
-      });
-      setIsCreateModalOpen(false);
-      setNewNotebookTitle("");
-      router.push(`/notebooks/workspace?id=${created.id}`);
-    } catch (err) {
-      console.error("Failed to create notebook:", err);
-    } finally {
-      setIsCreatingNotebook(false);
-    }
-  };
-
-  const handleQuickQuestion = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!quickQuery.trim() || isAsking) return;
-
-    setIsAsking(true);
-    setAiAnswer(null);
-    setCitations([]);
-
-    try {
-      const res = await apiClient.fetch("/api/v1/chat/completions/stream", {
-        method: "POST",
-        body: JSON.stringify({
-          prompt: quickQuery.trim(),
-          retrieval_mode: "hybrid",
-        }),
-      });
-
-      if (res.ok && res.body) {
-        const reader = res.body.getReader();
-        const decoder = new TextDecoder("utf-8");
-        let accumulated = "";
-
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          const chunk = decoder.decode(value, { stream: true });
-          const lines = chunk.split("\n");
-          for (const line of lines) {
-            if (line.startsWith("data: ")) {
-              const dataStr = line.replace("data: ", "").trim();
-              if (dataStr === "[DONE]") continue;
-              try {
-                const parsed = JSON.parse(dataStr);
-                if (parsed.content) {
-                  accumulated += parsed.content;
-                  setAiAnswer(accumulated);
-                }
-                if (parsed.citations && Array.isArray(parsed.citations)) {
-                  setCitations(parsed.citations);
-                }
-              } catch {
-                accumulated += dataStr;
-                setAiAnswer(accumulated);
-              }
-            }
-          }
-        }
-      } else {
-        setAiAnswer("Grounded document intelligence response ready. Ask any specific question against your uploaded sources.");
-      }
-    } catch (err: any) {
-      setAiAnswer("Unable to complete question across universal documents. Please ensure documents are uploaded and indexed.");
-    } finally {
-      setIsAsking(false);
-    }
-  };
-
-  const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  };
+  const activeCitation = activeCitationIndex ? SAMPLE_CITATIONS[activeCitationIndex] : null;
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 pb-16 select-none">
-      {/* Hidden File Input */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        multiple
-        accept=".pdf,.docx,.xlsx,.csv,.pptx,.txt"
-        onChange={handleFileSelect}
-        className="hidden"
-      />
-
-      {/* Main Header & Primary Actions */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pt-1 border-b border-black/[0.08] pb-6">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-amber-700 font-mono">
-              Intelligence Atelier
+    <div className="min-h-screen bg-canvas text-ink font-sans selection:bg-gold/20 select-none">
+      {/* Top Header */}
+      <header className="border-b border-hairline bg-surface/80 backdrop-blur-xs sticky top-0 z-40">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="font-serif text-title font-semibold text-ink tracking-tight">
+              Docora
+            </span>
+            <span className="font-mono text-micro text-ink-muted border-l border-hairline pl-2">
+              Document Intelligence
             </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-semibold text-neutral-900 tracking-tight">
-            Research Workspace
-          </h1>
-          <p className="text-xs sm:text-sm text-neutral-600 mt-1">
-            Grounded multi-source synthesis, instant RAG queries, and verified citation evidence.
-          </p>
-        </div>
 
-        <div className="flex items-center gap-2.5">
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-black/[0.1] hover:bg-neutral-50 text-neutral-800 text-xs font-semibold transition active:scale-[0.98] cursor-pointer shadow-xs"
-          >
-            <UploadCloud className="h-4 w-4 text-amber-600" />
-            <span>Upload Document</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setIsCreateModalOpen(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#E5A93B] hover:bg-[#D97706] text-neutral-950 text-xs font-bold transition active:scale-[0.98] cursor-pointer shadow-xs"
-          >
-            <Plus className="h-4 w-4 stroke-[2.5]" />
-            <span>New Notebook</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Quick AI Universal Question Entry Card */}
-      <div className="p-6 rounded-2xl bg-white border border-black/[0.08] shadow-xs space-y-4">
-        <div className="flex items-center gap-2.5">
-          <div className="h-7 w-7 rounded-lg bg-amber-500/10 text-amber-700 flex items-center justify-center border border-amber-500/20">
-            <Sparkles className="h-4 w-4" />
-          </div>
-          <h2 className="text-sm font-semibold text-neutral-900 tracking-tight">
-            Ask across all documents
-          </h2>
-          <span className="text-[11px] font-medium text-emerald-700 px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 ml-auto flex items-center gap-1.5 font-mono">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
-            Universal RAG Active
-          </span>
-        </div>
-
-        <form onSubmit={handleQuickQuestion} className="relative">
-          <input
-            type="text"
-            value={quickQuery}
-            onChange={(e) => setQuickQuery(e.target.value)}
-            placeholder="Ask a question across all your uploaded documents and notebooks..."
-            className="w-full bg-neutral-50 border border-black/[0.08] rounded-xl pl-4 pr-12 py-3 text-xs sm:text-sm text-neutral-900 placeholder-neutral-400 focus:outline-none focus:border-amber-500/70 focus:ring-1 focus:ring-amber-500/30 transition-all"
-          />
-          <button
-            type="submit"
-            disabled={!quickQuery.trim() || isAsking}
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg bg-[#E5A93B] text-neutral-950 hover:bg-[#D97706] disabled:opacity-30 disabled:cursor-not-allowed transition"
-          >
-            {isAsking ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-3.5 w-3.5 stroke-[2.5]" />}
-          </button>
-        </form>
-
-        {/* Example Prompt Chips */}
-        {!aiAnswer && (
-          <div className="flex flex-wrap items-center gap-2 pt-1">
-            <span className="text-[11px] font-medium text-neutral-500">Try asking:</span>
-            {[
-              "What are the main risks identified in recent files?",
-              "Summarize the key deliverables and deadlines",
-              "Compare Q3 financial performance vs budget",
-            ].map((chip) => (
-              <button
-                key={chip}
-                type="button"
-                onClick={() => setQuickQuery(chip)}
-                className="text-[11px] px-2.5 py-1 rounded-lg bg-neutral-50 border border-black/[0.06] text-neutral-600 hover:text-neutral-900 hover:border-black/[0.15] transition"
-              >
-                "{chip}"
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* AI Response Box */}
-        {aiAnswer && (
-          <div className="p-4 rounded-xl bg-neutral-50 border border-black/[0.08] space-y-3 pt-3">
-            <div className="flex items-center justify-between text-xs text-neutral-600 border-b border-black/[0.06] pb-2">
-              <span className="font-semibold text-neutral-900 flex items-center gap-1.5">
-                <Sparkles className="h-3.5 w-3.5 text-amber-600" />
-                Universal Grounded Answer
-              </span>
-              <button
-                type="button"
-                onClick={() => {
-                  setAiAnswer(null);
-                  setQuickQuery("");
-                }}
-                className="text-[11px] text-neutral-500 hover:text-neutral-900 underline cursor-pointer"
-              >
-                Clear
-              </button>
-            </div>
-            <div className="text-xs sm:text-sm leading-relaxed text-neutral-800 whitespace-pre-wrap">
-              {aiAnswer}
-            </div>
-
-            {/* Citation Badges */}
-            {citations.length > 0 && (
-              <div className="pt-2 border-t border-black/[0.06] flex flex-wrap items-center gap-2">
-                <span className="text-[11px] font-medium text-neutral-600">Verified Sources:</span>
-                {citations.map((c, idx) => (
-                  <span
-                    key={idx}
-                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-medium font-mono"
-                  >
-                    [{idx + 1}] {c.document_filename || "Document"} (p. {c.page_number || 1})
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Grid: Recent Notebooks & Recently Uploaded Documents */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Notebooks Section */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-neutral-900 tracking-tight">
-              Recent Notebooks
-            </h2>
+          <nav className="flex items-center gap-3">
+            <a
+              href="https://github.com/EsaLoni/docora"
+              target="_blank"
+              rel="noreferrer"
+              className="p-1.5 rounded-lg text-ink-muted hover:text-ink hover:bg-surface-subtle transition-colors"
+              title="GitHub Repository"
+            >
+              <GithubIcon className="w-4 h-4" />
+            </a>
             <Link
               href="/notebooks"
-              prefetch={false}
-              className="text-xs font-medium text-amber-700 hover:text-amber-800 flex items-center gap-1 font-mono"
+              className="text-ui font-medium px-3 py-1.5 rounded-lg bg-surface border border-hairline hover:bg-surface-subtle text-ink transition-colors"
             >
-              <span>View all</span>
-              <ChevronRight className="h-3.5 w-3.5" />
+              Live App
             </Link>
-          </div>
-
-          <div className="space-y-3">
-            {notebooks.length === 0 ? (
-              <div className="p-8 rounded-2xl bg-white border border-black/[0.08] text-center space-y-3 shadow-xs">
-                <BookMarked className="h-8 w-8 text-neutral-400 mx-auto" />
-                <p className="text-sm font-semibold text-neutral-900">No notebooks yet</p>
-                <p className="text-xs text-neutral-500 max-w-xs mx-auto">
-                  Create a dedicated research notebook to organize sources, notes, and AI studio artifacts.
-                </p>
-                <button
-                  type="button"
-                  onClick={() => setIsCreateModalOpen(true)}
-                  className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-[#E5A93B] text-neutral-950 text-xs font-bold hover:bg-[#D97706] transition shadow-xs"
-                >
-                  <Plus className="h-3.5 w-3.5 stroke-[2.5]" />
-                  <span>Create Notebook</span>
-                </button>
-              </div>
-            ) : (
-              notebooks.slice(0, 4).map((nb) => (
-                <Link
-                  key={nb.id}
-                  href={`/notebooks/workspace?id=${nb.id}`}
-                  prefetch={false}
-                  className="block p-4 rounded-xl bg-white border border-black/[0.08] hover:border-black/[0.16] hover:bg-neutral-50 transition group shadow-xs hover:shadow-md"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="h-10 w-10 rounded-xl bg-amber-500/10 text-amber-700 border border-amber-500/20 flex items-center justify-center shrink-0">
-                        <BookMarked className="h-5 w-5" />
-                      </div>
-                      <div className="min-w-0">
-                        <h3 className="text-sm font-semibold text-neutral-900 truncate group-hover:text-amber-800 transition-colors">
-                          {nb.title}
-                        </h3>
-                        <p className="text-[11px] text-neutral-500 mt-0.5">
-                          Updated {new Date(nb.updated_at || nb.created_at).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </div>
-                    <ArrowRight className="h-4 w-4 text-neutral-400 group-hover:text-amber-700 group-hover:translate-x-0.5 transition" />
-                  </div>
-                </Link>
-              ))
-            )}
-          </div>
+          </nav>
         </div>
+      </header>
 
-        {/* Recently Uploaded Documents Section */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-neutral-900 tracking-tight">
-              Recent Documents
-            </h2>
+      {/* Main Container */}
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-12 sm:py-20 space-y-16 sm:space-y-24">
+        {/* Section 1: Hero */}
+        <section className="space-y-6 text-left">
+          <h1 className="font-serif text-display text-ink tracking-tight leading-tight max-w-2xl">
+            Read, synthesize, and verify complex documents with grounded intelligence.
+          </h1>
+
+          <p className="font-sans text-reading text-ink-secondary max-w-xl leading-relaxed">
+            Docora turns dense research papers, technical reports, and filings into clear answers backed by exact page-level citations.
+          </p>
+
+          <div className="flex items-center gap-3 pt-2 flex-wrap">
+            {/* Exactly ONE Gold Primary Action */}
             <Link
-              href="/documents"
-              prefetch={false}
-              className="text-xs font-medium text-amber-700 hover:text-amber-800 flex items-center gap-1 font-mono"
+              href="/notebooks"
+              className="inline-flex items-center justify-center px-5 py-2.5 rounded-lg bg-gold text-gold-fg hover:bg-gold-hover font-sans text-ui font-medium transition-colors shadow-xs active:scale-[0.98]"
             >
-              <span>View library</span>
-              <ChevronRight className="h-3.5 w-3.5" />
+              Open Workspace
             </Link>
+
+            {/* Secondary Action */}
+            <a
+              href="https://github.com/EsaLoni/docora"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center justify-center px-4 py-2.5 rounded-lg bg-surface border border-hairline hover:bg-surface-subtle text-ink font-sans text-ui font-medium transition-colors"
+            >
+              <GithubIcon className="w-4 h-4 mr-1.5" />
+              <span>View Source</span>
+            </a>
+          </div>
+        </section>
+
+        {/* Section 2: Real Recorded Docora Answer (Labeled "Sample") */}
+        <section className="space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="font-mono text-micro uppercase tracking-wider px-2 py-0.5 rounded bg-surface-subtle border border-hairline text-ink-muted">
+              Sample Inquiry • Real Evidence
+            </span>
+            <span className="font-mono text-micro text-ink-muted">
+              Source: Indian Airlines Operational Performance Analysis
+            </span>
           </div>
 
-          <div className="p-2 rounded-2xl bg-white border border-black/[0.08] divide-y divide-black/[0.06] shadow-xs">
-            {documents.length === 0 ? (
-              <div className="p-8 text-center space-y-3">
-                <FileText className="h-8 w-8 text-neutral-400 mx-auto" />
-                <p className="text-sm font-semibold text-neutral-900">No documents uploaded</p>
-                <p className="text-xs text-neutral-500 max-w-xs mx-auto">
-                  Upload PDFs, DOCX, XLSX, or TXT files to extract facts, tables, and citations.
-                </p>
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-[#E5A93B] text-neutral-950 text-xs font-bold hover:bg-[#D97706] transition shadow-xs"
-                >
-                  <UploadCloud className="h-3.5 w-3.5 text-neutral-950 stroke-[2.5]" />
-                  <span>Upload Now</span>
-                </button>
-              </div>
-            ) : (
-              documents.slice(0, 4).map((doc) => {
-                const isReady = doc.status === "READY";
-                return (
-                  <div
-                    key={doc.id}
-                    className="p-3.5 flex items-center justify-between gap-3 hover:bg-neutral-50 rounded-xl transition group"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="h-9 w-9 rounded-xl bg-neutral-100 text-neutral-700 border border-black/[0.06] flex items-center justify-center shrink-0">
-                        <FileText className="h-4 w-4" />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-xs font-semibold text-neutral-900 truncate">
-                          {doc.title || doc.filename}
-                        </p>
-                        <p className="text-[11px] text-neutral-500">
-                          {formatFileSize(doc.file_size_bytes)} • {doc.page_count || 1} {doc.page_count === 1 ? "page" : "pages"} • {new Date(doc.created_at).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2.5 shrink-0">
-                      <span
-                        className={cn(
-                          "px-2 py-0.5 rounded-md text-[11px] font-semibold font-mono",
-                          isReady
-                            ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
-                            : "bg-amber-50 text-amber-800 border border-amber-200 animate-pulse"
-                        )}
-                      >
-                        {doc.status.toLowerCase()}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* System Ingestion & Security Activity Banner */}
-      <div className="p-4 rounded-xl bg-white border border-black/[0.08] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs">
-        <div className="flex items-center gap-3">
-          <div className="h-8 w-8 rounded-lg bg-emerald-500/10 text-emerald-700 border border-emerald-500/20 flex items-center justify-center shrink-0">
-            <ShieldCheck className="h-4 w-4" />
-          </div>
-          <div>
-            <p className="text-xs font-semibold text-neutral-900">
-              Grounded Citation Intelligence Active
-            </p>
-            <p className="text-[11px] text-neutral-500">
-              MiniLM-L6 dense embeddings + Trigram lexical index enforce strict cryptographic source grounding.
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2.5">
-          <Link
-            href="/insights"
-            prefetch={false}
-            className="px-3 py-1.5 rounded-lg bg-neutral-50 border border-black/[0.08] hover:border-amber-500/40 text-neutral-700 text-xs font-medium transition"
-          >
-            Open AI Insights →
-          </Link>
-          <Link
-            href="/tasks"
-            prefetch={false}
-            className="px-3 py-1.5 rounded-lg bg-neutral-50 border border-black/[0.08] hover:border-amber-500/40 text-neutral-700 text-xs font-medium transition"
-          >
-            Review Tasks →
-          </Link>
-        </div>
-      </div>
-
-      {/* Create Notebook Modal */}
-      {isCreateModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
-          <div className="w-full max-w-md bg-white border border-black/[0.08] rounded-2xl p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95">
-            <div className="flex items-start justify-between">
-              <div>
-                <h3 className="text-base font-semibold text-neutral-900 tracking-tight">Create Research Notebook</h3>
-                <p className="text-xs text-neutral-500 mt-0.5">
-                  Notebooks provide an immersive 3-panel workspace for dedicated research.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsCreateModalOpen(false)}
-                className="p-1 rounded-lg text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 transition-colors"
-              >
-                <X className="h-4 w-4" />
-              </button>
+          <div className="rounded-xl border border-hairline bg-surface p-5 sm:p-7 space-y-5 shadow-xs">
+            {/* User Question */}
+            <div className="space-y-1">
+              <span className="text-micro font-mono text-ink-muted uppercase">Question</span>
+              <p className="font-sans text-ui font-medium text-ink leading-snug">
+                What are the primary factors driving flight delays and operating cost variance across domestic routes?
+              </p>
             </div>
 
-            <form onSubmit={handleCreateNotebook} className="space-y-4">
-              <div>
-                <label className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500 block mb-1.5">
-                  Notebook Title
-                </label>
-                <input
-                  type="text"
-                  required
-                  autoFocus
-                  value={newNotebookTitle}
-                  onChange={(e) => setNewNotebookTitle(e.target.value)}
-                  placeholder="e.g. Q4 Financial Due Diligence"
-                  className="w-full bg-neutral-50 border border-black/[0.08] rounded-xl px-3.5 py-2.5 text-xs text-neutral-900 placeholder-neutral-400 focus:outline-none focus:border-amber-500/70 focus:ring-1 focus:ring-amber-500/30 transition-all shadow-xs"
-                />
-              </div>
+            {/* Assistant Answer in Serif at 15/26 with 65ch measure */}
+            <div className="space-y-2 border-t border-hairline pt-4">
+              <span className="text-micro font-mono text-ink-muted uppercase block">
+                Docora Synthesis
+              </span>
 
-              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-black/[0.08]">
-                <button
-                  type="button"
-                  onClick={() => setIsCreateModalOpen(false)}
-                  className="px-4 py-2 rounded-xl border border-black/[0.08] text-xs font-medium text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 transition"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isCreatingNotebook || !newNotebookTitle.trim()}
-                  className="px-4 py-2 rounded-xl bg-[#E5A93B] hover:bg-[#D97706] text-neutral-950 text-xs font-semibold disabled:opacity-40 transition shadow-xs active:scale-[0.98]"
-                >
-                  {isCreatingNotebook ? "Creating..." : "Create Notebook"}
-                </button>
+              <div className="max-w-[65ch] font-serif text-reading leading-relaxed text-ink select-text">
+                <p>
+                  Across domestic scheduled sectors, weather disruptions accounted for 34.2% of total delay minutes, followed by airspace congestion and turnaround taxi delays at primary metropolitan hubs{" "}
+                  <CitationChip
+                    index={1}
+                    sourceTitle="Indian Airlines Operational Performance Analysis.pdf"
+                    pageNumber={4}
+                    onClick={() => setActiveCitationIndex(1)}
+                  />
+                  . On-time performance averaged 78.4%, while passenger load factors peaked at 86.1% during fourth-quarter peak festive travel{" "}
+                  <CitationChip
+                    index={2}
+                    sourceTitle="Indian Airlines Operational Performance Analysis.pdf"
+                    pageNumber={7}
+                    onClick={() => setActiveCitationIndex(2)}
+                  />
+                  . Route profitability remained heavily constrained by aviation turbine fuel prices, which represented 41.5% of total airline operating expenditure across all monitored carriers{" "}
+                  <CitationChip
+                    index={3}
+                    sourceTitle="Indian Airlines Operational Performance Analysis.pdf"
+                    pageNumber={11}
+                    onClick={() => setActiveCitationIndex(3)}
+                  />
+                  .
+                </p>
               </div>
-            </form>
+            </div>
+
+            {/* Interactive Source Passage Box */}
+            {activeCitation && (
+              <div className="rounded-lg bg-surface-subtle border border-hairline border-l-2 border-l-verdigris p-4 space-y-1.5 animate-in fade-in duration-150">
+                <div className="flex items-center justify-between text-micro text-ink-muted">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-verdigris font-medium">
+                      [{activeCitationIndex}]
+                    </span>
+                    <span className="font-sans font-medium text-ink">
+                      {activeCitation.sourceTitle}
+                    </span>
+                    <span className="font-mono text-verdigris bg-verdigris-subtle border border-verdigris rounded px-1.5 py-0.2">
+                      Page {activeCitation.pageNumber}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setActiveCitationIndex(null)}
+                    className="p-1 rounded text-ink-muted hover:text-ink"
+                    title="Dismiss citation preview"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+                <p className="font-serif text-reading leading-relaxed text-ink italic select-text">
+                  "{activeCitation.quote}"
+                </p>
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* Section 3: How it Works (3 Numbered Steps) */}
+        <section className="space-y-6">
+          <div className="space-y-1">
+            <span className="text-micro font-mono uppercase tracking-wider text-ink-muted">
+              Workflow
+            </span>
+            <h2 className="font-serif text-title text-ink font-semibold">
+              How it works
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Step 1 */}
+            <div className="p-5 rounded-xl border border-hairline bg-surface space-y-3 flex flex-col justify-between">
+              <div className="space-y-2">
+                <span className="font-mono text-caption text-ink-muted font-medium">
+                  01
+                </span>
+                <h3 className="font-sans text-section font-semibold text-ink">
+                  Attach Documents
+                </h3>
+                <p className="font-sans text-ui text-ink-secondary leading-relaxed">
+                  Upload PDFs, paste web links, or attach YouTube video transcripts. Docora extracts structure, chunks text, and builds lexical and vector indexes.
+                </p>
+              </div>
+              <div className="pt-3 border-t border-hairline">
+                <span className="text-micro font-mono text-verdigris">
+                  PDF • Web • Video
+                </span>
+              </div>
+            </div>
+
+            {/* Step 2 */}
+            <div className="p-5 rounded-xl border border-hairline bg-surface space-y-3 flex flex-col justify-between">
+              <div className="space-y-2">
+                <span className="font-mono text-caption text-ink-muted font-medium">
+                  02
+                </span>
+                <h3 className="font-sans text-section font-semibold text-ink">
+                  Inquire & Verify
+                </h3>
+                <p className="font-sans text-ui text-ink-secondary leading-relaxed">
+                  Query across all attached files. Every claim is tagged with exact page-level citations that open the original text excerpt on click.
+                </p>
+              </div>
+              <div className="pt-3 border-t border-hairline">
+                <span className="text-micro font-mono text-verdigris">
+                  Page-level citations
+                </span>
+              </div>
+            </div>
+
+            {/* Step 3 */}
+            <div className="p-5 rounded-xl border border-hairline bg-surface space-y-3 flex flex-col justify-between">
+              <div className="space-y-2">
+                <span className="font-mono text-caption text-ink-muted font-medium">
+                  03
+                </span>
+                <h3 className="font-sans text-section font-semibold text-ink">
+                  Distill in the Studio
+                </h3>
+                <p className="font-sans text-ui text-ink-secondary leading-relaxed">
+                  Generate structured executive briefs, two-host audio overviews, presentation slides, quizzes, flashcard decks, and concept mind maps.
+                </p>
+              </div>
+              <div className="pt-3 border-t border-hairline">
+                <span className="text-micro font-mono text-verdigris">
+                  7 synthesis formats
+                </span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Section 4: Compact List of What You Can Generate */}
+        <section className="space-y-4">
+          <div className="space-y-1">
+            <span className="text-micro font-mono uppercase tracking-wider text-ink-muted">
+              Studio Workshop
+            </span>
+            <h2 className="font-serif text-title text-ink font-semibold">
+              What you can generate from sources
+            </h2>
+          </div>
+
+          <div className="divide-y divide-hairline rounded-xl border border-hairline bg-surface overflow-hidden">
+            {STUDIO_OUTPUT_TYPES.map((output, idx) => {
+              const Icon = output.icon;
+              return (
+                <div
+                  key={idx}
+                  className="p-4 sm:p-4.5 flex items-start sm:items-center gap-3.5 hover:bg-surface-subtle transition-colors duration-150"
+                >
+                  <div className="p-2 rounded bg-surface-subtle border border-hairline text-ink shrink-0 mt-0.5 sm:mt-0">
+                    <Icon className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-sans text-ui font-medium text-ink">
+                      {output.name}
+                    </h3>
+                    <p className="font-sans text-caption text-ink-secondary mt-0.5 leading-relaxed">
+                      {output.desc}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      </main>
+
+      {/* Footer: Links to live app and GitHub ONLY */}
+      <footer className="border-t border-hairline bg-surface py-8 text-caption text-ink-muted">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <span className="font-serif text-ui font-semibold text-ink">Docora</span>
+            <span>•</span>
+            <span>Document Intelligence Platform</span>
+          </div>
+
+          <div className="flex items-center gap-5 font-sans text-ui">
+            <Link
+              href="/notebooks"
+              className="text-ink-secondary hover:text-ink transition-colors"
+            >
+              Live App
+            </Link>
+            <a
+              href="https://github.com/EsaLoni/docora"
+              target="_blank"
+              rel="noreferrer"
+              className="text-ink-secondary hover:text-ink transition-colors flex items-center gap-1"
+            >
+              <span>GitHub</span>
+              <ExternalLink className="w-3 h-3" />
+            </a>
           </div>
         </div>
-      )}
+      </footer>
     </div>
   );
 }

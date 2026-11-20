@@ -127,6 +127,28 @@ export function Sidebar({ isMobileOpen = false, onCloseMobile }: SidebarProps) {
 
       {/* Bottom Area: Settings & Account Management */}
       <div className="p-3 border-t border-border-hairline space-y-2 bg-surface">
+        {/* Admin Telemetry Console - ONLY VISIBLE TO ESALONI313@GMAIL.COM */}
+        {(user?.email?.toLowerCase() === "esaloni313@gmail.com" ||
+          (process.env.NODE_ENV !== "production" && user?.email?.toLowerCase() === "dev@udip.local")) && (
+          <Link
+            href="/admin"
+            prefetch={false}
+            onClick={onCloseMobile}
+            className={cn(
+              "flex items-center gap-2.5 px-3 py-2 rounded-md text-ui font-medium transition-colors",
+              pathname === "/admin"
+                ? "bg-gold/10 text-gold font-semibold border border-gold/30"
+                : "text-ink-secondary hover:bg-surface-subtle hover:text-ink"
+            )}
+          >
+            <ShieldCheck className="h-4 w-4 shrink-0 text-gold" />
+            <span className="flex-1">Owner Console</span>
+            <span className="text-micro font-mono uppercase bg-gold/15 text-gold px-1.5 py-0.2 rounded text-[10px]">
+              Admin
+            </span>
+          </Link>
+        )}
+
         <Link
           href="/settings"
           prefetch={false}

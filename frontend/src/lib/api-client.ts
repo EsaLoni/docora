@@ -168,6 +168,35 @@ export interface AuthResponse {
   user: UserProfile;
 }
 
+export interface AdminUserItem {
+  id: string;
+  email: string;
+  full_name?: string | null;
+  role: string;
+  is_active: boolean;
+  login_count: number;
+  last_login_at?: string | null;
+  registered_at: string;
+  workspace_count: number;
+}
+
+export interface AdminUsersResponse {
+  total_users: number;
+  users: AdminUserItem[];
+}
+
+export interface AdminStatsResponse {
+  total_users: number;
+  active_users: number;
+  total_logins: number;
+  total_workspaces: number;
+  total_notebooks: number;
+  total_documents: number;
+  total_artifacts: number;
+  recent_registrations: AdminUserItem[];
+  recent_logins: AdminUserItem[];
+}
+
 export interface ApiError {
   message: string;
   code?: string;
@@ -829,6 +858,23 @@ export class ApiClient {
       onToken(data.answer || data.content || "");
       onComplete(data.citations || [], convId);
     }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Admin Telemetry & Users (Restricted to Platform Owner: esaloni313@gmail.com)
+  // ---------------------------------------------------------------------------
+  async getAdminUsers(
+    sortBy: string = "last_login",
+    limit: number = 50,
+    offset: number = 0
+  ): Promise<AdminUsersResponse> {
+    return this.get<AdminUsersResponse>(
+      `/api/v1/admin/users?sort_by=${sortBy}&limit=${limit}&offset=${offset}`
+    );
+  }
+
+  async getAdminStats(): Promise<AdminStatsResponse> {
+    return this.get<AdminStatsResponse>("/api/v1/admin/stats");
   }
 }
 

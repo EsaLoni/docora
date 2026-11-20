@@ -68,12 +68,12 @@ ADMIN_EMAILS = {"esaloni313@gmail.com", "dev@udip.local"}
 async def require_admin(
     current_user: User = Depends(get_current_user),
 ) -> User:
-    """Ensure the requesting user is a platform admin."""
-    if current_user.email.lower() not in ADMIN_EMAILS and current_user.role != "admin":
-        logger.warning("Admin access denied for user %s (%s)", current_user.email, current_user.id)
+    """Ensure the requesting user is the platform owner."""
+    if current_user.email.lower() not in ADMIN_EMAILS:
+        logger.warning("Admin access denied for non-owner user %s (%s)", current_user.email, current_user.id)
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Admin access required.",
+            detail="Forbidden: Platform Owner Only.",
         )
     return current_user
 

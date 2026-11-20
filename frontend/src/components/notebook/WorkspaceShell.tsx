@@ -94,54 +94,72 @@ export function WorkspaceShell({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleKeyDown]);
 
-  // Resizing logic for Left Panel
+  // Resizing logic for Left Panel (rAF throttled for 60/120fps fluidity)
   const isResizingLeft = useRef(false);
+  const latestLeftWidthRef = useRef(leftWidth);
+  latestLeftWidthRef.current = leftWidth;
+
   const handleLeftResizeStart = (e: React.MouseEvent) => {
     e.preventDefault();
     isResizingLeft.current = true;
     document.body.style.cursor = "col-resize";
     document.body.style.userSelect = "none";
 
+    let rafId: number | null = null;
     const onMouseMove = (moveEvent: MouseEvent) => {
       if (!isResizingLeft.current) return;
-      const newWidth = Math.max(260, Math.min(480, moveEvent.clientX));
-      setLeftWidth(newWidth);
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        const newWidth = Math.max(260, Math.min(480, moveEvent.clientX));
+        latestLeftWidthRef.current = newWidth;
+        setLeftWidth(newWidth);
+      });
     };
 
     const onMouseUp = () => {
       isResizingLeft.current = false;
+      if (rafId) cancelAnimationFrame(rafId);
       document.body.style.cursor = "";
       document.body.style.userSelect = "";
       window.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("mouseup", onMouseUp);
-      localStorage.setItem("docora-left-panel-width", leftWidth.toString());
+      localStorage.setItem("docora-left-panel-width", latestLeftWidthRef.current.toString());
     };
 
     window.addEventListener("mousemove", onMouseMove);
     window.addEventListener("mouseup", onMouseUp);
   };
 
-  // Resizing logic for Right Panel
+  // Resizing logic for Right Panel (rAF throttled)
   const isResizingRight = useRef(false);
+  const latestRightWidthRef = useRef(rightWidth);
+  latestRightWidthRef.current = rightWidth;
+
   const handleRightResizeStart = (e: React.MouseEvent) => {
     e.preventDefault();
     isResizingRight.current = true;
     document.body.style.cursor = "col-resize";
     document.body.style.userSelect = "none";
 
+    let rafId: number | null = null;
     const onMouseMove = (moveEvent: MouseEvent) => {
       if (!isResizingRight.current) return;
-      const newWidth = Math.max(280, Math.min(500, window.innerWidth - moveEvent.clientX));
-      setRightWidth(newWidth);
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        const newWidth = Math.max(280, Math.min(500, window.innerWidth - moveEvent.clientX));
+        latestRightWidthRef.current = newWidth;
+        setRightWidth(newWidth);
+      });
     };
 
     const onMouseUp = () => {
       isResizingRight.current = false;
+      if (rafId) cancelAnimationFrame(rafId);
       document.body.style.cursor = "";
       document.body.style.userSelect = "";
       window.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("mouseup", onMouseUp);
-      localStorage.setItem("docora-right-panel-width", rightWidth.toString());
+      localStorage.setItem("docora-right-panel-width", latestRightWidthRef.current.toString());
     };
 
     window.addEventListener("mousemove", onMouseMove);

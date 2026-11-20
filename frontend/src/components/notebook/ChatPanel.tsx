@@ -107,9 +107,14 @@ export function ChatPanel({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Auto-scroll on new messages or streaming tokens
+  // Auto-scroll: instant during streaming to prevent layout thrashing; smooth on completion
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (!messagesEndRef.current) return;
+    if (isGenerating) {
+      messagesEndRef.current.scrollIntoView({ behavior: "instant" });
+    } else {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
   }, [messages, isGenerating]);
 
   // Adjust textarea height dynamically
